@@ -23,12 +23,13 @@ pipeline {
             steps {
                     echo 'Running test'
                     sh 'cd classroomCreatorController && go test -v'
-        }
+            }
         
-    }
-    post {
-        always {
-            echo 'Finish Pipeline'
         }
-    }  
+        post {
+            always {
+                echo 'Finish Pipeline'
+            }
+        }  
+    }
 }
