@@ -22,6 +22,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'cd classroomCreatorController'
+                sh 'mkdir test'
                 sh 'go test'
                 sh 'cd ..'
             }
