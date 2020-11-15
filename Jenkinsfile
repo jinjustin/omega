@@ -21,7 +21,9 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'go run main.go'
+                sh 'cd classroomCreatorController'
+                sh 'go test'
+                sh 'cd ..'
             }
         }
         
