@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"omega/classroom"
 	"omega/testdb"
-	"encoding/json"
 )
 
 func Test_deleteClassroom(t *testing.T) {
