@@ -21,11 +21,8 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'cd classroomCreatorController'
-                sh 'mkdir test'
-                sh 'go test'
-                sh 'cd ..'
-            }
+                    echo 'Running test'
+                    sh 'cd classroomCreatorController && go test -v'
         }
         
     }
