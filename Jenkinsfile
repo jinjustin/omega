@@ -26,10 +26,10 @@ pipeline {
             }
         
         }
+    }
         post {
             always {
                 echo 'Finish Pipeline'
             }
         }  
     }
-}
