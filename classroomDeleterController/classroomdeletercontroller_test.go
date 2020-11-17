@@ -28,7 +28,7 @@ func Test_deleteClassroom(t *testing.T) {
 
 	testdb.ClassroomDB = append(testdb.ClassroomDB,c)
 
-	t.Run("Delete Existed Classroom", func(t *testing.T) {
+	t.Run("Unit Test 005: Delete Existed Classroom", func(t *testing.T) {
 
 		var output classroom.Classroom
 		json.Unmarshal(DeleteClassroom(c.ClassID),&output)
@@ -36,7 +36,7 @@ func Test_deleteClassroom(t *testing.T) {
 		assert.Equal(t,c,output)
 	 })
 
-	 t.Run("Delete Non-Existed Classroom", func(t *testing.T) {
+	 t.Run("Unit Test 006: Delete Non-Existed Classroom", func(t *testing.T) {
 
 		var output classroom.Classroom
 		json.Unmarshal(DeleteClassroom(w.ClassID),&output)
