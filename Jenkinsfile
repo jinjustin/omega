@@ -19,21 +19,21 @@ pipeline {
             }
         }
 
-        stage('Test Creator Controller') {
+        stage('Unit Test: classroomCreatorController') {
             steps {
-                    echo 'Running test'
+                    echo 'classroomCreatorController'
                     sh 'cd classroomCreatorController && go test -v'
             }
         }
-        stage('Test Deleter Controller') {
+        stage('Unit Test: classroomDeleterController') {
             steps {
-                    echo 'Running test'
+                    echo 'classroomDeleterController'
                     sh 'cd classroomDeleterController && go test -v'
             }
         }
-        stage('Test List Controller') {
+        stage('Unit Test: classroomListController') {
             steps {
-                    echo 'Running test'
+                    echo 'classroomListController'
                     sh 'cd classroomListController && go test -v'
             }
         }
