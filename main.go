@@ -34,9 +34,6 @@ func main() {
 
 	testdb.ClassroomDB = append(testdb.ClassroomDB,c)
 	testdb.UserInClassDB = append(testdb.UserInClassDB,u)
-	/*fmt.Println(testdb.ClassroomDB)
-
-	fmt.Println(string(classroomdeletercontroller.DeleteClassroom("vB2p9U")))*/
 	
 	fmt.Println(testdb.ClassroomDB)
 	fmt.Println(testdb.UserInClassDB)
