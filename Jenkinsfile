@@ -29,6 +29,13 @@ pipeline {
             }
         }
 
+        stage('Unit Test: classroom') {
+            steps {
+                    echo 'classroom'
+                    sh 'cd classroom && go test -v'
+            }
+        }
+
         stage('Unit Test: classroomCreatorController') {
             steps {
                     echo 'classroomCreatorController'
