@@ -1,10 +1,10 @@
 def notifyLINE(status) {
     def token = "NRZ7KismUFdqDx7ctyBMdPruWjEEVsIlVASPxg7yT4f"
-    def jobName = env.JOB_NAME +' '+env.BRANCH_NAME
+    def jobName = env.JOB_NAME
     def buildNo = env.BUILD_NUMBER
       
     def url = 'https://notify-api.line.me/api/notify'
-    def message = "Build #${buildNo} ${status} \r\n"
+    def message = "${jobName} Build #${buildNo} ${status} \r\n"
     sh "curl ${url} -H 'Authorization: Bearer ${token}' -F 'message=${message}'"
 }
 
