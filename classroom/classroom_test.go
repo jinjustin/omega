@@ -24,8 +24,7 @@ func Test_GetClassroomDetail(t *testing.T) {
 
 	t.Run("Unit Test : get Classroom Detail", func(t *testing.T) {
 		//Output
-		var output Classroom
-		json.Unmarshal(c.GetClassroomDetail(),&output)
+		output := c.GetClassroomDetail()
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
