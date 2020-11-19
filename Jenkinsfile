@@ -40,12 +40,8 @@ pipeline {
             steps {
                     echo 'classroomCreatorController'
                     sh 'cd classroomCreatorController && go test -v'
-            }
-            steps {
                     echo 'classroomDeleterController'
                     sh 'cd classroomDeleterController && go test -v'
-            }
-            steps {
                     echo 'classroomListController'
                     sh 'cd classroomListController && go test -v'
             }
