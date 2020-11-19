@@ -5,41 +5,80 @@ import (
 	"fmt"
 	//"encoding/json"
 	"crypto/rand"
-	"omega/testdb"
+	//"github.com/jmoiron/sqlx"
+	"omega/database"
+	"database/sql"
 )
 
-//CreateNewClass is function that teacher use to create new class
-func CreateNewClass(className string,classCode string,year string,permission string,userID string) []byte{
+//CreateNewClass is function that use to create classroom
+func CreateNewClass(className string,classCode string,year string,permission string,userID string) []byte {
 
-	check := checkClassCode(classCode,year)
 	classID := generateClassID()
 
-	if check == true {
-		c := classroom.Classroom{
+	c := classroom.Classroom{
+		ClassID: "",
+		ClassName: "",
+		ClassCode: "ClassCode Error",
+		Year: "",
+		Permission: "",
+   }
+
+	if(checkClassCode(classCode,year) == true){
+
+		c = classroom.Classroom{
 			ClassID: classID,
 			ClassName: className,
 			ClassCode: classCode,
 			Year: year,
 			Permission: permission,
+	   }
+
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `INSERT INTO class (classid,classname,classcode, year, permission)VALUES ($1, $2, $3, $4, $5)`
+
+		_, err = db.Exec(sqlStatement, c.ClassID,c.ClassName, c.ClassCode, c.Year, c.Permission)
+		if err != nil {
+		panic(err)
 		}
 
-		addCreator := testdb.UserInClass{
-			UserID: userID,
-			ClassID: classID,
+		sqlStatement = `INSERT INTO userinclass (classid,userid)VALUES ($1, $2)`
+
+		_, err = db.Exec(sqlStatement, c.ClassID, userID)
+		if err != nil {
+		panic(err)
 		}
 
-		testdb.ClassroomDB = append(testdb.ClassroomDB,c)
-		testdb.UserInClassDB = append(testdb.UserInClassDB,addCreator)
 		return c.GetClassroomDetail()
-	} else {
-		c := classroom.Classroom{
-			ClassID: "",
-			ClassName: "",
-			ClassCode: "Error",
-			Year: "",
-			Permission: "",
+	}
+
+	return c.GetClassroomDetail()
+}
+
+func checkClassCode(classCode string,year string) bool{
+	
+	var classID string
+
+	if len(classCode) != 8{
+		return false
+	}
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
 		}
-		return c.GetClassroomDetail()
+	defer db.Close()
+	sqlStatement := `SELECT classid FROM class WHERE classcode=$1 and year=$2;`
+	row := db.QueryRow(sqlStatement, classCode,year)
+	err = row.Scan(&classID)
+	switch err {
+	case sql.ErrNoRows: return true
+	case nil: return false
+	default: panic(err)
 	}
 }
 
@@ -52,25 +91,4 @@ func generateClassID() string{
     }
 	s := fmt.Sprintf("%X", b)
 	return s
-}
-
-func checkClassCode(classCode string,year string) bool{
-	correct := true
-	if len(classCode) != 8{
-		correct = false
-	}
-
-	for _, a := range classCode {
-		if a > '9' && a < '0'{
-		   correct = false
-		}
-	 }
-
-	for _, a := range testdb.ClassroomDB {
-		if a.ClassCode == classCode && a.Year == year{
-		   correct = false
-		}
-	 }
-
-	return correct
 }

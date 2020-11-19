@@ -4,8 +4,9 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"omega/classroom"
-	"omega/testdb"
+	"omega/database"
 	"encoding/json"
+	"database/sql"
 )
 
 func Test_deleteClassroom(t *testing.T) {
@@ -18,29 +19,61 @@ func Test_deleteClassroom(t *testing.T) {
 		Permission: "Public",
 	}
 
-	w := classroom.Classroom{
-		ClassID: "OBLMv5",
-		ClassCode: "12309854",
-		ClassName: "Test2",
-		Year: "2564",
-		Permission: "Private",
-	}
+	u := "ZZZZZZ"
 
-	testdb.ClassroomDB = append(testdb.ClassroomDB,c)
+	db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+	defer db.Close()
 
-	t.Run("Unit Test 005: Delete Existed Classroom", func(t *testing.T) {
+	sqlStatement := `INSERT INTO class (classid,classname,classcode, year, permission)VALUES ($1, $2, $3, $4, $5)`
+
+	_, err = db.Exec(sqlStatement, c.ClassID,c.ClassName, c.ClassCode, c.Year, c.Permission)
+		if err != nil {
+		panic(err)
+		}
+
+	sqlStatement = `INSERT INTO userinclass (classid,userid)VALUES ($1, $2)`
+
+	_, err = db.Exec(sqlStatement, c.ClassID, u)
+		if err != nil {
+		panic(err)
+		}
+
+	t.Run("Unit Test 005: Delete Non-Existed Classroom", func(t *testing.T) {
+
+		//Input
+		classID := "OBLMv5"
+		userID := u
 
 		var output classroom.Classroom
-		json.Unmarshal(DeleteClassroom(c.ClassID),&output)
-
-		assert.Equal(t,c,output)
-	 })
-
-	 t.Run("Unit Test 006: Delete Non-Existed Classroom", func(t *testing.T) {
-
-		var output classroom.Classroom
-		json.Unmarshal(DeleteClassroom(w.ClassID),&output)
+		json.Unmarshal(DeleteClassroom(classID,userID),&output)
 
 		assert.Equal(t,"Can't find.",output.ClassID)
-	 })
+	})
+
+	t.Run("Unit Test 006: Delete Existed Classroom but user don't in that classroom", func(t *testing.T) {
+
+		//Input
+		classID := c.ClassID
+		userID := "AAAAAA"
+
+		var output classroom.Classroom
+		json.Unmarshal(DeleteClassroom(classID,userID),&output)
+
+		assert.Equal(t,"Can't find.",output.ClassID)
+	})
+
+	t.Run("Unit Test 007: Delete Existed Classroom", func(t *testing.T) {
+
+		//Input
+		classID := c.ClassID
+		userID := u
+
+		var output classroom.Classroom
+		json.Unmarshal(DeleteClassroom(classID,userID),&output)
+
+		assert.Equal(t,c,output)
+	})
  }
