@@ -36,22 +36,23 @@ pipeline {
             }
         }
 
-        stage('Unit Test: classroomCreatorController') {
+        stage('Unit Test') {
             steps {
                     echo 'classroomCreatorController'
                     sh 'cd classroomCreatorController && go test -v'
             }
-        }
-        stage('Unit Test: classroomDeleterController') {
             steps {
                     echo 'classroomDeleterController'
                     sh 'cd classroomDeleterController && go test -v'
             }
-        }
-        stage('Unit Test: classroomListController') {
             steps {
                     echo 'classroomListController'
                     sh 'cd classroomListController && go test -v'
+            }
+        }
+        stage('Integration Test') {
+            steps {
+                    echo 'Integration with API'
             }
         }
     }
