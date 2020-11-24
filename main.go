@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"omega/classroomcreatorcontroller"
+	"omega/coursecontroller"
 	//"omega/database"
-	"omega/classroomdeletercontroller"
-	"omega/classroomlistcontroller"
 	"io/ioutil"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -16,41 +14,41 @@ import (
 	//_ "github.com/lib/pq"
 )
 
-func createNewClass(w http.ResponseWriter, r *http.Request){
+func createCourse(w http.ResponseWriter, r *http.Request){
 	type Input struct{
-		ClassCode string
-		ClassName string
-		Year string
-		Permission string
-		UserID string
+		courseName string
+		courseID string
+		year string
+		permission string
+		userID string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(classroomcreatorcontroller.CreateNewClass(input.ClassName,input.ClassCode,input.Year,input.Permission,input.UserID))
+	w.Write(coursecontroller.CreateCourse(input.courseName,input.courseID,input.year,input.permission,input.userID))
 }
 
-func getClassList(w http.ResponseWriter, r *http.Request){
+func getCourseList(w http.ResponseWriter, r *http.Request){
 	type Input struct{
-		UserID string
+		userID string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(classroomlistcontroller.GetClassroomList(input.UserID))
+	json.NewEncoder(w).Encode(coursecontroller.GetCourseList(input.userID))
 }
 
-func deleteClass(w http.ResponseWriter, r *http.Request){
+func deleteCourse(w http.ResponseWriter, r *http.Request){
 	type Input struct{
-		ClassID string
-		UserID string
+		courseCode string
+		userID string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(classroomdeletercontroller.DeleteClassroom(input.ClassID,input.UserID))
+	w.Write(coursecontroller.DeleteCourse(input.courseCode,input.userID))
 }
 
 func test(w http.ResponseWriter, r *http.Request){
@@ -61,9 +59,9 @@ func test(w http.ResponseWriter, r *http.Request){
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/",test)
-	myRouter.HandleFunc("/createclass",createNewClass).Methods("POST")
-	myRouter.HandleFunc("/getallclass",getClassList).Methods("POST")
-	myRouter.HandleFunc("/deleteclass",deleteClass).Methods("POST")
+	myRouter.HandleFunc("/createclass",createCourse).Methods("POST")
+	myRouter.HandleFunc("/getallclass",getCourseList).Methods("POST")
+	myRouter.HandleFunc("/deleteclass",deleteCourse).Methods("POST")
     log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 

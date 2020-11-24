@@ -31,14 +31,10 @@ pipeline {
 
         stage('Unit Test') {
             steps {
-                    echo 'classroom'
-                    sh 'cd classroom && go test -v'
-                    echo 'classroomCreatorController'
-                    sh 'cd classroomCreatorController && go test -v'
-                    echo 'classroomDeleterController'
-                    sh 'cd classroomDeleterController && go test -v'
-                    echo 'classroomListController'
-                    sh 'cd classroomListController && go test -v'
+                    echo 'course'
+                    sh 'cd course && go test -v'
+                    echo 'courseController'
+                    sh 'cd coursecontroller && go test -v'
             }
         }
         stage('Integration Test') {

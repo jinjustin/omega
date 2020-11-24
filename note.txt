@@ -7,3 +7,9 @@ permission varchar(10) not null,
 announcement varchar(255),
 description varchar(255)
 );
+
+create table coursemember(
+coursecode varchar(10) not null,
+userid varchar(10) not null,
+role varchar(10) not null,
+status varchar(10) not null);
