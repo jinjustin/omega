@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	//"github.com/gorilla/mux"
 )
 
 func Test_createClass(t *testing.T) {

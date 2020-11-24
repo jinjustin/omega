@@ -1,0 +1,9 @@
+create table course(
+coursecode varchar(10) primary key,
+courseid varchar(10) not null,
+coursename varchar(50) not null,
+year varchar(10) not null,
+permission varchar(10) not null,
+announcement varchar(255),
+description varchar(255)
+);
