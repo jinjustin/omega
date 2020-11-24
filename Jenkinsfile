@@ -36,11 +36,6 @@ pipeline {
                     echo 'courseController'
                     sh 'cd coursecontroller && go test -v'
             }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: '**/test-results/*.xml'
-                }
-    }
         }
         stage('Integration Test') {
             steps {
