@@ -36,6 +36,11 @@ pipeline {
                     echo 'courseController'
                     sh 'cd coursecontroller && go test -v'
             }
+            post {
+                always {
+                    junit 'build/reports/**/*.xml'
+                }
+    }
         }
         stage('Integration Test') {
             steps {
