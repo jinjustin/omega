@@ -22,7 +22,7 @@ func CreateCourse(courseName string,courseID string,year string,permission strin
 		Year: "",
 		Permission: "",
    }
-
+   
 	if(checkInputValue(courseID,year) == true){
 
 		c = course.Course{
