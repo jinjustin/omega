@@ -35,6 +35,8 @@ pipeline {
                     sh 'cd course && go test -v'
                     echo 'courseController'
                     sh 'cd coursecontroller && go test -v'
+                    echo 'courseMemberController'
+                    sh 'cd coursemembercontroller && go test -v'
             }
         }
         stage('Integration Test') {

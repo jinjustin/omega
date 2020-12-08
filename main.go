@@ -9,12 +9,14 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
+	"github.com/rs/cors"
 	//"omega/student"
 	//"database/sql"
 	//_ "github.com/lib/pq"
 )
 
 func createCourse(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
 	type Input struct{
 		CourseName string
 		CourseID string
@@ -31,6 +33,7 @@ func createCourse(w http.ResponseWriter, r *http.Request){
 }
 
 func getCourseList(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
 	type Input struct{
 		UserID string
 	}
@@ -41,6 +44,7 @@ func getCourseList(w http.ResponseWriter, r *http.Request){
 }
 
 func deleteCourse(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
 	type Input struct{
 		CourseCode string
 		UserID string
@@ -53,16 +57,38 @@ func deleteCourse(w http.ResponseWriter, r *http.Request){
 }
 
 func test(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
     fmt.Fprintf(w, "Welcome to the HomePage!")
+}
+
+func test2(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
+	type Input struct{
+		test string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	w.Write(reqBody)
 }
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET","POST","DELETE"},
+	})
+
 	myRouter.HandleFunc("/",test)
+	myRouter.HandleFunc("/test",test2).Methods("POST")
 	myRouter.HandleFunc("/createcourse",createCourse).Methods("POST")
 	myRouter.HandleFunc("/getcourselist",getCourseList).Methods("POST")
 	myRouter.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
-    log.Fatal(http.ListenAndServe(":10000", myRouter))
+    log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
 func main() {
