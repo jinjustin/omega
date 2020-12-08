@@ -121,18 +121,51 @@ func AddTeacherToCourse(userID string,courseCode string) []byte{
 
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
-			_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "pending")
-			if err != nil {
-			panic(err)
-			}
+		_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "pending")
+		if err != nil {
+		panic(err)
+		}
 	}
 
 	return t.GetTeacherDetail()
 }
 
 //ApproveJoinCourse is ฟังก์ชันสำหรับให้ผู้สอนรองรับการเข้าร่วม Course ของผู้เรียน
-func ApproveJoinCourse(){
+func ApproveJoinCourse(userID string,courseCode string) string{
 
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE coursemember SET status=$1 WHERE coursecode=$2 and userid=$3;`
+
+	_, err = db.Exec(sqlStatement,"join", courseCode, userID)
+	if err != nil {
+	panic(err)
+	}
+
+	return "success"
+}
+
+//DeclineJoinCourse is ฟังก์ชันสำหรับให้ผู้สอนรองรับการเข้าร่วม Course ของผู้เรียน
+func DeclineJoinCourse(userID string,courseCode string) string{
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `DELETE from coursemember WHERE coursecode=$1 and userid=$2;`
+
+	_, err = db.Exec(sqlStatement,courseCode, userID)
+	if err != nil {
+	panic(err)
+	}
+
+	return "success"
 }
 
 func checkMemberInCourse(userID string,courseCode string) bool{
