@@ -17,8 +17,6 @@ func AddStudentToCourse(studentID string,courseCode string) []byte{
 	s := student.Student{
 		UserID: "Can't Invite this student",
 		StudentID: "",
-		Username: "",
-		Password: "",
 		Firstname: "",
 		Surname: "",
 		Email: "",
@@ -52,8 +50,6 @@ func AddStudentToCourse(studentID string,courseCode string) []byte{
 		s = student.Student{
 			UserID: "",
 			StudentID: studentID,
-			Username: "",
-			Password: "",
 			Firstname: firstName,
 			Surname: surName,
 			Email: "",
@@ -78,8 +74,6 @@ func AddTeacherToCourse(userID string,courseCode string) []byte{
 
 	t := teacher.Teacher{
 		UserID: "Can't Join this course",
-		Username: "",
-		Password: "",
 		Firstname: "",
 		Surname: "",
 		Email: "",
@@ -112,8 +106,6 @@ func AddTeacherToCourse(userID string,courseCode string) []byte{
 	if(checkMemberInCourse(userID,courseCode)){
 		t = teacher.Teacher{
 			UserID: "",
-			Username: "",
-			Password: "",
 			Firstname: firstName,
 			Surname: surName,
 			Email: "",

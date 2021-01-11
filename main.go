@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"omega/coursecontroller"
+	"omega/teachercontroller"
 	//"omega/database"
 	"io/ioutil"
 	"encoding/json"
@@ -22,25 +23,25 @@ func createCourse(w http.ResponseWriter, r *http.Request){
 		CourseID string
 		Year string
 		Permission string
-		UserID string
+		Username string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
 	fmt.Println(input)
-	w.Write(coursecontroller.CreateCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.UserID))
+	w.Write(coursecontroller.CreateCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Username))
 }
 
 func getCourseList(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
 	type Input struct{
-		UserID string
+		Username string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.GetCourseList(input.UserID))
+	json.NewEncoder(w).Encode(coursecontroller.GetCourseList(input.Username))
 }
 
 func deleteCourse(w http.ResponseWriter, r *http.Request){
@@ -54,6 +55,33 @@ func deleteCourse(w http.ResponseWriter, r *http.Request){
     var input Input
 	json.Unmarshal(reqBody, &input)
 	w.Write(coursecontroller.DeleteCourse(input.CourseCode,input.UserID))
+}
+
+func getTeacherInfo(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
+	type Input struct{
+		Username string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(teachercontroller.GetTeacherInfo(input.Username))
+}
+
+func editTeacherInfo(w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
+	type Input struct{
+		Firstname string
+		Surname string
+		Email string
+		Username string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(teachercontroller.EditTeacherInfo(input.Firstname,input.Surname,input.Email,input.Username))
 }
 
 func test(w http.ResponseWriter, r *http.Request){
@@ -84,7 +112,9 @@ func handleRequests() {
 	myRouter.HandleFunc("/createcourse",createCourse).Methods("POST")
 	myRouter.HandleFunc("/getcourselist",getCourseList).Methods("POST")
 	myRouter.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
-    log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
+	myRouter.HandleFunc("/getteacherinfo",getTeacherInfo).Methods("POST")
+	myRouter.HandleFunc("/editteacherinfo",editTeacherInfo).Methods("POST")
+	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
 }
 
 func enableCors(w *http.ResponseWriter) {

@@ -8,8 +8,6 @@ import(
 //Teacher is struct that use to represent student in this platform.
 type Teacher struct{
 	UserID string
-	Username string
-	Password string
 	Firstname string
 	Surname string
 	Email string

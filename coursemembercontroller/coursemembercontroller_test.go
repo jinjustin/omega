@@ -21,8 +21,6 @@ func Test_AddStudentToCourse(t *testing.T){
 		expected := student.Student{
 			UserID: "",
 			StudentID: "60010135",
-			Username: "",
-			Password: "",
 			Firstname: "Jirakit",
 			Surname: "Jitpenthom",
 			Email: "",
@@ -45,8 +43,6 @@ func Test_AddStudentToCourse(t *testing.T){
 		expected := student.Student{
 			UserID: "Can't Invite this student",
 			StudentID: "",
-			Username: "",
-			Password: "",
 			Firstname: "",
 			Surname: "",
 			Email: "",
@@ -82,8 +78,6 @@ func Test_AddTeacherToCourse(t *testing.T){
 		//Expected Output
 		expected := teacher.Teacher{
 			UserID: "",
-			Username: "",
-			Password: "",
 			Firstname: "Test",
 			Surname: "Teacher",
 			Email: "",
@@ -105,8 +99,6 @@ func Test_AddTeacherToCourse(t *testing.T){
 		//Expected Output
 		expected := teacher.Teacher{
 			UserID: "Can't Join this course",
-			Username: "",
-			Password: "",
 			Firstname: "",
 			Surname: "",
 			Email: "",

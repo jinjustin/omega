@@ -9,8 +9,6 @@ import (
 type Student struct{
 	UserID string
 	StudentID string
-	Username string
-	Password string
 	Firstname string
 	Surname string
 	Email string
