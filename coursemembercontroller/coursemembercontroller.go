@@ -67,8 +67,9 @@ func AddStudentToCourse(studentID string,courseCode string) []byte{
 }
 
 //AddTeacherToCourse is ฟังก์ชันที่ใช้เมื่อ ผู้สอน ต้องการเข้าร่วม Course
-func AddTeacherToCourse(userID string,courseCode string) []byte{
+func AddTeacherToCourse(username string,courseCode string) []byte{
 
+	var userID string
 	var firstName string
 	var surName string
 
@@ -85,8 +86,25 @@ func AddTeacherToCourse(userID string,courseCode string) []byte{
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
-	rows,err := db.Query(sqlStatement, userID)
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `SELECT firstname,surname FROM teacher WHERE userid=$1;`
+	rows,err = db.Query(sqlStatement, userID)
 	if err != nil {
 		panic(err)
 	}

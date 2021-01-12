@@ -11,6 +11,21 @@ import (
 )
 
 func Test_AddStudentToCourse(t *testing.T){
+
+	userid := "TOMSON"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO student (userid, studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, userid, `60010135`,`testaddstudent` ,`tocourse`, `student@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
 	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
 
 		//Input
@@ -21,8 +36,8 @@ func Test_AddStudentToCourse(t *testing.T){
 		expected := student.Student{
 			UserID: "",
 			StudentID: "60010135",
-			Firstname: "Jirakit",
-			Surname: "Jitpenthom",
+			Firstname: "testaddstudent",
+			Surname: "tocourse",
 			Email: "",
 		}
 
@@ -55,46 +70,61 @@ func Test_AddStudentToCourse(t *testing.T){
 		assert.Equal(t,expected,output)
 	})
 
-	db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-	defer db.Close()
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid)
+	if err != nil {
+	panic(err)
+	}
 
-	sqlStatement := `DELETE FROM coursemember WHERE userid=$1;`
-	_, err = db.Exec(sqlStatement, "TOMSON")
+	sqlStatement = `DELETE FROM student WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid)
 	if err != nil {
 	panic(err)
 	}
 }
 
 func Test_AddTeacherToCourse(t *testing.T){
-	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
 
-		//Input
-		userID := "TECH01"
-		courseCode := "8BE0E6"
+	username := "testaddteacher"
+	userID := "TECH01"
+	courseCode := "8BE0E6"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, userID, username,`123456` ,`teacher`)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, userID, `testadd`,`teacher` ,`teacher@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
 
 		//Expected Output
 		expected := teacher.Teacher{
 			UserID: "",
-			Firstname: "Test",
-			Surname: "Teacher",
+			Firstname: "testadd",
+			Surname: "teacher",
 			Email: "",
 		}
 
 		//Output
 		var output teacher.Teacher
-		json.Unmarshal(AddTeacherToCourse(userID,courseCode),&output)
+		json.Unmarshal(AddTeacherToCourse(username,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
 
-	t.Run("Unit Test 002: Repetitive Student", func(t *testing.T) {
-
-		//Input
-		userID := "TECH01"
-		courseCode := "8BE0E6"
+	t.Run("Unit Test 002: Repetitive Teacher", func(t *testing.T) {
 
 		//Expected Output
 		expected := teacher.Teacher{
@@ -106,18 +136,24 @@ func Test_AddTeacherToCourse(t *testing.T){
 
 		//Output
 		var output teacher.Teacher
-		json.Unmarshal(AddTeacherToCourse(userID,courseCode),&output)
+		json.Unmarshal(AddTeacherToCourse(username,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
 
-	db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-	defer db.Close()
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "TECH01")
+	if err != nil {
+	panic(err)
+	}
 
-	sqlStatement := `DELETE FROM coursemember WHERE userid=$1;`
+	sqlStatement = `DELETE FROM teacher WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "TECH01")
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
 	_, err = db.Exec(sqlStatement, "TECH01")
 	if err != nil {
 	panic(err)
