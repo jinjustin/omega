@@ -20,8 +20,22 @@ import (
 )
 
 func Test_createCourse(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, `bNMv75`, `createcourseintegrationtest`,`123456` ,`teacher`)
+	if err != nil {
+		panic(err)
+	}
+
 	t.Run("Integration Test: Create Course", func(t *testing.T) {
-		var jsonStr = `{"CourseName": "Test Test","CourseID": "55555555","Year": "2563","Permission": "Public","UserID": "bNMv75"}`
+
+		var jsonStr = `{"CourseName": "Test Test","CourseID": "55555555","Year": "2563","Permission": "Public","UserID": "createcourseintegrationtest"}`
 
 		body := strings.NewReader(jsonStr)
 	
@@ -46,14 +60,7 @@ func Test_createCourse(t *testing.T) {
 		assert.Equal(t,"55555555",course.CourseID)
 	})
 
-
-	db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	sqlStatement := `DELETE FROM course WHERE courseid=$1;`
+	sqlStatement = `DELETE FROM course WHERE courseid=$1;`
 	_, err = db.Exec(sqlStatement, "55555555")
 	if err != nil {
 		panic(err)
@@ -64,6 +71,12 @@ func Test_createCourse(t *testing.T) {
 	if err != nil {
 		panic(err)
    }
+
+   sqlStatement = `DELETE FROM users WHERE userid=$1;`
+   _, err = db.Exec(sqlStatement, "bNMv75")
+   if err != nil {
+	   panic(err)
+  }
 }
 
 func Test_deleteCourse(t *testing.T) {
@@ -76,20 +89,28 @@ func Test_deleteCourse(t *testing.T) {
 
 	sqlStatement := `INSERT INTO course (coursecode,courseid,coursename, year, permission)VALUES ($1, $2, $3, $4, $5)`
 
-		_, err = db.Exec(sqlStatement, "123456", "55555555", "Test Test", "2563", "Public")
-		if err != nil {
+	_, err = db.Exec(sqlStatement, "123456", "55555555", "Test Test", "2563", "Public")
+	if err != nil {
 		panic(err)
-		}
+	}
+
+	sqlStatement = `INSERT INTO users (userid,username,password,role)VALUES ($1, $2, $3, $4)`
+
+	_, err = db.Exec(sqlStatement, "userID", "deletecourseintegrationtest", "123456", "teacher");
+	if err != nil {
+		panic(err)
+	}
 
 	sqlStatement = `INSERT INTO coursemember (coursecode,userid,role,status)VALUES ($1, $2, $3, $4)`
 
 	_, err = db.Exec(sqlStatement, "123456", "userID", "teacher", "join");
 	if err != nil {
-	panic(err)
+		panic(err)
 	}
 
+
 	t.Run("Integration Test: Delete Course", func(t *testing.T) {
-		var jsonStr = `{"CourseCode": "123456","UserID": "userID"}`
+		var jsonStr = `{"CourseCode": "123456", "Username": "deletecourseintegrationtest"}`
 
 		body := strings.NewReader(jsonStr)
 	
@@ -113,6 +134,12 @@ func Test_deleteCourse(t *testing.T) {
 		assert.Equal(t,"Test Test",course.CourseName)
 		assert.Equal(t,"55555555",course.CourseID)
 	})
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "userID")
+	if err != nil {
+		panic(err)
+   }
 }
 
 func Test_getCourseList(t *testing.T) {
@@ -137,8 +164,15 @@ func Test_getCourseList(t *testing.T) {
 	panic(err)
 	}
 
+	sqlStatement = `INSERT INTO users (userid,username,password,role)VALUES ($1, $2, $3, $4)`
+
+	_, err = db.Exec(sqlStatement, "userID", "getcourselistintegrationtest", "123456", "teacher");
+	if err != nil {
+		panic(err)
+	}
+
 	t.Run("Integration Test: Get Course List", func(t *testing.T) {
-		var jsonStr = `{"UserID": "userID"}`
+		var jsonStr = `{"UserName": "getcourselistintegrationtest"}`
 
 		body := strings.NewReader(jsonStr)
 	
@@ -184,4 +218,10 @@ func Test_getCourseList(t *testing.T) {
 	if err != nil {
 		panic(err)
    }
+
+   sqlStatement = `DELETE FROM users WHERE userid=$1;`
+   _, err = db.Exec(sqlStatement, "userID")
+   if err != nil {
+	   panic(err)
+  }
 }

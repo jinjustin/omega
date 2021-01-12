@@ -48,13 +48,13 @@ func deleteCourse(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
 	type Input struct{
 		CourseCode string
-		UserID string
+		Username string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(coursecontroller.DeleteCourse(input.CourseCode,input.UserID))
+	w.Write(coursecontroller.DeleteCourse(input.CourseCode,input.Username))
 }
 
 func getTeacherInfo(w http.ResponseWriter, r *http.Request){
