@@ -80,13 +80,38 @@ func CreateCourse(courseName string, courseID string, year string, permission st
 }
 
 //DeleteCourse is function that use to delete course by use CourseCode and userID
-func DeleteCourse(courseCode string, userID string) []byte {
+func DeleteCourse(courseCode string, username string) []byte {
 	c := course.Course{
 		CourseCode: "Can't find.",
 		CourseID:   "",
 		CourseName: "",
 		Year:       "",
 		Permission: "",
+	}
+
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
 	}
 
 	if checkCourse(courseCode) && checkUser(courseCode, userID) {
