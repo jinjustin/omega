@@ -160,7 +160,7 @@ func Test_AddTeacherToCourse(t *testing.T){
 	}
 }
 
-func Test_AddApproveJoinCourse(t *testing.T){
+func Test_ApproveJoinCourse(t *testing.T){
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -284,7 +284,7 @@ func Test_AddApproveJoinCourse(t *testing.T){
 	}
 }
 
-func Test_AddDeclineJoinCourse(t *testing.T){
+func Test_DeclineJoinCourse(t *testing.T){
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -317,4 +317,185 @@ func Test_AddDeclineJoinCourse(t *testing.T){
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
+}
+
+func Test_GetStudentInCourse(t *testing.T){
+
+	type studentInCourse struct{
+		StudentID string
+		Firstname string
+		Surname string
+		Status string
+	}
+
+	studentInCourse1 := studentInCourse{
+		StudentID: "99010135",
+		Firstname: "testgetstudentincourse",
+		Surname: "one",
+		Status: "join",
+	}
+
+	studentInCourse2 := studentInCourse{
+		StudentID: "99010136",
+		Firstname: "testgetstudentincourse",
+		Surname: "two",
+		Status: "pending",
+	}
+
+	userid1 := "AAAAAA"
+
+	userid2 := "AAAAAB"
+
+	courseCode := "OOOOOO"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO student (userid, studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, userid1, studentInCourse1.StudentID, studentInCourse1.Firstname, studentInCourse1.Surname, `student1@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO student (userid, studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, userid2, studentInCourse2.StudentID, studentInCourse2.Firstname, studentInCourse2.Surname, `student2@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, userid1, `student`, studentInCourse1.Status)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, userid2, `student`, studentInCourse2.Status)
+	if err != nil {
+		panic(err)
+	}
+
+	var expected []studentInCourse
+
+	expected = append(expected, studentInCourse1)
+	expected = append(expected, studentInCourse2)
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
+
+		//Output
+		var output []studentInCourse
+		json.Unmarshal(GetStudentInCourse(courseCode),&output)
+		//Compare output to expected output 
+		assert.Equal(t,expected,output)
+	})
+
+	sqlStatement = `DELETE FROM student WHERE firstname=$1;`
+	_, err = db.Exec(sqlStatement, "testgetstudentincourse")
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid1)
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid2)
+	if err != nil {
+	panic(err)
+	}
+}
+
+func Test_GetTeacherInCourse(t *testing.T){
+
+	type teacherInCourse struct{
+		Firstname string
+		Surname string
+		Status string
+	}
+
+	teacherInCourse1 := teacherInCourse{
+		Firstname: "testgetteacherincourse",
+		Surname: "one",
+		Status: "join",
+	}
+
+	teacherInCourse2 := teacherInCourse{
+		Firstname: "testgetteacherincourse",
+		Surname: "two",
+		Status: "pending",
+	}
+
+	userid1 := "AAAAAA"
+
+	userid2 := "AAAAAB"
+
+	courseCode := "OOOOOO"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, userid1, teacherInCourse1.Firstname, teacherInCourse1.Surname, `teacher1@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, userid2, teacherInCourse2.Firstname, teacherInCourse2.Surname, `teacher2@email.com`)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, userid1, `teacher`, teacherInCourse1.Status)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, userid2, `teacher`, teacherInCourse2.Status)
+	if err != nil {
+		panic(err)
+	}
+
+	var expected []teacherInCourse
+
+	expected = append(expected, teacherInCourse1)
+	expected = append(expected, teacherInCourse2)
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
+
+		//Output
+		var output []teacherInCourse
+		json.Unmarshal(GetTeacherInCourse(courseCode),&output)
+		//Compare output to expected output 
+		assert.Equal(t,expected,output)
+	})
+
+	sqlStatement = `DELETE FROM teacher WHERE firstname=$1;`
+	_, err = db.Exec(sqlStatement, "testgetteacherincourse")
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid1)
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, userid2)
+	if err != nil {
+	panic(err)
+	}
 }

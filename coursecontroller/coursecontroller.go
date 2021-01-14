@@ -12,7 +12,7 @@ import (
 )
 
 //CreateCourse is function that use to create classroom
-func CreateCourse(courseName string, courseID string, year string, permission string, username string) []byte {
+func CreateCourse(courseName string, courseID string, year string, permission string,announcement string, description string,  username string) []byte {
 
 	courseCode := generateCourseCode()
 
@@ -22,6 +22,8 @@ func CreateCourse(courseName string, courseID string, year string, permission st
 		CourseName: "",
 		Year:       "",
 		Permission: "",
+		Announcement: "",
+		Description: "",
 	}
 
 	if checkInputValue(courseID, year) == true {
@@ -34,6 +36,8 @@ func CreateCourse(courseName string, courseID string, year string, permission st
 			CourseName: courseName,
 			Year:       year,
 			Permission: permission,
+			Announcement: announcement,
+			Description: description,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -59,9 +63,9 @@ func CreateCourse(courseName string, courseID string, year string, permission st
 			panic(err)
 		}
 
-		sqlStatement = `INSERT INTO course (coursecode,courseid,coursename, year, permission)VALUES ($1, $2, $3, $4, $5)`
+		sqlStatement = `INSERT INTO course (coursecode,courseid,coursename, year, permission,announcement,description)VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-		_, err = db.Exec(sqlStatement, c.CourseCode, c.CourseID, c.CourseName, c.Year, c.Permission)
+		_, err = db.Exec(sqlStatement, c.CourseCode, c.CourseID, c.CourseName, c.Year, c.Permission,c.Announcement,c.Description)
 		if err != nil {
 			panic(err)
 		}
@@ -252,10 +256,10 @@ func GetCourseList(username string) []course.Course {
 	return courses
 }
 
-//GetCourseInfo is a function that use to get course info
-func GetCourseInfo(courseID string) string{
+//GetDescription is a function that use to get description of the course
+func GetDescription(courseCode string) string{
 
-	var courseInfo string
+	var description string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -263,14 +267,14 @@ func GetCourseInfo(courseID string) string{
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT description FROM course WHERE courseid=$1;`
-	rows, err := db.Query(sqlStatement, courseID)
+	sqlStatement := `SELECT description FROM course WHERE coursecode=$1;`
+	rows, err := db.Query(sqlStatement, courseCode)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&courseInfo)
+		err = rows.Scan(&description)
 		if err != nil {
 			panic(err)
 		}
@@ -280,7 +284,26 @@ func GetCourseInfo(courseID string) string{
 		panic(err)
 	}
 
-	return courseInfo
+	return description
+}
+
+//EditDescription is a function that use to edit course description.
+func EditDescription(courseCode string, description string) string{
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE course SET description=$1 WHERE coursecode=$2;`
+
+	_, err = db.Exec(sqlStatement, description, courseCode)
+	if err != nil {
+	panic(err)
+	}
+
+	return "success"
 }
 
 //GetAnnouncement is a function that use to get course info
@@ -293,7 +316,7 @@ func GetAnnouncement(courseID string) string{
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT announcement FROM course WHERE courseid=$1;`
+	sqlStatement := `SELECT announcement FROM course WHERE coursecode=$1;`
 	rows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
 		panic(err)
@@ -311,6 +334,25 @@ func GetAnnouncement(courseID string) string{
 	}
 
 	return announcement
+}
+
+//EditAnnouncement is a function that use to edit course description.
+func EditAnnouncement(courseCode string, announcement string) string{
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE course SET announcement=$1 WHERE coursecode=$2;`
+
+	_, err = db.Exec(sqlStatement, announcement, courseCode)
+	if err != nil {
+	panic(err)
+	}
+
+	return "success"
 }
 
 func checkInputValue(courseID string, year string) bool {

@@ -5,6 +5,7 @@ import(
 	"omega/teacher"
 	"omega/database"
 	"database/sql"
+	"encoding/json"
 )
 
 //AddStudentToCourse is ฟังก์ชันใช้สำหรับให้ผู้สอนเชิญผู้เรียนเข้าไปใน Course หรือผู้เรียนต้องการเข้าร่วม Course
@@ -57,10 +58,10 @@ func AddStudentToCourse(studentID string,courseCode string) []byte{
 		
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
-			_, err = db.Exec(sqlStatement, courseCode, userID, "student", "pending")
-			if err != nil {
+		_, err = db.Exec(sqlStatement, courseCode, userID, "student", "pending")
+		if err != nil {
 			panic(err)
-			}
+		}
 	}
 
 	return s.GetStudentDetail()
@@ -138,6 +139,299 @@ func AddTeacherToCourse(username string,courseCode string) []byte{
 	}
 
 	return t.GetTeacherDetail()
+}
+
+//GetStudentInCourse is a function that use to get data of all students in the course
+func GetStudentInCourse(courseCode string) []byte{
+	var userIDs []string
+
+	type studentInCourse struct{
+		StudentID string
+		Firstname string
+		Surname string
+		Status string
+	}
+
+	var studentInCourses []studentInCourse
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
+	rows, err := db.Query(sqlStatement, courseCode,"student","join")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID string
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, a := range userIDs {
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `SELECT studentid,firstname,surname FROM student WHERE userid=$1;`
+		rows, err := db.Query(sqlStatement, a)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var studentID string
+			var firstname string
+			var surname string
+
+			err = rows.Scan(&studentID, &firstname, &surname)
+			if err != nil {
+				panic(err)
+			}
+
+			s := studentInCourse{
+				StudentID: studentID,
+				Firstname: firstname,
+				Surname: surname,
+				Status: "join",
+			}
+
+			studentInCourses = append(studentInCourses, s)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	userIDs = nil
+
+	sqlStatement = `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
+	rows, err = db.Query(sqlStatement, courseCode,"student","pending")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID string
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, a := range userIDs {
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `SELECT studentid,firstname,surname FROM student WHERE userid=$1;`
+		rows, err := db.Query(sqlStatement, a)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var studentID string
+			var firstname string
+			var surname string
+
+			err = rows.Scan(&studentID, &firstname, &surname)
+			if err != nil {
+				panic(err)
+			}
+
+			s := studentInCourse{
+				StudentID: studentID,
+				Firstname: firstname,
+				Surname: surname,
+				Status: "pending",
+			}
+
+			studentInCourses = append(studentInCourses, s)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	b,err := json.Marshal(studentInCourses)
+	if err != nil{
+		panic(err)
+	}
+
+	return b
+}
+
+//GetTeacherInCourse is a function that use to get data of all students in the course
+func GetTeacherInCourse(courseCode string) []byte{
+	var userIDs []string
+
+	type teacherInCourse struct{
+		Firstname string
+		Surname string
+		Status string
+	}
+
+	var teacherInCourses []teacherInCourse
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
+	rows, err := db.Query(sqlStatement, courseCode,"teacher","join")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID string
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, a := range userIDs {
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
+		rows, err := db.Query(sqlStatement, a)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var firstname string
+			var surname string
+
+			err = rows.Scan(&firstname, &surname)
+			if err != nil {
+				panic(err)
+			}
+
+			t := teacherInCourse{
+				Firstname: firstname,
+				Surname: surname,
+				Status: "join",
+			}
+
+			teacherInCourses = append(teacherInCourses, t)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	userIDs = nil
+
+	sqlStatement = `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
+	rows, err = db.Query(sqlStatement, courseCode,"teacher","pending")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID string
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, a := range userIDs {
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
+		rows, err := db.Query(sqlStatement, a)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var firstname string
+			var surname string
+
+			err = rows.Scan(&firstname, &surname)
+			if err != nil {
+				panic(err)
+			}
+
+			t := teacherInCourse{
+				Firstname: firstname,
+				Surname: surname,
+				Status: "pending",
+			}
+
+			teacherInCourses = append(teacherInCourses, t)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	b,err := json.Marshal(teacherInCourses)
+	if err != nil{
+		panic(err)
+	}
+
+	return b
 }
 
 //ApproveJoinCourse is ฟังก์ชันสำหรับให้ผู้สอนรองรับการเข้าร่วม Course ของผู้เรียน

@@ -31,21 +31,28 @@ func Test_createCourse(t *testing.T) {
 		year := "2563"
 		permission := "Private"
 		username := "testcreatecourse"
+		announcement := "Coure announcement here."
+		description := "Course description here."
 		//Expected Output
 		expected := course.Course{
 			CourseCode: "000001",
 			CourseID:   "99999999",
 			CourseName: "Computer Programing",
 			Year:       "2563",
-			Permission: "Private"}
+			Permission: "Private",
+			Announcement: "Coure announcement here.",
+			Description: "Course description here.",
+		}
 		//Output
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission, username), &output)
+		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,announcement,description, username), &output)
 		//Compare output to expected output
 		assert.Equal(t, expected.CourseName, output.CourseName)
 		assert.Equal(t, expected.CourseID, output.CourseID)
 		assert.Equal(t, expected.Year, output.Year)
 		assert.Equal(t, expected.Permission, output.Permission)
+		assert.Equal(t, expected.Announcement, output.Announcement)
+		assert.Equal(t, expected.Description, output.Description)
 	})
 
 	t.Run("Unit Test 002: Wrong Course ID", func(t *testing.T) {
@@ -57,7 +64,7 @@ func Test_createCourse(t *testing.T) {
 		username := "testcreatecourse"
 
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission, username), &output)
+		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","", username), &output)
 
 		assert.Equal(t, "", output.CourseName)
 		assert.Equal(t, "Course ID Error", output.CourseID)
@@ -73,7 +80,7 @@ func Test_createCourse(t *testing.T) {
 		permission := "Private"
 		username := "testcreatecourse"
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission, username), &output)
+		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","", username), &output)
 
 		assert.Equal(t, "", output.CourseName)
 		assert.Equal(t, "Course ID Error", output.CourseID)
@@ -98,7 +105,7 @@ func Test_createCourse(t *testing.T) {
 			Permission: "Private"}
 
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission, username), &output)
+		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","",username), &output)
 
 		assert.Equal(t, expected.CourseName, output.CourseName)
 		assert.Equal(t, expected.CourseID, output.CourseID)
@@ -322,6 +329,98 @@ func Test_getCourselist(t *testing.T) {
 
 	sqlStatement = `DELETE FROM users WHERE userid=$1;`
 	_, err = db.Exec(sqlStatement, userid)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_CourseDescriptionFunction(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO course (coursecode,courseid,coursename,year,permission,announcement,description)VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err = db.Exec(sqlStatement, `ZZZZZZ`,`00000000`,`coursedescriptioncourse`,`2563`,`Private`,`Course announcement here.`,`Course description here.`)
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Get Course Description", func(t *testing.T) {
+		//Input
+		description := "Course description here."
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := GetDescription(courseCode)
+
+		//Compare output to expected output
+		assert.Equal(t, description,output)
+	})
+
+	t.Run("Unit Test 002: Edit Course Description", func(t *testing.T) {
+		//Input
+		description := "Course description being Edited"
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := EditDescription(courseCode,description)
+
+		//Compare output to expected output
+		assert.Equal(t, output, "success")
+		assert.Equal(t, description,GetDescription(courseCode))
+	})
+
+	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
+	_, err = db.Exec(sqlStatement, "ZZZZZZ")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_CourseAnnouncementFunction(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO course (coursecode,courseid,coursename,year,permission,announcement,description)VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err = db.Exec(sqlStatement, `ZZZZZZ`,`00000000`,`coursedescriptioncourse`,`2563`,`Private`,`Course announcement here.`,`Course description here.`)
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Get Course Announcement", func(t *testing.T) {
+		//Input
+		announcement := "Course announcement here."
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := GetAnnouncement(courseCode)
+
+		//Compare output to expected output
+		assert.Equal(t, announcement, output)
+	})
+
+	t.Run("Unit Test 002: Edit Course Announcement", func(t *testing.T) {
+		//Input
+		description := "Course announcement being Edited"
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := EditAnnouncement(courseCode,description)
+
+		//Compare output to expected output
+		assert.Equal(t, output, "success")
+		assert.Equal(t, description,GetAnnouncement(courseCode))
+	})
+
+	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
+	_, err = db.Exec(sqlStatement, "ZZZZZZ")
 	if err != nil {
 		panic(err)
 	}
