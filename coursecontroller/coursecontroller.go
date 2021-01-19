@@ -123,6 +123,8 @@ func DeleteCourse(courseCode string, username string) []byte {
 		var courseID string
 		var year string
 		var permission string
+		var announcement string
+		var description string
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
@@ -130,9 +132,9 @@ func DeleteCourse(courseCode string, username string) []byte {
 		}
 		defer db.Close()
 
-		sqlStatement := `SELECT courseName,courseID,year,permission FROM course WHERE coursecode=$1;`
+		sqlStatement := `SELECT courseName,courseID,year,permission,announcement,description FROM course WHERE coursecode=$1;`
 		row := db.QueryRow(sqlStatement, courseCode)
-		err = row.Scan(&courseName, &courseID, &year, &permission)
+		err = row.Scan(&courseName, &courseID, &year, &permission, &announcement, &description)
 		if err != nil {
 			panic(err)
 		}
@@ -143,6 +145,8 @@ func DeleteCourse(courseCode string, username string) []byte {
 			CourseName: courseName,
 			Year:       year,
 			Permission: permission,
+			Announcement: announcement,
+			Description: description,
 		}
 
 		sqlStatement = `DELETE FROM course WHERE coursecode=$1;`

@@ -6,6 +6,7 @@ import (
 	"omega/coursecontroller"
 	"omega/coursemembercontroller"
 	"omega/teachercontroller"
+	"omega/login"
 
 	//"omega/database"
 	"encoding/json"
@@ -227,6 +228,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/addteacher",addTeacherToCourse).Methods("POST")
 	myRouter.HandleFunc("/getstudentincourse",getStudentInCourse).Methods("POST")
 	myRouter.HandleFunc("/getteacherincourse",getTeacherInCourse).Methods("POST")
+	myRouter.HandleFunc("/login", login.Login).Methods("GET")
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
 }
 
