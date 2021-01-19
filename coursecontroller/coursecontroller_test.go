@@ -203,11 +203,8 @@ func Test_deleteCourse(t *testing.T) {
 
 	t.Run("Unit Test 007: Delete Existed Course", func(t *testing.T) {
 
-		//Input
-		courseCode := c.CourseCode
-
 		var output course.Course
-		json.Unmarshal(DeleteCourse(courseCode, username), &output)
+		json.Unmarshal(DeleteCourse(c.CourseCode, username), &output)
 
 		assert.Equal(t, c, output)
 	})
