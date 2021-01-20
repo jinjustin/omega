@@ -12,9 +12,12 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"strings"
+	"context"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/dgrijalva/jwt-go"
 	//"omega/student"
 	//"database/sql"
 	//_ "github.com/lib/pq"
@@ -39,16 +42,17 @@ func createCourse(w http.ResponseWriter, r *http.Request){
 	w.Write(coursecontroller.CreateCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Announcement,input.Description,input.Username))
 }
 
-func getCourseList(w http.ResponseWriter, r *http.Request){
+var getCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	type Input struct{
 		Username string
+		//Token string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
 	json.NewEncoder(w).Encode(coursecontroller.GetCourseList(input.Username))
-}
+})
 
 func deleteCourse(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
@@ -205,6 +209,35 @@ func test2(w http.ResponseWriter, r *http.Request){
 	w.Write(reqBody)
 }
 
+func middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		if len(authHeader) != 2 {
+			fmt.Println("Malformed token")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Malformed Token"))
+		} else {
+			jwtToken := authHeader[1]
+			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				}
+				return []byte("secret"), nil
+			})
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				ctx := context.WithValue(r.Context(), "props", claims)
+				// Access context values in handlers like this
+				// props, _ := r.Context().Value("props").(jwt.MapClaims)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			} else {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized"))
+			}
+		}
+	})
+}
+
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 
@@ -216,7 +249,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/",test)
 	myRouter.HandleFunc("/test",test2).Methods("POST")
 	myRouter.HandleFunc("/createcourse",createCourse).Methods("POST")
-	myRouter.HandleFunc("/getcourselist",getCourseList).Methods("POST")
+	myRouter.Handle("/getcourselist",middleware(getCourseList)).Methods("POST")
 	myRouter.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
 	myRouter.HandleFunc("/getteacherinfo",getTeacherInfo).Methods("POST")
 	myRouter.HandleFunc("/editteacherinfo",editTeacherInfo).Methods("POST")
@@ -228,8 +261,10 @@ func handleRequests() {
 	myRouter.HandleFunc("/addteacher",addTeacherToCourse).Methods("POST")
 	myRouter.HandleFunc("/getstudentincourse",getStudentInCourse).Methods("POST")
 	myRouter.HandleFunc("/getteacherincourse",getTeacherInCourse).Methods("POST")
-	myRouter.HandleFunc("/login", login.Login).Methods("GET")
+	myRouter.HandleFunc("/login", login.Login).Methods("POST")
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
+
+	
 }
 
 func enableCors(w *http.ResponseWriter) {

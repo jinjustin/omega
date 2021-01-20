@@ -16,6 +16,7 @@ import (
 	"omega/database"
 	"omega/student"
 	"omega/teacher"
+	"omega/login"
 
 	"encoding/json"
 	"omega/course"
@@ -119,7 +120,7 @@ func Test_deleteCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/deletecourse", deleteCourse).Methods("POST")
+		r.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -176,23 +177,39 @@ func Test_getCourseList(t *testing.T) {
 	}
 
 	t.Run("Integration Test: Get Course List", func(t *testing.T) {
-		var jsonStr = `{"UserName": "getcourselistintegrationtest"}`
 
-		body := strings.NewReader(jsonStr)
-	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getcourselist", getCourseList).Methods("POST")
+		r.HandleFunc("/login", login.Login).Methods("GET")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
-		resp, err := http.Post(ts.URL + "/getcourselist","application/json",body)
+		resp, err := http.Get(ts.URL + "/login?username=getcourselistintegrationtest&password=123456")
+		if err != nil {
+		t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		loginRes, err := ioutil.ReadAll(resp.Body)
+
+		var token login.Token
+
+		json.Unmarshal(loginRes, &token)
+
+		var jsonStr = `{"UserName": "getcourselistintegrationtest"}`
+
+		body := strings.NewReader(jsonStr)
+
+		r.Handle("/getcourselist", getCourseList).Methods("POST")
+		ts = httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err = http.Post(ts.URL + "/getcourselist","application/json",body)
 		if err != nil {
 		t.Errorf("Expected nil, received %s", err.Error())
 		}
 		defer resp.Body.Close()
 		output, err := ioutil.ReadAll(resp.Body)
 		
-		fmt.Println(string(output))
+		//fmt.Println(string(output))
 
 		//เก็บค่าตอบกลับไว้ใน course
 		var courses []course.Course
