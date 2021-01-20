@@ -499,3 +499,179 @@ func Test_GetTeacherInCourse(t *testing.T){
 	panic(err)
 	}
 }
+
+func Test_DeleteTeacherInCourse(t *testing.T){
+
+	teacher1 := teacher.Teacher{
+		UserID: "TE0001",
+		Firstname: "testdeleteteacherincourse",
+		Surname: "one",
+		Email: "teacher1@kmitl.ac.th",
+	}
+
+	courseCode := "OOOOOO"
+	username := "deleteteacher"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, teacher1.UserID, teacher1.Firstname, teacher1.Surname, teacher1.Email)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, teacher1.UserID, username, "123456", "teacher")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, teacher1.UserID, `teacher`, "Join")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
+
+		//Output
+		var output teacher.Teacher
+		json.Unmarshal(DeleteTeacherInCourse(courseCode,username),&output)
+		//Compare output to expected output 
+		assert.Equal(t,teacher1.Firstname,output.Firstname)
+		assert.Equal(t,teacher1.Surname,output.Surname)
+		assert.Equal(t,teacher1.Email,output.Email)
+	})
+
+	sqlStatement = `DELETE FROM teacher WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, teacher1.UserID)
+	if err != nil {
+	panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, teacher1.UserID)
+	if err != nil {
+	panic(err)
+	}
+}
+
+func Test_DeleteStudentInCourse(t *testing.T){
+
+	student1 := student.Student{
+		UserID: "ST0001",
+		StudentID: "99010139",
+		Firstname: "testdeletestudentincourse",
+		Surname: "two",
+		Email: "student1@kmitl.ac.th",
+	}
+
+	courseCode := "OOOOOO"
+	username := "deletestudent"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO student (userid, studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, student1.UserID, student1.StudentID, student1.Firstname, student1.Surname, student1.Email)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, student1.UserID, username, "123456", "student")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, student1.UserID, "student", "Join")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
+
+		//Output
+		var output student.Student
+		json.Unmarshal(DeleteStudentInCourse(courseCode,username),&output)
+		//Compare output to expected output
+		assert.Equal(t,student1.StudentID,output.StudentID) 
+		assert.Equal(t,student1.Firstname,output.Firstname)
+		assert.Equal(t,student1.Surname,output.Surname)
+		assert.Equal(t,student1.Email,output.Email)
+	})
+
+	sqlStatement = `DELETE FROM student WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, student1.UserID)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, student1.UserID)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_GetUserRole(t *testing.T){
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, "ST0001", "getstudentrole", "123456", "student")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, "TE0001", "getteacherrole", "123456", "teacher")
+	if err != nil {
+		panic(err)
+	}
+
+
+	t.Run("Unit Test 001: Get Student Role", func(t *testing.T) {
+
+		//Output
+		output := GetUserRole("getstudentrole")
+
+		//Compare output to expected output
+		assert.Equal(t,"student",output) 
+		
+	})
+
+	t.Run("Unit Test 002: Get Teacher Role", func(t *testing.T) {
+
+		//Output
+		output := GetUserRole("getteacherrole")
+
+		//Compare output to expected output
+		assert.Equal(t,"teacher",output) 
+		
+	})
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "ST0001")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "TE0001")
+	if err != nil {
+		panic(err)
+	}
+}

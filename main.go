@@ -194,6 +194,42 @@ func getTeacherInCourse(w http.ResponseWriter, r *http.Request){
 	w.Write(coursemembercontroller.GetTeacherInCourse(input.CourseCode))
 }
 
+var getUserRole = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	type Input struct{
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(coursemembercontroller.GetUserRole(input.Username)))
+})
+
+var deleteTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	type Input struct{
+		CourseCode string
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(coursemembercontroller.DeleteTeacherInCourse(input.CourseCode,input.Username)))
+})
+
+var deleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	type Input struct{
+		CourseCode string
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(coursemembercontroller.DeleteStudentInCourse(input.CourseCode,input.Username)))
+})
+
+
 func test(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
     fmt.Fprintf(w, "Welcome to the HomePage!")
@@ -261,6 +297,9 @@ func handleRequests() {
 	myRouter.HandleFunc("/addteacher",addTeacherToCourse).Methods("POST")
 	myRouter.HandleFunc("/getstudentincourse",getStudentInCourse).Methods("POST")
 	myRouter.HandleFunc("/getteacherincourse",getTeacherInCourse).Methods("POST")
+	myRouter.Handle("/deleteteacherincourse",deleteTeacherInCourse).Methods("POST")
+	myRouter.Handle("/deletestudentincourse",deleteStudentInCourse).Methods("POST")
+	myRouter.Handle("/getuserrole",getUserRole).Methods("POST")
 	myRouter.HandleFunc("/login", login.Login).Methods("POST")
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
 

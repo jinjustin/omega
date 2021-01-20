@@ -472,6 +472,160 @@ func DeclineJoinCourse(userID string,courseCode string) string{
 	return "success"
 }
 
+//GetUserRole is a function that use to get user role (student or teacher)
+func GetUserRole(username string) string{
+	var role string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT role FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&role)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return role
+}
+
+//DeleteTeacherInCourse is function that use to delete teacher in the course.
+func DeleteTeacherInCourse(courseCode string, username string) []byte {
+	t := teacher.Teacher{
+		UserID: "Can't find.",
+		Firstname:   "",
+		Surname: "",
+		Email:       "",
+	}
+
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	var firstname string
+	var surname string
+	var email string
+
+	sqlStatement = `SELECT firstname, surname, email FROM teacher WHERE userid=$1;`
+	row := db.QueryRow(sqlStatement, userID)
+	err = row.Scan(&firstname, &surname, &email)
+	if err != nil {
+		panic(err)
+	}
+
+	t = teacher.Teacher{
+		Firstname: firstname,
+		Surname:   surname,
+		Email: email,
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userID=$1 and coursecode=$2;`
+	_, err = db.Exec(sqlStatement, userID,courseCode)
+	if err != nil {
+		panic(err)
+	}
+
+	return t.GetTeacherDetail()
+}
+
+//DeleteStudentInCourse is function that use to delete student in the course.
+func DeleteStudentInCourse(courseCode string, username string) []byte {
+	s := student.Student{
+		UserID: "Can't find.",
+		StudentID: "",
+		Firstname:   "",
+		Surname: "",
+		Email:       "",
+	}
+
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	var studentID string
+	var firstname string
+	var surname string
+	var email string
+
+	sqlStatement = `SELECT studentid, firstname, surname, email FROM student WHERE userid=$1;`
+	row := db.QueryRow(sqlStatement, userID)
+	err = row.Scan(&studentID,&firstname, &surname, &email)
+	if err != nil {
+		panic(err)
+	}
+
+	s = student.Student{
+		StudentID: studentID,
+		Firstname: firstname,
+		Surname:   surname,
+		Email: email,
+	}
+
+	sqlStatement = `DELETE FROM coursemember WHERE userID=$1 and coursecode=$2;`
+	_, err = db.Exec(sqlStatement, userID,courseCode)
+	if err != nil {
+		panic(err)
+	}
+
+	return s.GetStudentDetail()
+
+}
+
 func checkMemberInCourse(userID string,courseCode string) bool{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -491,3 +645,4 @@ func checkMemberInCourse(userID string,courseCode string) bool{
 	default: panic(err)
 	}
 }
+

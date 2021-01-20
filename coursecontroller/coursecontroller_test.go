@@ -422,3 +422,49 @@ func Test_CourseAnnouncementFunction(t *testing.T) {
 		panic(err)
 	}
 }
+
+func Test_GetUserRole(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid,username,password,role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, `9123BV`,`test`,`coursedescriptioncourse`,`2563`,`Private`,`Course announcement here.`,`Course description here.`)
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Unit Test 001: Get Course Announcement", func(t *testing.T) {
+		//Input
+		announcement := "Course announcement here."
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := GetAnnouncement(courseCode)
+
+		//Compare output to expected output
+		assert.Equal(t, announcement, output)
+	})
+
+	t.Run("Unit Test 002: Edit Course Announcement", func(t *testing.T) {
+		//Input
+		description := "Course announcement being Edited"
+		courseCode := "ZZZZZZ"
+
+		//Output
+		output := EditAnnouncement(courseCode,description)
+
+		//Compare output to expected output
+		assert.Equal(t, output, "success")
+		assert.Equal(t, description,GetAnnouncement(courseCode))
+	})
+
+	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
+	_, err = db.Exec(sqlStatement, "ZZZZZZ")
+	if err != nil {
+		panic(err)
+	}
+}

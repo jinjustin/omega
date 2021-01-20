@@ -1000,3 +1000,229 @@ func Test_getTeacherInCourse(t *testing.T) {
 		panic(err)
 	}
 }
+
+func Test_getUserRole(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, "ST0001", "getstudentrole", "123456", "student")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, "TE0001", "getteacherrole", "123456", "teacher")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Integration Test: Get student role", func(t *testing.T) {
+		var jsonStr = `{"Username" : "getstudentrole"}`
+
+		body := strings.NewReader(jsonStr)
+	
+		r := mux.NewRouter().StrictSlash(true)
+		r.Handle("/getuserrole",getUserRole).Methods("POST")
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err := http.Post(ts.URL + "/getuserrole","application/json",body)
+		if err != nil {
+			t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		output, err := ioutil.ReadAll(resp.Body)
+
+		assert.Equal(t,http.StatusOK,resp.StatusCode)
+		assert.Equal(t,"student",string(output))
+	})
+
+	t.Run("Integration Test: Get teacher role", func(t *testing.T) {
+		var jsonStr = `{"Username" : "getteacherrole"}`
+
+		body := strings.NewReader(jsonStr)
+	
+		r := mux.NewRouter().StrictSlash(true)
+		r.Handle("/getuserrole", getUserRole).Methods("POST")
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err := http.Post(ts.URL + "/getuserrole","application/json",body)
+		if err != nil {
+			t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		output, err := ioutil.ReadAll(resp.Body)
+
+		assert.Equal(t,http.StatusOK,resp.StatusCode)
+		assert.Equal(t,"teacher",string(output))
+	})
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "ST0001")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "TE0001")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_deleteTeacherInCourse(t *testing.T) {
+
+	teacher1 := teacher.Teacher{
+		UserID: "TE0001",
+		Firstname: "testdeleteteacherincourse",
+		Surname: "one",
+		Email: "teacher1@kmitl.ac.th",
+	}
+
+	courseCode := "OOOOOO"
+	username := "deleteteacher"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, teacher1.UserID, teacher1.Firstname, teacher1.Surname, teacher1.Email)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, teacher1.UserID, username, "123456", "teacher")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, teacher1.UserID, `teacher`, "Join")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Integration Test: Delete Teacher", func(t *testing.T) {
+		var jsonStr = `{"CourseCode" : "OOOOOO", "Username": "deleteteacher"}`
+
+		body := strings.NewReader(jsonStr)
+	
+		r := mux.NewRouter().StrictSlash(true)
+		r.Handle("/deleteteacherincourse",deleteTeacherInCourse).Methods("POST")
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err := http.Post(ts.URL + "/deleteteacherincourse","application/json",body)
+		if err != nil {
+			t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		output, err := ioutil.ReadAll(resp.Body)
+
+		var teacherInfo teacher.Teacher
+		json.Unmarshal(output, &teacherInfo)
+
+		assert.Equal(t,http.StatusOK,resp.StatusCode)
+		assert.Equal(t,teacher1.Firstname,teacherInfo.Firstname)
+		assert.Equal(t,teacher1.Surname,teacherInfo.Surname)
+		assert.Equal(t,teacher1.Email,teacherInfo.Email)
+	})
+
+	sqlStatement = `DELETE FROM teacher WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, teacher1.UserID)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, teacher1.UserID)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_deleteStudentInCourse(t *testing.T) {
+
+	student1 := student.Student{
+		UserID: "ST0001",
+		StudentID: "99010139",
+		Firstname: "testdeletestudentincourse",
+		Surname: "two",
+		Email: "student1@kmitl.ac.th",
+	}
+
+	courseCode := "OOOOOO"
+	username := "deletestudent"
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO student (userid, studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, student1.UserID, student1.StudentID, student1.Firstname, student1.Surname, student1.Email)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO users (userid, username, password, role)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, student1.UserID, username, "123456", "student")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, courseCode, student1.UserID, "student", "Join")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Integration Test: Delete Student", func(t *testing.T) {
+		var jsonStr = `{"CourseCode" : "OOOOOO", "Username": "deletestudent"}`
+
+		body := strings.NewReader(jsonStr)
+	
+		r := mux.NewRouter().StrictSlash(true)
+		r.Handle("/deletestudentincourse",deleteStudentInCourse).Methods("POST")
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err := http.Post(ts.URL + "/deletestudentincourse","application/json",body)
+		if err != nil {
+			t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		output, err := ioutil.ReadAll(resp.Body)
+
+		var studentInfo student.Student
+		json.Unmarshal(output, &studentInfo)
+
+		assert.Equal(t,http.StatusOK,resp.StatusCode)
+		assert.Equal(t,student1.Firstname,studentInfo.Firstname)
+		assert.Equal(t,student1.Surname,studentInfo.Surname)
+		assert.Equal(t,student1.Email,studentInfo.Email)
+	})
+
+	sqlStatement = `DELETE FROM teacher WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, student1.UserID)
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, student1.UserID)
+	if err != nil {
+		panic(err)
+	}
+}
