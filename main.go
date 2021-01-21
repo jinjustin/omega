@@ -229,7 +229,6 @@ var deleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	w.Write([]byte(coursemembercontroller.DeleteStudentInCourse(input.CourseCode,input.Username)))
 })
 
-
 func test(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
     fmt.Fprintf(w, "Welcome to the HomePage!")

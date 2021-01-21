@@ -14,8 +14,8 @@ type Test struct{
 	Status string
 	Name string
 	Duration string
-	StartTime string
-	StartDate string
+	Start string
+	Date string
 	Description string
 }
 
