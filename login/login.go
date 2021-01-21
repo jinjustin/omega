@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"database/sql"
 	"omega/database"
-	
 )
 
 // Input is a ...
@@ -32,7 +31,7 @@ var Login = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	data.Username = r.FormValue("username")
 	data.Password = r.FormValue("password")
 
-	var username string
+	var role string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -40,7 +39,7 @@ var Login = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT username FROM users WHERE username=$1 and password=$2;`
+	sqlStatement := `SELECT role FROM users WHERE username=$1 and password=$2;`
 	rows,err := db.Query(sqlStatement, data.Username,data.Password)
 	if err != nil {
 		panic(err)
@@ -48,17 +47,17 @@ var Login = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
  
 	for rows.Next() {
-	 err = rows.Scan(&username)
+	err = rows.Scan(&role)
 		 if err != nil {
 			 panic(err)
 		 }
 	 }
-	 err = rows.Err()
-	 if err != nil {
-	 	panic(err)
-	 }
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
 
-	if data.Username == username {
+	if role != "" {
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := token.Claims.(jwt.MapClaims)
 		claims["name"] = data.Username
@@ -70,6 +69,7 @@ var Login = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		 json.NewEncoder(w).Encode( map[string]string{
 			"token": t,
+			"role": role,
 		})
 
 	}else{

@@ -16,7 +16,12 @@ import (
 	"omega/database"
 	"omega/student"
 	"omega/teacher"
-	"omega/login"
+	"omega/test"
+
+	"omega/coursecontroller"
+	"omega/teachercontroller"
+	"omega/coursemembercontroller"
+	"omega/testcontroller"
 
 	"encoding/json"
 	"omega/course"
@@ -43,7 +48,7 @@ func Test_createCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/createcourse", createCourse).Methods("POST")
+		r.HandleFunc("/createcourse",coursecontroller.CreateCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -120,7 +125,7 @@ func Test_deleteCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
+		r.HandleFunc("/deletecourse",coursecontroller.DeleteCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -179,30 +184,16 @@ func Test_getCourseList(t *testing.T) {
 	t.Run("Integration Test: Get Course List", func(t *testing.T) {
 
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/login", login.Login).Methods("GET")
-		ts := httptest.NewServer(r)
-		defer ts.Close()
-	
-		resp, err := http.Get(ts.URL + "/login?username=getcourselistintegrationtest&password=123456")
-		if err != nil {
-		t.Errorf("Expected nil, received %s", err.Error())
-		}
-		defer resp.Body.Close()
-		loginRes, err := ioutil.ReadAll(resp.Body)
-
-		var token login.Token
-
-		json.Unmarshal(loginRes, &token)
 
 		var jsonStr = `{"UserName": "getcourselistintegrationtest"}`
 
 		body := strings.NewReader(jsonStr)
 
-		r.Handle("/getcourselist", getCourseList).Methods("POST")
-		ts = httptest.NewServer(r)
+		r.Handle("/getcourselist", coursecontroller.GetCourseList).Methods("POST")
+		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
-		resp, err = http.Post(ts.URL + "/getcourselist","application/json",body)
+		resp, err := http.Post(ts.URL + "/getcourselist","application/json",body)
 		if err != nil {
 		t.Errorf("Expected nil, received %s", err.Error())
 		}
@@ -275,7 +266,7 @@ func Test_getTeacherInfo(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getteacherinfo", getTeacherInfo).Methods("POST")
+		r.HandleFunc("/getteacherinfo", teachercontroller.GetTeacherInfo).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -342,7 +333,7 @@ func Test_editTeacherInfo(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/editteacherinfo", editTeacherInfo).Methods("POST")
+		r.HandleFunc("/editteacherinfo", teachercontroller.EditTeacherInfo).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -402,7 +393,7 @@ func Test_getDescription(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getdescription", getDescription).Methods("POST")
+		r.HandleFunc("/getdescription", coursecontroller.GetDescription).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -451,7 +442,7 @@ func Test_editDescription(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/editdescription", editDescription).Methods("POST")
+		r.HandleFunc("/editdescription", coursecontroller.EditDescription).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -518,7 +509,7 @@ func Test_getAnnouncement(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getannouncement", getAnnouncement).Methods("POST")
+		r.HandleFunc("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -567,7 +558,7 @@ func Test_editAnnouncement(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/editannouncement", editAnnouncement).Methods("POST")
+		r.HandleFunc("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -641,7 +632,7 @@ func Test_addStudentToCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/addstudent", addStudentToCourse).Methods("POST")
+		r.HandleFunc("/addstudent", coursemembercontroller.AddStudentToCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -729,7 +720,7 @@ func Test_addTeacherToCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/addteacher", addTeacherToCourse).Methods("POST")
+		r.HandleFunc("/addteacher", coursemembercontroller.AddTeacherToCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -858,7 +849,7 @@ func Test_getStudentInCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getstudentincourse", getStudentInCourse).Methods("POST")
+		r.HandleFunc("/getstudentincourse", coursemembercontroller.GetStudentInCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -963,7 +954,7 @@ func Test_getTeacherInCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.HandleFunc("/getteacherincourse", getTeacherInCourse).Methods("POST")
+		r.HandleFunc("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -1027,7 +1018,7 @@ func Test_getUserRole(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/getuserrole",getUserRole).Methods("POST")
+		r.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -1048,7 +1039,7 @@ func Test_getUserRole(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/getuserrole", getUserRole).Methods("POST")
+		r.Handle("/getuserrole", coursemembercontroller.GetUserRole).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -1118,7 +1109,7 @@ func Test_deleteTeacherInCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/deleteteacherincourse",deleteTeacherInCourse).Methods("POST")
+		r.Handle("/deleteteacherincourse",coursemembercontroller.DeleteTeacherInCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -1194,7 +1185,7 @@ func Test_deleteStudentInCourse(t *testing.T) {
 		body := strings.NewReader(jsonStr)
 	
 		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/deletestudentincourse",deleteStudentInCourse).Methods("POST")
+		r.Handle("/deletestudentincourse",coursemembercontroller.DeleteStudentInCourse).Methods("POST")
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 	
@@ -1222,6 +1213,72 @@ func Test_deleteStudentInCourse(t *testing.T) {
 
 	sqlStatement = `DELETE FROM users WHERE userid=$1;`
 	_, err = db.Exec(sqlStatement, student1.UserID)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Test_createTest(t *testing.T) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid, username, password, role) values  ($1, $2, $3, $4)`
+	_, err = db.Exec(sqlStatement, `UE0099`,`testcreatetest`,`123456`,`teacher`)
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("Integration Test: Create Test", func(t *testing.T) {
+
+		testInCourse := test.Test{
+			TestID: "",
+			CourseID: "77777777",
+			CourseCode: "CC5563",
+			UserID: "UE0099",
+			Status: "Publish",
+			Name: "test create test",
+			Duration: "3",
+			Start: "13:00:00",
+			Date: "2021-01-21",
+			Description: "description",
+		}
+
+		var jsonStr = `{"CourseID" : "77777777", "CourseCode": "CC5563", "Username": "testcreatetest", "Username": "testcreatetest", "Status": "Publish", "Name": "test create test", "Duration": "3", "Start": "13:00:00", "Date": "2021-01-21", "Description": "description"}`
+
+		body := strings.NewReader(jsonStr)
+	
+		r := mux.NewRouter().StrictSlash(true)
+		r.Handle("/createtest",testcontroller.CreateTest).Methods("POST")
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+	
+		resp, err := http.Post(ts.URL + "/createtest","application/json",body)
+		if err != nil {
+			t.Errorf("Expected nil, received %s", err.Error())
+		}
+		defer resp.Body.Close()
+		output, err := ioutil.ReadAll(resp.Body)
+
+		var testInfo test.Test
+		json.Unmarshal(output, &testInfo)
+
+		assert.Equal(t,http.StatusOK,resp.StatusCode)
+		assert.Equal(t,testInCourse.CourseCode,testInfo.CourseCode)
+		assert.Equal(t,testInCourse.Name,testInfo.Name)
+	})
+
+	sqlStatement = `DELETE FROM users WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "UE0099")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM test WHERE userid=$1;`
+	_, err = db.Exec(sqlStatement, "UE0099")
 	if err != nil {
 		panic(err)
 	}

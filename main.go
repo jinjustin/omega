@@ -5,231 +5,26 @@ import (
 	"net/http"
 	"omega/coursecontroller"
 	"omega/coursemembercontroller"
-	"omega/teachercontroller"
 	"omega/login"
+	"omega/teachercontroller"
+	"omega/testcontroller"
 
 	//"omega/database"
-	"encoding/json"
+	"context"
+	//"encoding/json"
 	"io/ioutil"
 	"log"
 	"strings"
-	"context"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/dgrijalva/jwt-go"
 	//"omega/student"
 	//"database/sql"
 	//_ "github.com/lib/pq"
 )
 
-func createCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseName string
-		CourseID string
-		Year string
-		Permission string
-		Announcement string
-		Description string
-		Username string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	fmt.Println(input)
-	w.Write(coursecontroller.CreateCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Announcement,input.Description,input.Username))
-}
-
-var getCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	type Input struct{
-		Username string
-		//Token string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.GetCourseList(input.Username))
-})
-
-func deleteCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-		Username string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(coursecontroller.DeleteCourse(input.CourseCode,input.Username))
-}
-
-func getTeacherInfo(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		Username string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(teachercontroller.GetTeacherInfo(input.Username))
-}
-
-func editTeacherInfo(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		Firstname string
-		Surname string
-		Email string
-		Username string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(teachercontroller.EditTeacherInfo(input.Firstname,input.Surname,input.Email,input.Username))
-}
-
-func getDescription(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.GetDescription(input.CourseCode))
-}
-
-func editDescription(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-		Description string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.EditDescription(input.CourseCode,input.Description))
-}
-
-func getAnnouncement(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.GetAnnouncement(input.CourseCode))
-}
-
-func editAnnouncement(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-		Announcement string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(coursecontroller.EditAnnouncement(input.CourseCode,input.Announcement))
-}
-
-func addStudentToCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		StudentID string
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(coursemembercontroller.AddStudentToCourse(input.StudentID,input.CourseCode))
-}
-
-func addTeacherToCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		Username string
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(coursemembercontroller.AddTeacherToCourse(input.Username,input.CourseCode))
-}
-
-func getStudentInCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(coursemembercontroller.GetStudentInCourse(input.CourseCode))
-}
-
-func getTeacherInCourse(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(coursemembercontroller.GetTeacherInCourse(input.CourseCode))
-}
-
-var getUserRole = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	type Input struct{
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(coursemembercontroller.GetUserRole(input.Username)))
-})
-
-var deleteTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(coursemembercontroller.DeleteTeacherInCourse(input.CourseCode,input.Username)))
-})
-
-var deleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	type Input struct{
-		CourseCode string
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(coursemembercontroller.DeleteStudentInCourse(input.CourseCode,input.Username)))
-})
-
-func test(w http.ResponseWriter, r *http.Request){
+func testAPI(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
     fmt.Fprintf(w, "Welcome to the HomePage!")
 }
@@ -281,25 +76,26 @@ func handleRequests() {
 		AllowedMethods: []string{"GET","POST","DELETE"},
 	})
 
-	myRouter.HandleFunc("/",test)
+	myRouter.HandleFunc("/",testAPI)
 	myRouter.HandleFunc("/test",test2).Methods("POST")
-	myRouter.HandleFunc("/createcourse",createCourse).Methods("POST")
-	myRouter.Handle("/getcourselist",middleware(getCourseList)).Methods("POST")
-	myRouter.HandleFunc("/deletecourse",deleteCourse).Methods("POST")
-	myRouter.HandleFunc("/getteacherinfo",getTeacherInfo).Methods("POST")
-	myRouter.HandleFunc("/editteacherinfo",editTeacherInfo).Methods("POST")
-	myRouter.HandleFunc("/getdescription",getDescription).Methods("POST")
-	myRouter.HandleFunc("/editdescription",editDescription).Methods("POST")
-	myRouter.HandleFunc("/getannouncement",getAnnouncement).Methods("POST")
-	myRouter.HandleFunc("/editannouncement",editAnnouncement).Methods("POST")
-	myRouter.HandleFunc("/addstudent",addStudentToCourse).Methods("POST")
-	myRouter.HandleFunc("/addteacher",addTeacherToCourse).Methods("POST")
-	myRouter.HandleFunc("/getstudentincourse",getStudentInCourse).Methods("POST")
-	myRouter.HandleFunc("/getteacherincourse",getTeacherInCourse).Methods("POST")
-	myRouter.Handle("/deleteteacherincourse",deleteTeacherInCourse).Methods("POST")
-	myRouter.Handle("/deletestudentincourse",deleteStudentInCourse).Methods("POST")
-	myRouter.Handle("/getuserrole",getUserRole).Methods("POST")
-	myRouter.HandleFunc("/login", login.Login).Methods("POST")
+	myRouter.HandleFunc("/createcourse",coursecontroller.CreateCourse).Methods("POST")
+	myRouter.Handle("/getcourselist",middleware(coursecontroller.GetCourseList)).Methods("POST")
+	myRouter.HandleFunc("/deletecourse",coursecontroller.DeleteCourse).Methods("POST")
+	myRouter.HandleFunc("/getteacherinfo",teachercontroller.GetTeacherInfo).Methods("POST")
+	myRouter.HandleFunc("/editteacherinfo",teachercontroller.EditTeacherInfo).Methods("POST")
+	myRouter.HandleFunc("/getdescription",coursecontroller.GetDescription).Methods("POST")
+	myRouter.HandleFunc("/editdescription",coursecontroller.EditDescription).Methods("POST")
+	myRouter.HandleFunc("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")
+	myRouter.HandleFunc("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")
+	myRouter.HandleFunc("/addstudent",coursemembercontroller.AddStudentToCourse).Methods("POST")
+	myRouter.HandleFunc("/addteacher",coursemembercontroller.AddTeacherToCourse).Methods("POST")
+	myRouter.HandleFunc("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST")
+	myRouter.HandleFunc("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST")
+	myRouter.Handle("/deleteteacherincourse",coursemembercontroller.DeleteTeacherInCourse).Methods("POST")
+	myRouter.Handle("/deletestudentincourse",coursemembercontroller.DeleteStudentInCourse).Methods("POST")
+	myRouter.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
+	myRouter.Handle("/createtest",testcontroller.CreateTest).Methods("POST")
+	myRouter.Handle("/login", login.Login).Methods("POST")
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
 
 	

@@ -9,10 +9,14 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 	"omega/database"
+
+	"net/http"
+	"encoding/json"
+	"io/ioutil"
 )
 
-//CreateCourse is function that use to create classroom
-func CreateCourse(courseName string, courseID string, year string, permission string,announcement string, description string,  username string) []byte {
+
+func createCourse(courseName string, courseID string, year string, permission string,announcement string, description string,  username string) []byte {
 
 	courseCode := generateCourseCode()
 
@@ -83,8 +87,8 @@ func CreateCourse(courseName string, courseID string, year string, permission st
 	return c.GetCourseDetail()
 }
 
-//DeleteCourse is function that use to delete course by use CourseCode and userID
-func DeleteCourse(courseCode string, username string) []byte {
+
+func deleteCourse(courseCode string, username string) []byte {
 	c := course.Course{
 		CourseCode: "Can't find.",
 		CourseID:   "",
@@ -161,8 +165,7 @@ func DeleteCourse(courseCode string, username string) []byte {
 	return c.GetCourseDetail()
 }
 
-//GetCourseList is use to get all classrooms that user is being member.
-func GetCourseList(username string) []course.Course {
+func getCourseList(username string) []course.Course {
 	var courseCodes []string
 	var courses []course.Course
 	var userID string
@@ -256,8 +259,7 @@ func GetCourseList(username string) []course.Course {
 	return courses
 }
 
-//GetDescription is a function that use to get description of the course
-func GetDescription(courseCode string) string{
+func getDescription(courseCode string) string{
 
 	var description string
 
@@ -287,8 +289,7 @@ func GetDescription(courseCode string) string{
 	return description
 }
 
-//EditDescription is a function that use to edit course description.
-func EditDescription(courseCode string, description string) string{
+func editDescription(courseCode string, description string) string{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -306,8 +307,7 @@ func EditDescription(courseCode string, description string) string{
 	return "success"
 }
 
-//GetAnnouncement is a function that use to get course info
-func GetAnnouncement(courseID string) string{
+func getAnnouncement(courseID string) string{
 	var announcement string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -336,8 +336,7 @@ func GetAnnouncement(courseID string) string{
 	return announcement
 }
 
-//EditAnnouncement is a function that use to edit course description.
-func EditAnnouncement(courseCode string, announcement string) string{
+func editAnnouncement(courseCode string, announcement string) string{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -433,3 +432,98 @@ func checkUser(courseCode string, userID string) bool {
 		panic(err)
 	}
 }
+
+//API
+
+//CreateCourse is a API that use for create course.
+var CreateCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseName string
+		CourseID string
+		Year string
+		Permission string
+		Announcement string
+		Description string
+		Username string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	fmt.Println(input)
+	w.Write(createCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Announcement,input.Description,input.Username))
+})
+
+//GetCourseList is a API that use for getcourselist for that user.
+var GetCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(getCourseList(input.Username))
+})
+
+//DeleteCourse is a API that use for delete course
+var DeleteCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+		Username string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(deleteCourse(input.CourseCode,input.Username))
+})
+
+//GetDescription is a API that use for get course description.
+var GetDescription = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(getDescription(input.CourseCode))
+})
+
+//EditDescription is a API that use for edit course description.
+var EditDescription = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+		Description string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(editDescription(input.CourseCode,input.Description))
+})
+
+//GetAnnouncement is a API that use for get course announcement.
+var GetAnnouncement = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(getAnnouncement(input.CourseCode))
+})
+
+//EditAnnouncement is a API that use for get course announcement.
+var EditAnnouncement = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+		Announcement string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(editAnnouncement(input.CourseCode,input.Announcement))
+})

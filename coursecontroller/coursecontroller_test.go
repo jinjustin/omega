@@ -45,7 +45,7 @@ func Test_createCourse(t *testing.T) {
 		}
 		//Output
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,announcement,description, username), &output)
+		json.Unmarshal(createCourse(courseName, courseID, year, permission,announcement,description, username), &output)
 		//Compare output to expected output
 		assert.Equal(t, expected.CourseName, output.CourseName)
 		assert.Equal(t, expected.CourseID, output.CourseID)
@@ -64,7 +64,7 @@ func Test_createCourse(t *testing.T) {
 		username := "testcreatecourse"
 
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","", username), &output)
+		json.Unmarshal(createCourse(courseName, courseID, year, permission,"","", username), &output)
 
 		assert.Equal(t, "", output.CourseName)
 		assert.Equal(t, "Course ID Error", output.CourseID)
@@ -80,7 +80,7 @@ func Test_createCourse(t *testing.T) {
 		permission := "Private"
 		username := "testcreatecourse"
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","", username), &output)
+		json.Unmarshal(createCourse(courseName, courseID, year, permission,"","", username), &output)
 
 		assert.Equal(t, "", output.CourseName)
 		assert.Equal(t, "Course ID Error", output.CourseID)
@@ -105,7 +105,7 @@ func Test_createCourse(t *testing.T) {
 			Permission: "Private"}
 
 		var output course.Course
-		json.Unmarshal(CreateCourse(courseName, courseID, year, permission,"","",username), &output)
+		json.Unmarshal(createCourse(courseName, courseID, year, permission,"","",username), &output)
 
 		assert.Equal(t, expected.CourseName, output.CourseName)
 		assert.Equal(t, expected.CourseID, output.CourseID)
@@ -185,7 +185,7 @@ func Test_deleteCourse(t *testing.T) {
 		courseCode := "OBLMv5"
 
 		var output course.Course
-		json.Unmarshal(DeleteCourse(courseCode, username), &output)
+		json.Unmarshal(deleteCourse(courseCode, username), &output)
 
 		assert.Equal(t, "Can't find.", output.CourseCode)
 	})
@@ -196,7 +196,7 @@ func Test_deleteCourse(t *testing.T) {
 		courseCode := c.CourseCode
 
 		var output course.Course
-		json.Unmarshal(DeleteCourse(courseCode, "deletefail"), &output)
+		json.Unmarshal(deleteCourse(courseCode, "deletefail"), &output)
 
 		assert.Equal(t, "Can't find.", output.CourseCode)
 	})
@@ -204,7 +204,7 @@ func Test_deleteCourse(t *testing.T) {
 	t.Run("Unit Test 007: Delete Existed Course", func(t *testing.T) {
 
 		var output course.Course
-		json.Unmarshal(DeleteCourse(c.CourseCode, username), &output)
+		json.Unmarshal(deleteCourse(c.CourseCode, username), &output)
 
 		assert.Equal(t, c, output)
 	})
@@ -286,7 +286,7 @@ func Test_getCourselist(t *testing.T) {
 		expected = append(expected, c1)
 		expected = append(expected, c2)
 		var output []course.Course
-		output = GetCourseList(username)
+		output = getCourseList(username)
 
 		assert.Equal(t, expected, output)
 	})
@@ -295,7 +295,7 @@ func Test_getCourselist(t *testing.T) {
 
 		var expected []course.Course
 		var output []course.Course
-		output = GetCourseList("Abcdef")
+		output = getCourseList("Abcdef")
 
 		assert.Equal(t, expected, output)
 	})
@@ -351,7 +351,7 @@ func Test_CourseDescriptionFunction(t *testing.T) {
 		courseCode := "ZZZZZZ"
 
 		//Output
-		output := GetDescription(courseCode)
+		output := getDescription(courseCode)
 
 		//Compare output to expected output
 		assert.Equal(t, description,output)
@@ -363,11 +363,11 @@ func Test_CourseDescriptionFunction(t *testing.T) {
 		courseCode := "ZZZZZZ"
 
 		//Output
-		output := EditDescription(courseCode,description)
+		output := editDescription(courseCode,description)
 
 		//Compare output to expected output
 		assert.Equal(t, output, "success")
-		assert.Equal(t, description,GetDescription(courseCode))
+		assert.Equal(t, description,getDescription(courseCode))
 	})
 
 	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
@@ -397,7 +397,7 @@ func Test_CourseAnnouncementFunction(t *testing.T) {
 		courseCode := "ZZZZZZ"
 
 		//Output
-		output := GetAnnouncement(courseCode)
+		output := getAnnouncement(courseCode)
 
 		//Compare output to expected output
 		assert.Equal(t, announcement, output)
@@ -409,11 +409,11 @@ func Test_CourseAnnouncementFunction(t *testing.T) {
 		courseCode := "ZZZZZZ"
 
 		//Output
-		output := EditAnnouncement(courseCode,description)
+		output := editAnnouncement(courseCode,description)
 
 		//Compare output to expected output
 		assert.Equal(t, output, "success")
-		assert.Equal(t, description,GetAnnouncement(courseCode))
+		assert.Equal(t, description,getAnnouncement(courseCode))
 	})
 
 	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`

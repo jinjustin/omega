@@ -9,10 +9,13 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 	"omega/database"
+
+	"net/http"
+	"encoding/json"
+	"io/ioutil"
 )
 
-//CreateTest is function that use to create test in course.
-func CreateTest(courseID string, courseCode string, username string, status string, name string, duration string, start string, date string, description string) []byte {
+func createTest(courseID string, courseCode string, username string, status string, name string, duration string, start string, date string, description string) []byte {
 
 	testID := generateTestID()
 
@@ -131,3 +134,25 @@ func checkTestTime(courseCode string, duration string, startTime string, startDa
 	}
 	return true
 }*/
+
+
+//API
+
+//CreateTest is a function that use to create test in the course
+var CreateTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseID string
+		CourseCode string
+		Username string
+		Status string
+		Name string
+		Duration string
+		Start string
+		Date string
+		Description string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(createTest(input.CourseID,input.CourseCode,input.Username,input.Status,input.Name,input.Duration,input.Start,input.Date,input.Description))
+})

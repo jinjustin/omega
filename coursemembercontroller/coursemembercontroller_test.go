@@ -43,7 +43,7 @@ func Test_AddStudentToCourse(t *testing.T){
 
 		//Output
 		var output student.Student
-		json.Unmarshal(AddStudentToCourse(studentID,courseCode),&output)
+		json.Unmarshal(addStudentToCourse(studentID,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -65,7 +65,7 @@ func Test_AddStudentToCourse(t *testing.T){
 
 		//Output
 		var output student.Student
-		json.Unmarshal(AddStudentToCourse(studentID,courseCode),&output)
+		json.Unmarshal(addStudentToCourse(studentID,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -119,7 +119,7 @@ func Test_AddTeacherToCourse(t *testing.T){
 
 		//Output
 		var output teacher.Teacher
-		json.Unmarshal(AddTeacherToCourse(username,courseCode),&output)
+		json.Unmarshal(addTeacherToCourse(username,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -136,7 +136,7 @@ func Test_AddTeacherToCourse(t *testing.T){
 
 		//Output
 		var output teacher.Teacher
-		json.Unmarshal(AddTeacherToCourse(username,courseCode),&output)
+		json.Unmarshal(addTeacherToCourse(username,courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -387,7 +387,7 @@ func Test_GetStudentInCourse(t *testing.T){
 
 		//Output
 		var output []studentInCourse
-		json.Unmarshal(GetStudentInCourse(courseCode),&output)
+		json.Unmarshal(getStudentInCourse(courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -476,7 +476,7 @@ func Test_GetTeacherInCourse(t *testing.T){
 
 		//Output
 		var output []teacherInCourse
-		json.Unmarshal(GetTeacherInCourse(courseCode),&output)
+		json.Unmarshal(getTeacherInCourse(courseCode),&output)
 		//Compare output to expected output 
 		assert.Equal(t,expected,output)
 	})
@@ -540,7 +540,7 @@ func Test_DeleteTeacherInCourse(t *testing.T){
 
 		//Output
 		var output teacher.Teacher
-		json.Unmarshal(DeleteTeacherInCourse(courseCode,username),&output)
+		json.Unmarshal(deleteTeacherInCourse(courseCode,username),&output)
 		//Compare output to expected output 
 		assert.Equal(t,teacher1.Firstname,output.Firstname)
 		assert.Equal(t,teacher1.Surname,output.Surname)
@@ -601,7 +601,7 @@ func Test_DeleteStudentInCourse(t *testing.T){
 
 		//Output
 		var output student.Student
-		json.Unmarshal(DeleteStudentInCourse(courseCode,username),&output)
+		json.Unmarshal(deleteStudentInCourse(courseCode,username),&output)
 		//Compare output to expected output
 		assert.Equal(t,student1.StudentID,output.StudentID) 
 		assert.Equal(t,student1.Firstname,output.Firstname)
@@ -646,7 +646,7 @@ func Test_GetUserRole(t *testing.T){
 	t.Run("Unit Test 001: Get Student Role", func(t *testing.T) {
 
 		//Output
-		output := GetUserRole("getstudentrole")
+		output := getUserRole("getstudentrole")
 
 		//Compare output to expected output
 		assert.Equal(t,"student",output) 
@@ -656,7 +656,7 @@ func Test_GetUserRole(t *testing.T){
 	t.Run("Unit Test 002: Get Teacher Role", func(t *testing.T) {
 
 		//Output
-		output := GetUserRole("getteacherrole")
+		output := getUserRole("getteacherrole")
 
 		//Compare output to expected output
 		assert.Equal(t,"teacher",output) 

@@ -41,7 +41,7 @@ func Test_CreateTest(t *testing.T) {
 
 		//Output
 		var output test.Test
-		json.Unmarshal(CreateTest(testInCourse.CourseID,testInCourse.CourseCode,"testcreatetest",testInCourse.Status,testInCourse.Name,testInCourse.Duration,testInCourse.Start,testInCourse.Date,testInCourse.Description), &output)
+		json.Unmarshal(createTest(testInCourse.CourseID,testInCourse.CourseCode,"testcreatetest",testInCourse.Status,testInCourse.Name,testInCourse.Duration,testInCourse.Start,testInCourse.Date,testInCourse.Description), &output)
 
 		//Compare output to expected output
 		assert.Equal(t, testInCourse.CourseID,output.CourseID)
@@ -66,7 +66,7 @@ func Test_CreateTest(t *testing.T) {
 
 		//Output
 		var output test.Test
-		json.Unmarshal(CreateTest(testInCourse.CourseID,testInCourse.CourseCode,"testcreatetest",testInCourse.Status,testInCourse.Name,testInCourse.Duration,testInCourse.Start,testInCourse.Date,testInCourse.Description), &output)
+		json.Unmarshal(createTest(testInCourse.CourseID,testInCourse.CourseCode,"testcreatetest",testInCourse.Status,testInCourse.Name,testInCourse.Duration,testInCourse.Start,testInCourse.Date,testInCourse.Description), &output)
 
 		//Compare output to expected output
 		assert.Equal(t, testInCourse.CourseID,output.CourseID)

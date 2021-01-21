@@ -5,11 +5,13 @@ import(
 	"omega/teacher"
 	"omega/database"
 	"database/sql"
+
+	"net/http"
 	"encoding/json"
+	"io/ioutil"
 )
 
-//AddStudentToCourse is ฟังก์ชันใช้สำหรับให้ผู้สอนเชิญผู้เรียนเข้าไปใน Course หรือผู้เรียนต้องการเข้าร่วม Course
-func AddStudentToCourse(studentID string,courseCode string) []byte{
+func addStudentToCourse(studentID string,courseCode string) []byte{
 
 	var userID string
 	var firstName string
@@ -67,8 +69,7 @@ func AddStudentToCourse(studentID string,courseCode string) []byte{
 	return s.GetStudentDetail()
 }
 
-//AddTeacherToCourse is ฟังก์ชันที่ใช้เมื่อ ผู้สอน ต้องการเข้าร่วม Course
-func AddTeacherToCourse(username string,courseCode string) []byte{
+func addTeacherToCourse(username string,courseCode string) []byte{
 
 	var userID string
 	var firstName string
@@ -141,8 +142,7 @@ func AddTeacherToCourse(username string,courseCode string) []byte{
 	return t.GetTeacherDetail()
 }
 
-//GetStudentInCourse is a function that use to get data of all students in the course
-func GetStudentInCourse(courseCode string) []byte{
+func getStudentInCourse(courseCode string) []byte{
 	var userIDs []string
 
 	type studentInCourse struct{
@@ -290,8 +290,7 @@ func GetStudentInCourse(courseCode string) []byte{
 	return b
 }
 
-//GetTeacherInCourse is a function that use to get data of all students in the course
-func GetTeacherInCourse(courseCode string) []byte{
+func getTeacherInCourse(courseCode string) []byte{
 	var userIDs []string
 
 	type teacherInCourse struct{
@@ -472,8 +471,7 @@ func DeclineJoinCourse(userID string,courseCode string) string{
 	return "success"
 }
 
-//GetUserRole is a function that use to get user role (student or teacher)
-func GetUserRole(username string) string{
+func getUserRole(username string) string{
 	var role string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -502,8 +500,7 @@ func GetUserRole(username string) string{
 	return role
 }
 
-//DeleteTeacherInCourse is function that use to delete teacher in the course.
-func DeleteTeacherInCourse(courseCode string, username string) []byte {
+func deleteTeacherInCourse(courseCode string, username string) []byte {
 	t := teacher.Teacher{
 		UserID: "Can't find.",
 		Firstname:   "",
@@ -562,8 +559,7 @@ func DeleteTeacherInCourse(courseCode string, username string) []byte {
 	return t.GetTeacherDetail()
 }
 
-//DeleteStudentInCourse is function that use to delete student in the course.
-func DeleteStudentInCourse(courseCode string, username string) []byte {
+func deleteStudentInCourse(courseCode string, username string) []byte {
 	s := student.Student{
 		UserID: "Can't find.",
 		StudentID: "",
@@ -646,3 +642,89 @@ func checkMemberInCourse(userID string,courseCode string) bool{
 	}
 }
 
+//API
+
+//AddStudentToCourse is a API that use to add student to course. 
+var AddStudentToCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		StudentID string
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(addStudentToCourse(input.StudentID,input.CourseCode))
+})
+
+//AddTeacherToCourse is a API that use to add teacher to course. 
+var AddTeacherToCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		Username string
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(addTeacherToCourse(input.Username,input.CourseCode))
+})
+
+//GetStudentInCourse is a API that use to get information of all student in course. 
+var GetStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(getStudentInCourse(input.CourseCode))
+})
+
+//GetTeacherInCourse is a API that use to get information of all teacher in course. 
+var GetTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+	}
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(getTeacherInCourse(input.CourseCode))
+})
+
+//GetUserRole is a API that use to get use role by using username. 
+var GetUserRole = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(getUserRole(input.Username)))
+})
+
+//DeleteTeacherInCourse is a function that use to delete teacher in course
+var DeleteTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(deleteTeacherInCourse(input.CourseCode,input.Username)))
+})
+
+//DeleteStudentInCourse is a function that use to delete student in course
+var DeleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct{
+		CourseCode string
+		Username string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+    var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(deleteStudentInCourse(input.CourseCode,input.Username)))
+})
