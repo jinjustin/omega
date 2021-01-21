@@ -1214,7 +1214,7 @@ func Test_deleteStudentInCourse(t *testing.T) {
 		assert.Equal(t,student1.Email,studentInfo.Email)
 	})
 
-	sqlStatement = `DELETE FROM teacher WHERE userid=$1;`
+	sqlStatement = `DELETE FROM student WHERE userid=$1;`
 	_, err = db.Exec(sqlStatement, student1.UserID)
 	if err != nil {
 		panic(err)
