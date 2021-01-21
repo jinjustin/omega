@@ -25,12 +25,10 @@ import (
 )
 
 func testAPI(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
     fmt.Fprintf(w, "Welcome to the HomePage!")
 }
 
 func test2(w http.ResponseWriter, r *http.Request){
-	enableCors(&w)
 	type Input struct{
 		test string
 	}
@@ -97,8 +95,6 @@ func handleRequests() {
 	myRouter.Handle("/createtest",testcontroller.CreateTest).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST")
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
-
-	
 }
 
 func main() {
