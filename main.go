@@ -78,19 +78,19 @@ func handleRequests() {
 
 	myRouter.HandleFunc("/",testAPI)
 	myRouter.HandleFunc("/test",test2).Methods("POST")
-	myRouter.HandleFunc("/createcourse",coursecontroller.CreateCourse).Methods("POST")
+	myRouter.Handle("/createcourse",coursecontroller.CreateCourse).Methods("POST")
 	myRouter.Handle("/getcourselist",middleware(coursecontroller.GetCourseList)).Methods("POST")
-	myRouter.HandleFunc("/deletecourse",coursecontroller.DeleteCourse).Methods("POST")
-	myRouter.HandleFunc("/getteacherinfo",teachercontroller.GetTeacherInfo).Methods("POST")
-	myRouter.HandleFunc("/editteacherinfo",teachercontroller.EditTeacherInfo).Methods("POST")
-	myRouter.HandleFunc("/getdescription",coursecontroller.GetDescription).Methods("POST")
-	myRouter.HandleFunc("/editdescription",coursecontroller.EditDescription).Methods("POST")
-	myRouter.HandleFunc("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")
-	myRouter.HandleFunc("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")
-	myRouter.HandleFunc("/addstudent",coursemembercontroller.AddStudentToCourse).Methods("POST")
-	myRouter.HandleFunc("/addteacher",coursemembercontroller.AddTeacherToCourse).Methods("POST")
-	myRouter.HandleFunc("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST")
-	myRouter.HandleFunc("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST")
+	myRouter.Handle("/deletecourse",coursecontroller.DeleteCourse).Methods("POST")
+	myRouter.Handle("/getteacherinfo",teachercontroller.GetTeacherInfo).Methods("POST")
+	myRouter.Handle("/editteacherinfo",teachercontroller.EditTeacherInfo).Methods("POST")
+	myRouter.Handle("/getdescription",coursecontroller.GetDescription).Methods("POST")
+	myRouter.Handle("/editdescription",coursecontroller.EditDescription).Methods("POST")
+	myRouter.Handle("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")
+	myRouter.Handle("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")
+	myRouter.Handle("/addstudent",coursemembercontroller.AddStudentToCourse).Methods("POST")
+	myRouter.Handle("/addteacher",coursemembercontroller.AddTeacherToCourse).Methods("POST")
+	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST")
+	myRouter.Handle("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST")
 	myRouter.Handle("/deleteteacherincourse",coursemembercontroller.DeleteTeacherInCourse).Methods("POST")
 	myRouter.Handle("/deletestudentincourse",coursemembercontroller.DeleteStudentInCourse).Methods("POST")
 	myRouter.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
@@ -99,10 +99,6 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
 
 	
-}
-
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
 func main() {
