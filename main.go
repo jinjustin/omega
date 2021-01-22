@@ -13,12 +13,15 @@ import (
 	"context"
 	//"encoding/json"
 	"io/ioutil"
-	"log"
+	//"log"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/contrib/static"
+
 	//"omega/student"
 	//"database/sql"
 	//_ "github.com/lib/pq"
@@ -67,12 +70,11 @@ func middleware(next http.Handler) http.Handler {
 }
 
 func handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter := mux.NewRouter()
 
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET","POST","DELETE"},
-	})
+
+
+	serve := gin.Default()
 
 	myRouter.HandleFunc("/",testAPI)
 	myRouter.HandleFunc("/test",test2).Methods("POST")
@@ -94,7 +96,16 @@ func handleRequests() {
 	myRouter.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
 	myRouter.Handle("/createtest",testcontroller.CreateTest).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST")
-	log.Fatal(http.ListenAndServe(":10000",c.Handler(myRouter)))
+
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET","POST","DELETE"},
+	})
+	serve.Use(static.Serve("/", static.LocalFile("./build", true)))
+	go http.ListenAndServe(":10000", c.Handler(myRouter))
+	go http.ListenAndServe(":5000", c.Handler(serve))
+	select{}
 }
 
 func main() {
