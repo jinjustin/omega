@@ -10,12 +10,33 @@ import (
 	"database/sql"
 	"omega/database"
 
-	"net/http"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	//"github.com/sqs/goreturns/returns"
 )
 
 func createTest(courseID string, courseCode string, username string, status string, name string, duration string, start string, date string, description string) []byte {
+
+	var t test.Test
+
+	if checkTestName(courseID, name) == false {
+
+		t = test.Test{
+			TestID:      "",
+			CourseID:    "",
+			CourseCode:  "",
+			UserID:      "",
+			Status:      "",
+			Name:        "Duplicate test name.",
+			Duration:    "",
+			Start:       "",
+			Date:        "",
+			Description: "",
+		}
+
+		return t.GetTestDetail()
+	}
 
 	testID := generateTestID()
 
@@ -44,16 +65,32 @@ func createTest(courseID string, courseCode string, username string, status stri
 		panic(err)
 	}
 
-	t := test.Test{
-		TestID: testID,
-		CourseID: courseID,
-		CourseCode: courseCode,
-		UserID: userID,
-		Status: status,
-		Name: name,
-		Duration: duration,
-		Start: start,
-		Date: date,
+	if duration == "" {
+		duration = "0"
+	}
+
+	if start == "" {
+		start = "00:00:00"
+	}
+
+	if date == "" {
+		date = "1-1-1970"
+	}
+
+	if description == "" {
+		description = "this test don't have description"
+	}
+
+	t = test.Test{
+		TestID:      testID,
+		CourseID:    courseID,
+		CourseCode:  courseCode,
+		UserID:      userID,
+		Status:      status,
+		Name:        name,
+		Duration:    duration,
+		Start:       start,
+		Date:        date,
 		Description: description,
 	}
 
@@ -67,6 +104,166 @@ func createTest(courseID string, courseCode string, username string, status stri
 	return t.GetTestDetail()
 }
 
+func getTestList(courseID string, username string) []test.Test {
+	var testList []test.Test
+	var t test.Test
+	var role string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT role FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&role)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	if (role == "student"){
+
+		sqlStatement = `SELECT testid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE courseid=$1 and status=$2;`
+		rows, err = db.Query(sqlStatement, courseID,"publish")
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&t.TestID, &t.CourseCode, &t.UserID, &t.Status, &t.Name, &t.Duration, &t.Start, &t.Date, &t.Description)
+			if err != nil {
+				panic(err)
+			}
+			t.CourseID = courseID
+			testList = append(testList, t)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+
+		return testList
+	}
+
+	sqlStatement = `SELECT testid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE courseid=$1;`
+	rows, err = db.Query(sqlStatement, courseID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&t.TestID, &t.CourseCode, &t.UserID, &t.Status, &t.Name, &t.Duration, &t.Start, &t.Date, &t.Description)
+		if err != nil {
+			panic(err)
+		}
+		t.CourseID = courseID
+		testList = append(testList, t)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return testList
+}
+
+func getTestInfo(courseID string, name string) []byte{
+	var t test.Test
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT testid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE courseid=$1 and name=$2;`
+	rows, err := db.Query(sqlStatement, courseID, name)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&t.TestID, &t.CourseCode, &t.UserID, &t.Status, &t.Name, &t.Duration, &t.Start, &t.Date, &t.Description)
+		if err != nil {
+			panic(err)
+		}
+		t.CourseID = courseID
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return t.GetTestDetail()
+}
+
+func editTestInfo(testID string, name string, duration string, start string, date string, description string) string{
+
+	if duration == "" {
+		duration = "0"
+	}
+
+	if start == "" {
+		start = "00:00:00"
+	}
+
+	if date == "" {
+		date = "1-1-1970"
+	}
+
+	if description == "" {
+		description = "this test don't have description"
+	}
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE test SET name=$1, duration=$2, start=$3, date=$4, description=$5 WHERE testid=$6`
+
+	_, err = db.Exec(sqlStatement, name, duration, start, date, description, testID)
+	if err != nil {
+		panic(err)
+	}
+
+	return "success"
+}
+
+func checkTestName(courseID string, name string) bool {
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	var testID string
+
+	sqlStatement := `SELECT testid FROM test WHERE courseid=$1 and name=$2;`
+	row := db.QueryRow(sqlStatement, courseID, name)
+	err = row.Scan(&testID)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
+}
+
 func generateTestID() string {
 	n := 3
 	b := make([]byte, n)
@@ -77,74 +274,55 @@ func generateTestID() string {
 	return s
 }
 
-/*
-func checkTestTime(courseCode string, duration string, startTime string, startDate string) bool{
-
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	var tests []test.Test
-
-	var test test.Test
-
-	sqlStatement := `SELECT duration, startTime, startDate FROM test WHERE coursecode=$1;`
-	rows, err := db.Query(sqlStatement, courseCode)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(&test.Duration,&test.StartTime,&test.StartDate)
-		if err != nil {
-			panic(err)
-		}
-
-		tests = append(tests, test)
-	}
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	testStartInt ,err := strconv.ParseInt(startTime[:2],10,32)
-
-	testDurationInt ,err := strconv.ParseInt(duration,10,32)
-
-	testEnd := testStartInt + testDurationInt
-
-	for _, a := range tests {
-		if(startDate == a.StartDate){
-
-			aStartInt , err := strconv.ParseInt(a.StartTime[:2],10,32)
-			if(err != nil){
-				panic(err)
-			}
-
-			aDurationInt , err := strconv.ParseInt(a.Duration,10,32)
-		
-			aEnd := aStartInt + aDurationInt
-
-			if((testStartInt >= aStartInt && testStartInt <= aEnd) || (testEnd >= aStartInt && testEnd <= aEnd)){
-				return false
-			}
-		}
-	}
-	return true
-}*/
-
-
 //API
 
-//CreateTest is a function that use to create test in the course
+//CreateTest is a API that use to create test in the course.
 var CreateTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
+		CourseID    string
+		CourseCode  string
+		Username    string
+		Status      string
+		Name        string
+		Duration    string
+		Start       string
+		Date        string
+		Description string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(createTest(input.CourseID, input.CourseCode, input.Username, input.Status, input.Name, input.Duration, input.Start, input.Date, input.Description))
+})
+
+//GetTestList is a API that use to get all test in the course.
+var GetTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
 		CourseID string
-		CourseCode string
 		Username string
-		Status string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	json.NewEncoder(w).Encode(getTestList(input.CourseID,input.Username))
+})
+
+//GetTestInfo is a API that use to get test information
+var GetTestInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		CourseID string
+		Name string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(getTestInfo(input.CourseID,input.Name))
+})
+
+//EditTestInfo is a API that use to edit test information
+var EditTestInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		TestID string
 		Name string
 		Duration string
 		Start string
@@ -152,7 +330,7 @@ var CreateTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Description string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
+	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(createTest(input.CourseID,input.CourseCode,input.Username,input.Status,input.Name,input.Duration,input.Start,input.Date,input.Description))
+	json.NewEncoder(w).Encode(editTestInfo(input.TestID,input.Name,input.Duration,input.Start,input.Date,input.Description))
 })

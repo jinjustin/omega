@@ -34,6 +34,14 @@ func createCourse(courseName string, courseID string, year string, permission st
 
 		var userID string
 
+		if(announcement == ""){
+			announcement = "You can add course announcement here."
+		}
+
+		if(description == ""){
+			description = "You can add course description here."
+		}
+
 		c = course.Course{
 			CourseCode: courseCode,
 			CourseID:   courseID,
@@ -193,8 +201,8 @@ func getCourseList(username string) []course.Course {
 		panic(err)
 	}
 
-	sqlStatement = `SELECT coursecode FROM coursemember WHERE userid=$1;`
-	rows, err = db.Query(sqlStatement, userID)
+	sqlStatement = `SELECT coursecode FROM coursemember WHERE userid=$1 and status=$2;`
+	rows, err = db.Query(sqlStatement, userID,"join")
 	if err != nil {
 		panic(err)
 	}

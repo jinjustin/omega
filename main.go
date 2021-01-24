@@ -72,36 +72,39 @@ func middleware(next http.Handler) http.Handler {
 func handleRequests() {
 	myRouter := mux.NewRouter()
 
-
-
 	serve := gin.Default()
 
-	myRouter.HandleFunc("/",testAPI)
-	myRouter.HandleFunc("/test",test2).Methods("POST")
-	myRouter.Handle("/createcourse",coursecontroller.CreateCourse).Methods("POST")
-	myRouter.Handle("/getcourselist",middleware(coursecontroller.GetCourseList)).Methods("POST")
-	myRouter.Handle("/deletecourse",coursecontroller.DeleteCourse).Methods("POST")
-	myRouter.Handle("/getteacherinfo",teachercontroller.GetTeacherInfo).Methods("POST")
-	myRouter.Handle("/editteacherinfo",teachercontroller.EditTeacherInfo).Methods("POST")
-	myRouter.Handle("/getdescription",coursecontroller.GetDescription).Methods("POST")
-	myRouter.Handle("/editdescription",coursecontroller.EditDescription).Methods("POST")
-	myRouter.Handle("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")
-	myRouter.Handle("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")
-	myRouter.Handle("/addstudent",coursemembercontroller.AddStudentToCourse).Methods("POST")
-	myRouter.Handle("/addteacher",coursemembercontroller.AddTeacherToCourse).Methods("POST")
-	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST")
-	myRouter.Handle("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST")
-	myRouter.Handle("/deleteteacherincourse",coursemembercontroller.DeleteTeacherInCourse).Methods("POST")
-	myRouter.Handle("/deletestudentincourse",coursemembercontroller.DeleteStudentInCourse).Methods("POST")
-	myRouter.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
+	myRouter.HandleFunc("/",testAPI) //work
+	myRouter.HandleFunc("/test",test2).Methods("POST") //work
+	myRouter.Handle("/createcourse",coursecontroller.CreateCourse).Methods("POST") //work
+	myRouter.Handle("/getcourselist",middleware(coursecontroller.GetCourseList)).Methods("POST") //work
+	myRouter.Handle("/deletecourse",coursecontroller.DeleteCourse).Methods("POST") //work
+	myRouter.Handle("/getteacherinfo",teachercontroller.GetTeacherInfo).Methods("POST") //work
+	myRouter.Handle("/editteacherinfo",teachercontroller.EditTeacherInfo).Methods("POST") //work
+	myRouter.Handle("/getdescription",coursecontroller.GetDescription).Methods("POST") //bug
+	myRouter.Handle("/editdescription",coursecontroller.EditDescription).Methods("POST") //work
+	myRouter.Handle("/getannouncement",coursecontroller.GetAnnouncement).Methods("POST")//work
+	myRouter.Handle("/editannouncement",coursecontroller.EditAnnouncement).Methods("POST")//work
+	myRouter.Handle("/addstudent",coursemembercontroller.AddStudentToCourse).Methods("POST") // work
+	myRouter.Handle("/addteacher",coursemembercontroller.AddTeacherToCourse).Methods("POST") //almost-work (Bug)
+	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST") //work
+	myRouter.Handle("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST") //work
+	myRouter.Handle("/deleteteacherincourse",coursemembercontroller.DeleteTeacherInCourse).Methods("POST") //work
+	myRouter.Handle("/deletestudentincourse",coursemembercontroller.DeleteStudentInCourse).Methods("POST") //work
+	myRouter.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST") //work
 	myRouter.Handle("/createtest",testcontroller.CreateTest).Methods("POST")
-	myRouter.Handle("/login", login.Login).Methods("POST")
-
+	myRouter.Handle("/gettestlist",testcontroller.GetTestList).Methods("POST")
+	myRouter.Handle("/gettestinfo",testcontroller.GetTestInfo).Methods("POST")
+	myRouter.Handle("edittestinfo",testcontroller.EditTestInfo).Methods("POST")
+	myRouter.Handle("/login", login.Login).Methods("POST") //work
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET","POST","DELETE"},
+		AllowCredentials: true,
+		AllowedHeaders: []string{"*"},
 	})
+
 	serve.Use(static.Serve("/", static.LocalFile("./build", true)))
 	go http.ListenAndServe(":10000", c.Handler(myRouter))
 	go http.ListenAndServe(":5000", c.Handler(serve))

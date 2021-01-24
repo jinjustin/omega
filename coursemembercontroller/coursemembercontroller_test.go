@@ -160,6 +160,7 @@ func Test_AddTeacherToCourse(t *testing.T){
 	}
 }
 
+/*
 func Test_ApproveJoinCourse(t *testing.T){
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -283,41 +284,7 @@ func Test_ApproveJoinCourse(t *testing.T){
 	panic(err)
 	}
 }
-
-func Test_DeclineJoinCourse(t *testing.T){
-
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	sqlStatement := `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1,$2,$3,$4);`
-
-	_, err = db.Exec(sqlStatement,"COURSE", "TOMSON", "student","pending")
-	if err != nil {
-	panic(err)
-	}
-
-	t.Run("Unit Test 001: Decline Join Course", func(t *testing.T) {
-
-		//Input
-		userID := "TOMSON"
-		courseCode := "COURSE"
-
-		//Expected Output
-		expected := "success"
-
-		//Output
-		var output string
-
-		//Execute Function
-		output = DeclineJoinCourse(userID,courseCode)
-		
-		//Compare output to expected output 
-		assert.Equal(t,expected,output)
-	})
-}
+*/
 
 func Test_GetStudentInCourse(t *testing.T){
 

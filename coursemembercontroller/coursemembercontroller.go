@@ -1,66 +1,67 @@
 package coursemembercontroller
 
-import(
+import (
+	"database/sql"
+	"omega/database"
 	"omega/student"
 	"omega/teacher"
-	"omega/database"
-	"database/sql"
 
-	"net/http"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
-func addStudentToCourse(studentID string,courseCode string) []byte{
+func addStudentToCourse(studentID string, courseCode string) []byte {
 
 	var userID string
 	var firstName string
 	var surName string
 
 	s := student.Student{
-		UserID: "Can't Invite this student",
+		UserID:    "Can't Invite this student",
 		StudentID: "",
 		Firstname: "",
-		Surname: "",
-		Email: "",
+		Surname:   "",
+		Email:     "",
 	}
 
-   db, err := sql.Open("postgres", database.PsqlInfo())
-   if err != nil {
-	   panic(err)
-   }
-   defer db.Close()
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
-   sqlStatement := `SELECT userid,firstname,surname FROM student WHERE studentid=$1;`
-   rows,err := db.Query(sqlStatement, studentID)
-   if err != nil {
-	   panic(err)
-   }
-   defer rows.Close()
+	sqlStatement := `SELECT userid,firstname,surname FROM student WHERE studentid=$1;`
+	rows, err := db.Query(sqlStatement, studentID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
 
-   for rows.Next() {
-	err = rows.Scan(&userID,&firstName,&surName)
+	for rows.Next() {
+		err = rows.Scan(&userID, &firstName, &surName)
 		if err != nil {
 			panic(err)
 		}
 	}
 	err = rows.Err()
 	if err != nil {
-	panic(err)
+		panic(err)
 	}
 
-	if(checkMemberInCourse(userID,courseCode)){
+	if checkMemberInCourse(userID, courseCode) {
 		s = student.Student{
-			UserID: "",
+			UserID:    "",
 			StudentID: studentID,
 			Firstname: firstName,
-			Surname: surName,
-			Email: "",
+			Surname:   surName,
+			Email:     "",
 		}
-		
+
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
-		_, err = db.Exec(sqlStatement, courseCode, userID, "student", "pending")
+		_, err = db.Exec(sqlStatement, courseCode, userID, "student", "join")
 		if err != nil {
 			panic(err)
 		}
@@ -69,17 +70,17 @@ func addStudentToCourse(studentID string,courseCode string) []byte{
 	return s.GetStudentDetail()
 }
 
-func addTeacherToCourse(username string,courseCode string) []byte{
+func addTeacherToCourse(username string, courseCode string) []byte {
 
 	var userID string
 	var firstName string
 	var surName string
 
 	t := teacher.Teacher{
-		UserID: "Can't Join this course",
+		UserID:    "Can't Join this course",
 		Firstname: "",
-		Surname: "",
-		Email: "",
+		Surname:   "",
+		Email:     "",
 	}
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -105,51 +106,57 @@ func addTeacherToCourse(username string,courseCode string) []byte{
 		panic(err)
 	}
 
+	fmt.Println(userID)
+
 	sqlStatement = `SELECT firstname,surname FROM teacher WHERE userid=$1;`
-	rows,err = db.Query(sqlStatement, userID)
+	rows, err = db.Query(sqlStatement, userID)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
- 
-	for rows.Next() {
-	 err = rows.Scan(&firstName,&surName)
-		 if err != nil {
-			 panic(err)
-		 }
-	 }
-	 err = rows.Err()
-	 if err != nil {
-	 panic(err)
-	 }
 
-	if(checkMemberInCourse(userID,courseCode)){
+	for rows.Next() {
+		err = rows.Scan(&firstName, &surName)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(firstName)
+	fmt.Println(surName)
+
+	if checkMemberInCourse(userID, courseCode) {
 		t = teacher.Teacher{
-			UserID: "",
+			UserID:    "",
 			Firstname: firstName,
-			Surname: surName,
-			Email: "",
+			Surname:   surName,
+			Email:     "",
 		}
 
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
 		_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "pending")
 		if err != nil {
-		panic(err)
+			panic(err)
 		}
+		return t.GetTeacherDetail()
 	}
 
 	return t.GetTeacherDetail()
 }
 
-func getStudentInCourse(courseCode string) []byte{
+func getStudentInCourse(courseCode string) []byte {
 	var userIDs []string
 
-	type studentInCourse struct{
+	type studentInCourse struct {
 		StudentID string
 		Firstname string
-		Surname string
-		Status string
+		Surname   string
+		Status    string
 	}
 
 	var studentInCourses []studentInCourse
@@ -161,7 +168,7 @@ func getStudentInCourse(courseCode string) []byte{
 	defer db.Close()
 
 	sqlStatement := `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
-	rows, err := db.Query(sqlStatement, courseCode,"student","join")
+	rows, err := db.Query(sqlStatement, courseCode, "student", "join")
 	if err != nil {
 		panic(err)
 	}
@@ -208,8 +215,8 @@ func getStudentInCourse(courseCode string) []byte{
 			s := studentInCourse{
 				StudentID: studentID,
 				Firstname: firstname,
-				Surname: surname,
-				Status: "join",
+				Surname:   surname,
+				Status:    "join",
 			}
 
 			studentInCourses = append(studentInCourses, s)
@@ -223,7 +230,7 @@ func getStudentInCourse(courseCode string) []byte{
 	userIDs = nil
 
 	sqlStatement = `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
-	rows, err = db.Query(sqlStatement, courseCode,"student","pending")
+	rows, err = db.Query(sqlStatement, courseCode, "student", "pending")
 	if err != nil {
 		panic(err)
 	}
@@ -270,8 +277,8 @@ func getStudentInCourse(courseCode string) []byte{
 			s := studentInCourse{
 				StudentID: studentID,
 				Firstname: firstname,
-				Surname: surname,
-				Status: "pending",
+				Surname:   surname,
+				Status:    "pending",
 			}
 
 			studentInCourses = append(studentInCourses, s)
@@ -282,21 +289,21 @@ func getStudentInCourse(courseCode string) []byte{
 		}
 	}
 
-	b,err := json.Marshal(studentInCourses)
-	if err != nil{
+	b, err := json.Marshal(studentInCourses)
+	if err != nil {
 		panic(err)
 	}
 
 	return b
 }
 
-func getTeacherInCourse(courseCode string) []byte{
+func getTeacherInCourse(courseCode string) []byte {
 	var userIDs []string
 
-	type teacherInCourse struct{
+	type teacherInCourse struct {
 		Firstname string
-		Surname string
-		Status string
+		Surname   string
+		Status    string
 	}
 
 	var teacherInCourses []teacherInCourse
@@ -308,7 +315,7 @@ func getTeacherInCourse(courseCode string) []byte{
 	defer db.Close()
 
 	sqlStatement := `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
-	rows, err := db.Query(sqlStatement, courseCode,"teacher","join")
+	rows, err := db.Query(sqlStatement, courseCode, "teacher", "join")
 	if err != nil {
 		panic(err)
 	}
@@ -353,8 +360,8 @@ func getTeacherInCourse(courseCode string) []byte{
 
 			t := teacherInCourse{
 				Firstname: firstname,
-				Surname: surname,
-				Status: "join",
+				Surname:   surname,
+				Status:    "join",
 			}
 
 			teacherInCourses = append(teacherInCourses, t)
@@ -368,7 +375,7 @@ func getTeacherInCourse(courseCode string) []byte{
 	userIDs = nil
 
 	sqlStatement = `SELECT userid FROM coursemember WHERE coursecode=$1 and role=$2 and status=$3;`
-	rows, err = db.Query(sqlStatement, courseCode,"teacher","pending")
+	rows, err = db.Query(sqlStatement, courseCode, "teacher", "pending")
 	if err != nil {
 		panic(err)
 	}
@@ -413,8 +420,8 @@ func getTeacherInCourse(courseCode string) []byte{
 
 			t := teacherInCourse{
 				Firstname: firstname,
-				Surname: surname,
-				Status: "pending",
+				Surname:   surname,
+				Status:    "pending",
 			}
 
 			teacherInCourses = append(teacherInCourses, t)
@@ -425,16 +432,17 @@ func getTeacherInCourse(courseCode string) []byte{
 		}
 	}
 
-	b,err := json.Marshal(teacherInCourses)
-	if err != nil{
+	b, err := json.Marshal(teacherInCourses)
+	if err != nil {
 		panic(err)
 	}
 
 	return b
 }
 
-//ApproveJoinCourse is ฟังก์ชันสำหรับให้ผู้สอนรองรับการเข้าร่วม Course ของผู้เรียน
-func ApproveJoinCourse(userID string,courseCode string) string{
+func approveStudentJoinCourse(studentID string, courseCode string) string {
+
+	var userID string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -442,18 +450,72 @@ func ApproveJoinCourse(userID string,courseCode string) string{
 	}
 	defer db.Close()
 
-	sqlStatement := `UPDATE coursemember SET status=$1 WHERE coursecode=$2 and userid=$3;`
-
-	_, err = db.Exec(sqlStatement,"join", courseCode, userID)
+	sqlStatement := `SELECT userid FROM student WHERE studentid=$1;`
+	rows, err := db.Query(sqlStatement, studentID)
 	if err != nil {
-	panic(err)
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `UPDATE coursemember SET status=$1 WHERE coursecode=$2 and userid=$3;`
+
+	_, err = db.Exec(sqlStatement, "join", courseCode, userID)
+	if err != nil {
+		panic(err)
+	}
+
+	return "success"
+}
+
+func approveTeacherJoinCourse(username string, courseCode string) string {
+
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM student WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `UPDATE coursemember SET status=$1 WHERE coursecode=$2 and userid=$3;`
+
+	_, err = db.Exec(sqlStatement, "join", courseCode, userID)
+	if err != nil {
+		panic(err)
 	}
 
 	return "success"
 }
 
 //DeclineJoinCourse is ฟังก์ชันสำหรับให้ผู้สอนรองรับการเข้าร่วม Course ของผู้เรียน
-func DeclineJoinCourse(userID string,courseCode string) string{
+func DeclineJoinCourse(userID string, courseCode string) string {
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -463,15 +525,15 @@ func DeclineJoinCourse(userID string,courseCode string) string{
 
 	sqlStatement := `DELETE from coursemember WHERE coursecode=$1 and userid=$2;`
 
-	_, err = db.Exec(sqlStatement,courseCode, userID)
+	_, err = db.Exec(sqlStatement, courseCode, userID)
 	if err != nil {
-	panic(err)
+		panic(err)
 	}
 
 	return "success"
 }
 
-func getUserRole(username string) string{
+func getUserRole(username string) string {
 	var role string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -502,10 +564,10 @@ func getUserRole(username string) string{
 
 func deleteTeacherInCourse(courseCode string, username string) []byte {
 	t := teacher.Teacher{
-		UserID: "Can't find.",
-		Firstname:   "",
-		Surname: "",
-		Email:       "",
+		UserID:    "Can't find.",
+		Firstname: "",
+		Surname:   "",
+		Email:     "",
 	}
 
 	var userID string
@@ -547,11 +609,11 @@ func deleteTeacherInCourse(courseCode string, username string) []byte {
 	t = teacher.Teacher{
 		Firstname: firstname,
 		Surname:   surname,
-		Email: email,
+		Email:     email,
 	}
 
 	sqlStatement = `DELETE FROM coursemember WHERE userID=$1 and coursecode=$2;`
-	_, err = db.Exec(sqlStatement, userID,courseCode)
+	_, err = db.Exec(sqlStatement, userID, courseCode)
 	if err != nil {
 		panic(err)
 	}
@@ -561,11 +623,11 @@ func deleteTeacherInCourse(courseCode string, username string) []byte {
 
 func deleteStudentInCourse(courseCode string, username string) []byte {
 	s := student.Student{
-		UserID: "Can't find.",
+		UserID:    "Can't find.",
 		StudentID: "",
-		Firstname:   "",
-		Surname: "",
-		Email:       "",
+		Firstname: "",
+		Surname:   "",
+		Email:     "",
 	}
 
 	var userID string
@@ -600,7 +662,7 @@ func deleteStudentInCourse(courseCode string, username string) []byte {
 
 	sqlStatement = `SELECT studentid, firstname, surname, email FROM student WHERE userid=$1;`
 	row := db.QueryRow(sqlStatement, userID)
-	err = row.Scan(&studentID,&firstname, &surname, &email)
+	err = row.Scan(&studentID, &firstname, &surname, &email)
 	if err != nil {
 		panic(err)
 	}
@@ -609,11 +671,11 @@ func deleteStudentInCourse(courseCode string, username string) []byte {
 		StudentID: studentID,
 		Firstname: firstname,
 		Surname:   surname,
-		Email: email,
+		Email:     email,
 	}
 
 	sqlStatement = `DELETE FROM coursemember WHERE userID=$1 and coursecode=$2;`
-	_, err = db.Exec(sqlStatement, userID,courseCode)
+	_, err = db.Exec(sqlStatement, userID, courseCode)
 	if err != nil {
 		panic(err)
 	}
@@ -622,7 +684,7 @@ func deleteStudentInCourse(courseCode string, username string) []byte {
 
 }
 
-func checkMemberInCourse(userID string,courseCode string) bool{
+func checkMemberInCourse(userID string, courseCode string) bool {
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -633,46 +695,49 @@ func checkMemberInCourse(userID string,courseCode string) bool{
 	var status string
 
 	sqlStatement := `SELECT status FROM coursemember WHERE userid=$1 and coursecode=$2;`
-	row := db.QueryRow(sqlStatement, userID,courseCode)
+	row := db.QueryRow(sqlStatement, userID, courseCode)
 	err = row.Scan(&status)
 	switch err {
-	case sql.ErrNoRows: return true
-	case nil: return false
-	default: panic(err)
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
 	}
 }
 
 //API
 
-//AddStudentToCourse is a API that use to add student to course. 
+//AddStudentToCourse is a API that use to add student to course.
 var AddStudentToCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
-		StudentID string
+	type Input struct {
+		StudentID  string
 		CourseCode string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(addStudentToCourse(input.StudentID,input.CourseCode))
+	w.Write(addStudentToCourse(input.StudentID, input.CourseCode))
 })
 
-//AddTeacherToCourse is a API that use to add teacher to course. 
+//AddTeacherToCourse is a API that use to add teacher to course.
 var AddTeacherToCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
-		Username string
+	type Input struct {
+		Username   string
 		CourseCode string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(addTeacherToCourse(input.Username,input.CourseCode))
+	w.Write(addTeacherToCourse(input.Username, input.CourseCode))
 })
 
-//GetStudentInCourse is a API that use to get information of all student in course. 
+//GetStudentInCourse is a API that use to get information of all student in course.
 var GetStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
 		CourseCode string
 	}
 
@@ -682,9 +747,9 @@ var GetStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	w.Write(getStudentInCourse(input.CourseCode))
 })
 
-//GetTeacherInCourse is a API that use to get information of all teacher in course. 
+//GetTeacherInCourse is a API that use to get information of all teacher in course.
 var GetTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
 		CourseCode string
 	}
 
@@ -694,37 +759,37 @@ var GetTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	w.Write(getTeacherInCourse(input.CourseCode))
 })
 
-//GetUserRole is a API that use to get use role by using username. 
+//GetUserRole is a API that use to get use role by using username.
 var GetUserRole = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
 		Username string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
+	var input Input
 	json.Unmarshal(reqBody, &input)
 	w.Write([]byte(getUserRole(input.Username)))
 })
 
 //DeleteTeacherInCourse is a function that use to delete teacher in course
 var DeleteTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
 		CourseCode string
-		Username string
+		Username   string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
+	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(deleteTeacherInCourse(input.CourseCode,input.Username)))
+	w.Write([]byte(deleteTeacherInCourse(input.CourseCode, input.Username)))
 })
 
 //DeleteStudentInCourse is a function that use to delete student in course
 var DeleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
+	type Input struct {
 		CourseCode string
-		Username string
+		Username   string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
+	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(deleteStudentInCourse(input.CourseCode,input.Username)))
+	w.Write([]byte(deleteStudentInCourse(input.CourseCode, input.Username)))
 })
