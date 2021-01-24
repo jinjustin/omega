@@ -670,7 +670,7 @@ func Test_addStudentToCourse(t *testing.T) {
 		assert.Equal(t,"88010135",response.StudentID)
 		assert.Equal(t,"integrationtest",response.Firstname)
 		assert.Equal(t,"addstudent",response.Surname)
-		assert.Equal(t,"pending",status)
+		assert.Equal(t,"join",status)
 	})
 
 	sqlStatement = `DELETE FROM users WHERE userid=$1;`
