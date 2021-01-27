@@ -61,7 +61,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
-		_, err = db.Exec(sqlStatement, courseCode, userID, "student", "join")
+		_, err = db.Exec(sqlStatement, courseCode, userID, "student", "pending")
 		if err != nil {
 			panic(err)
 		}
@@ -757,17 +757,6 @@ var GetTeacherInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	var input Input
 	json.Unmarshal(reqBody, &input)
 	w.Write(getTeacherInCourse(input.CourseCode))
-})
-
-//GetUserRole is a API that use to get use role by using username.
-var GetUserRole = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct {
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write([]byte(getUserRole(input.Username)))
 })
 
 //DeleteTeacherInCourse is a function that use to delete teacher in course

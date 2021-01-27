@@ -9,6 +9,7 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 	"omega/database"
+	"omega/authentication"
 
 	"net/http"
 	"encoding/json"
@@ -452,38 +453,34 @@ var CreateCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		Permission string
 		Announcement string
 		Description string
-		Username string
 	}
+
+	username := authentication.GetUsername(r)
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
 	fmt.Println(input)
-	w.Write(createCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Announcement,input.Description,input.Username))
+	w.Write(createCourse(input.CourseName,input.CourseID,input.Year,input.Permission,input.Announcement,input.Description,username))
 })
 
 //GetCourseList is a API that use for getcourselist for that user.
 var GetCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	json.NewEncoder(w).Encode(getCourseList(input.Username))
+	username := authentication.GetUsername(r)
+	json.NewEncoder(w).Encode(getCourseList(username))
 })
 
 //DeleteCourse is a API that use for delete course
 var DeleteCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct{
 		CourseCode string
-		Username string
 	}
 
+	username := authentication.GetUsername(r)
 	reqBody, _ := ioutil.ReadAll(r.Body)
     var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(deleteCourse(input.CourseCode,input.Username))
+	w.Write(deleteCourse(input.CourseCode,username))
 })
 
 //GetDescription is a API that use for get course description.

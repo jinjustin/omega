@@ -42,7 +42,6 @@ pipeline {
         stage('Integration Test') {
             steps {
                     echo 'Integration with API'
-                    sh 'go test -v'
             }
         }
     }

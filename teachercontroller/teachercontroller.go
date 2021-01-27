@@ -3,6 +3,7 @@ package teachercontroller
 import(
 	"omega/teacher"
 	"omega/database"
+	"omega/authentication"
 	"database/sql"
 
 	"net/http"
@@ -132,13 +133,8 @@ func editTeacherInfo(firstname string,surname string,email string,username strin
 
 //GetTeacherInfo is a API that use for get teacher information.
 var GetTeacherInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct{
-		Username string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-    var input Input
-	json.Unmarshal(reqBody, &input)
-	w.Write(getTeacherInfo(input.Username))
+	username := authentication.GetUsername(r)
+	w.Write(getTeacherInfo(username))
 })
 
 //EditTeacherInfo is a API that use for edit teacher information.
@@ -147,13 +143,13 @@ var EditTeacherInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		Firstname string
 		Surname string
 		Email string
-		Username string
 	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(editTeacherInfo(input.Firstname,input.Surname,input.Email,input.Username))
+	username := authentication.GetUsername(r)
+	w.Write(editTeacherInfo(input.Firstname,input.Surname,input.Email,username))
 })
 
 
