@@ -5,6 +5,7 @@ import (
 	"omega/database"
 	"omega/student"
 	"omega/teacher"
+	"omega/mail"
 
 	"encoding/json"
 	"fmt"
@@ -17,6 +18,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 	var userID string
 	var firstName string
 	var surName string
+	var email string
 
 	s := student.Student{
 		UserID:    "Can't Invite this student",
@@ -32,7 +34,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT userid,firstname,surname FROM student WHERE studentid=$1;`
+	sqlStatement := `SELECT userid,firstname,surname,email FROM student WHERE studentid=$1;`
 	rows, err := db.Query(sqlStatement, studentID)
 	if err != nil {
 		panic(err)
@@ -40,7 +42,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.Scan(&userID, &firstName, &surName)
+		err = rows.Scan(&userID, &firstName, &surName, &email)
 		if err != nil {
 			panic(err)
 		}
@@ -56,7 +58,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 			StudentID: studentID,
 			Firstname: firstName,
 			Surname:   surName,
-			Email:     "",
+			Email:     email,
 		}
 
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
@@ -65,6 +67,30 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 		if err != nil {
 			panic(err)
 		}
+
+		var courseName string
+		var courseID string
+
+		sqlStatement = `SELECT coursename,courseid FROM course WHERE coursecode=$1;`
+		rows, err := db.Query(sqlStatement, courseCode)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+	
+		for rows.Next() {
+			err = rows.Scan(&courseName,&courseID)
+			if err != nil {
+				panic(err)
+			}
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+
+		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ 127.0.0.1:30000/acceptjoincourse?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
+		mail.Send(email,"Course Invitation",message)
 	}
 
 	return s.GetStudentDetail()
@@ -781,4 +807,23 @@ var DeleteStudentInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	var input Input
 	json.Unmarshal(reqBody, &input)
 	w.Write([]byte(deleteStudentInCourse(input.CourseCode, input.Username)))
+})
+
+//ApproveStudentJoinCourse is a function that teacher use to approve for student to join course.
+var ApproveStudentJoinCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		StudentID string
+		CourseCode string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write([]byte(approveStudentJoinCourse(input.StudentID, input.CourseCode)))
+})
+
+//StudentAcceptJoinCourse is a function that student use to accept invitation to join course.
+var StudentAcceptJoinCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	studentID := r.FormValue("studentid")
+	courseCode := r.FormValue("coursecode")
+	w.Write([]byte(approveStudentJoinCourse(studentID, courseCode)))
 })

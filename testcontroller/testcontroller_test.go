@@ -226,7 +226,7 @@ func Test_GetTestInfo(t *testing.T) {
 
 		//Output
 		var output test.Test
-		json.Unmarshal(getTestInfo(testInCourse.CourseID,testInCourse.Name), &output)
+		json.Unmarshal(getTestInfo(testInCourse.TestID), &output)
 
 
 		//Compare output to expected output

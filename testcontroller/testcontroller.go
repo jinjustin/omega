@@ -9,6 +9,7 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 	"omega/database"
+	"omega/authentication"
 
 	"encoding/json"
 	"io/ioutil"
@@ -178,8 +179,10 @@ func getTestList(courseID string, username string) []test.Test {
 	return testList
 }
 
-func getTestInfo(courseID string, name string) []byte{
+func getTestInfo(testID string) []byte{
 	var t test.Test
+
+	t.TestID = testID
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -187,18 +190,17 @@ func getTestInfo(courseID string, name string) []byte{
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT testid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE courseid=$1 and name=$2;`
-	rows, err := db.Query(sqlStatement, courseID, name)
+	sqlStatement := `SELECT courseid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, t.TestID)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&t.TestID, &t.CourseCode, &t.UserID, &t.Status, &t.Name, &t.Duration, &t.Start, &t.Date, &t.Description)
+		err = rows.Scan(&t.CourseID,&t.CourseCode, &t.UserID, &t.Status, &t.Name, &t.Duration, &t.Start, &t.Date, &t.Description)
 		if err != nil {
 			panic(err)
 		}
-		t.CourseID = courseID
 	}
 	err = rows.Err()
 	if err != nil {
@@ -242,6 +244,54 @@ func editTestInfo(testID string, name string, duration string, start string, dat
 	return "success"
 }
 
+func deleteTest(testID string) []byte{
+
+	t := test.Test{
+		TestID:      "",
+		CourseID:    "",
+		CourseCode:  "",
+		UserID:      "",
+		Status:      "",
+		Name:        "",
+		Duration:    "",
+		Start:       "",
+		Date:        "",
+		Description: "",
+	}
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT courseid,coursecode,userid,status,name,duration,start,date,description FROM test WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&t.CourseID,&t.CourseCode,&t.UserID,&t.Status,&t.Name,&t.Duration,&t.Start,&t.Date,&t.Description)
+		if err != nil {
+			panic(err)
+		}
+		t.TestID = testID
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE FROM test WHERE testID=$1;`
+	_, err = db.Exec(sqlStatement, testID)
+	if err != nil {
+		panic(err)
+	}
+
+	return t.GetTestDetail()
+}
+
 func checkTestName(courseID string, name string) bool {
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -281,7 +331,6 @@ var CreateTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
 		CourseID    string
 		CourseCode  string
-		Username    string
 		Status      string
 		Name        string
 		Duration    string
@@ -289,10 +338,12 @@ var CreateTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Date        string
 		Description string
 	}
+
+	username := authentication.GetUsername(r)
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(createTest(input.CourseID, input.CourseCode, input.Username, input.Status, input.Name, input.Duration, input.Start, input.Date, input.Description))
+	w.Write(createTest(input.CourseID, input.CourseCode, username, input.Status, input.Name, input.Duration, input.Start, input.Date, input.Description))
 })
 
 //GetTestList is a API that use to get all test in the course.
@@ -310,13 +361,12 @@ var GetTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 //GetTestInfo is a API that use to get test information
 var GetTestInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
-		CourseID string
-		Name string
+		TestID string
 	}
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(getTestInfo(input.CourseID,input.Name))
+	w.Write(getTestInfo(input.TestID))
 })
 
 //EditTestInfo is a API that use to edit test information
@@ -333,4 +383,15 @@ var EditTestInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	var input Input
 	json.Unmarshal(reqBody, &input)
 	json.NewEncoder(w).Encode(editTestInfo(input.TestID,input.Name,input.Duration,input.Start,input.Date,input.Description))
+})
+
+//DeleteTest is a API that use to delete test
+var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		TestID string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	w.Write(deleteTest(input.TestID))
 })

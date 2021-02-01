@@ -9,6 +9,7 @@ import (
 	"omega/teachercontroller"
 	"omega/testcontroller"
 	"omega/authentication"
+	"omega/questiongroupcontroller"
 
 	//"omega/database"
 	"context"
@@ -158,6 +159,7 @@ func handleRequests() {
 	myRouter.Handle("/editannouncement",middlewareTeacher(coursecontroller.EditAnnouncement)).Methods("POST")//work
 	myRouter.Handle("/addstudent",middlewareTeacher(coursemembercontroller.AddStudentToCourse)).Methods("POST") // work
 	myRouter.Handle("/addteacher",middlewareTeacher(coursemembercontroller.AddTeacherToCourse)).Methods("POST") //almost-work (Bug)
+	myRouter.Handle("/acceptjoincourse",coursemembercontroller.StudentAcceptJoinCourse).Methods("GET")
 	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST") //work
 	myRouter.Handle("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST") //work
 	myRouter.Handle("/deleteteacherincourse",middlewareTeacher(coursemembercontroller.DeleteTeacherInCourse)).Methods("POST") //work
@@ -166,7 +168,13 @@ func handleRequests() {
 	myRouter.Handle("/createtest",middlewareTeacher(testcontroller.CreateTest)).Methods("POST")
 	myRouter.Handle("/gettestlist",testcontroller.GetTestList).Methods("POST")
 	myRouter.Handle("/gettestinfo",middlewareTeacher(testcontroller.GetTestInfo)).Methods("POST")
-	myRouter.Handle("edittestinfo",middlewareTeacher(testcontroller.EditTestInfo)).Methods("POST")
+	myRouter.Handle("/edittestinfo",middlewareTeacher(testcontroller.EditTestInfo)).Methods("POST")
+	myRouter.Handle("/deletetest",middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
+	myRouter.Handle("/createquestiongroup",middlewareTeacher(questiongroupcontroller.CreateQuestionGroup)).Methods("POST")
+	myRouter.Handle("/getquestiongrouplist",middlewareTeacher(questiongroupcontroller.GetQuestionGroupList)).Methods("POST")
+	myRouter.Handle("/getquestiongroupinfo",middlewareTeacher(questiongroupcontroller.GetQuestionGroupInfo)).Methods("POST")
+	myRouter.Handle("/editquestiongroupname",middlewareTeacher(questiongroupcontroller.EditQuestionGroupName)).Methods("POST")
+	myRouter.Handle("/deletequestiongroup",middlewareTeacher(questiongroupcontroller.DeleteQuestionGroup)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 
@@ -178,7 +186,7 @@ func handleRequests() {
 	})
 
 	serve.Use(static.Serve("/", static.LocalFile("./build", true)))
-	go http.ListenAndServe(":10000", c.Handler(myRouter))
+	go http.ListenAndServe(":30000", c.Handler(myRouter))
 	go http.ListenAndServe(":5000", c.Handler(serve))
 	select{}
 }
