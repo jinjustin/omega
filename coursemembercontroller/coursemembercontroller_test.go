@@ -38,7 +38,7 @@ func Test_AddStudentToCourse(t *testing.T){
 			StudentID: "60010135",
 			Firstname: "testaddstudent",
 			Surname: "tocourse",
-			Email: "",
+			Email: "student@email.com",
 		}
 
 		//Output
