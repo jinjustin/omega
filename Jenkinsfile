@@ -46,7 +46,7 @@ pipeline {
         }
     }
 
-    stages {    
+    /*stages {    
         def app     
         stage('Clone repository'){               
             checkout scm    
@@ -59,7 +59,7 @@ pipeline {
             app.push("${env.BUILD_NUMBER}")            
             app.push("latest")        
         }
-    }
+    }*/
 
     post{
             success{
@@ -69,4 +69,19 @@ pipeline {
                 notifyLINE("failed")
             }
         }  
+}
+
+node {    
+    def app     
+    stage('Clone repository'){               
+        checkout scm    
+    }     
+    stage('Build image'){         
+        app = docker.build("omega:${env.BUILD_NUMBER}")    
+    }     
+    
+    stage('Push image') {            
+        app.push("${env.BUILD_NUMBER}")            
+        app.push("latest")        
+    }
 }
