@@ -44,15 +44,9 @@ pipeline {
                     echo 'Integration with API'
             }
         }
-        stage('Deploy') {
-            script{
-                checkout scm
-                def customImage = docker.build("omega_api:${env.BUILD_ID}")
-                //customImage.push()
-            }
-        }
     }
-        post {
+    
+    post{
             success{
                 notifyLINE("succeed")
             }
@@ -60,4 +54,4 @@ pipeline {
                 notifyLINE("failed")
             }
         }  
-    }
+}
