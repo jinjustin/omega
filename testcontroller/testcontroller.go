@@ -2,14 +2,14 @@ package testcontroller
 
 import (
 	"fmt"
-	"omega/test"
+	"github.com/jinjustin/omega/test"
 
 	//"encoding/json"
 	"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
-	"omega/database"
-	"omega/authentication"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/authentication"
 
 	"encoding/json"
 	"io/ioutil"

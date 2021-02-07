@@ -2,13 +2,13 @@ package questiongroupcontroller
 
 import (
 	"fmt"
-	"omega/questiongroup"
+	"github.com/jinjustin/omega/questiongroup"
 
 	//"encoding/json"
 	"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
-	"omega/database"
+	"github.com/jinjustin/omega/database"
 	//"omega/authentication"
 
 	"encoding/json"

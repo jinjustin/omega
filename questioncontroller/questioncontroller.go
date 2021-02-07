@@ -7,8 +7,8 @@ import (
 	"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
-	"omega/database"
-	"omega/question"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/question"
 	//"omega/authentication"
 
 	"encoding/json"

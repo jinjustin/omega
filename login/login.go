@@ -11,7 +11,7 @@ import (
     "github.com/dgrijalva/jwt-go"
 	"encoding/json"
 	"database/sql"
-	"omega/database"
+	"github.com/jinjustin/omega/database"
 )
 
 // Input is a ...

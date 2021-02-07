@@ -2,14 +2,14 @@ package coursecontroller
 
 import (
 	"fmt"
-	"omega/course"
+	"github.com/jinjustin/omega/course"
 
 	//"encoding/json"
 	"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
-	"omega/database"
-	"omega/authentication"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/authentication"
 
 	"net/http"
 	"encoding/json"

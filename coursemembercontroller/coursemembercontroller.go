@@ -2,10 +2,10 @@ package coursemembercontroller
 
 import (
 	"database/sql"
-	"omega/database"
-	"omega/student"
-	"omega/teacher"
-	"omega/mail"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/student"
+	"github.com/jinjustin/omega/teacher"
+	"github.com/jinjustin/omega/mail"
 
 	"encoding/json"
 	"fmt"

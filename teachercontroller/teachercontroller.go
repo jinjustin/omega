@@ -1,9 +1,9 @@
 package teachercontroller
 
 import(
-	"omega/teacher"
-	"omega/database"
-	"omega/authentication"
+	"github.com/jinjustin/omega/teacher"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/authentication"
 	"database/sql"
 
 	"net/http"

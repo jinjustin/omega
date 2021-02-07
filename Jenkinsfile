@@ -26,7 +26,7 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
+        /*stage('Unit Test') {
             steps {
                     echo 'course'
                     sh 'cd course && go test -v'
@@ -35,7 +35,7 @@ pipeline {
                     echo 'courseMemberController'
                     sh 'cd coursemembercontroller && go test -v'
             }
-        }
+        }*/
         stage('Integration Test') {
             steps {
                     echo 'Integration with API'
