@@ -10,9 +10,9 @@ def notifyLINE(status) {
 
 pipeline {
     agent any
-    tools {
-        go 'null'
-    }
+    /*tools {
+
+    }*/
     stages {        
         stage('Pre Test') {
             steps {
