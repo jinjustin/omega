@@ -45,11 +45,9 @@ pipeline {
             }
         }
         stage('Deploy') {
-            steps {
-                    checkout scm
-                    def customImage = docker.build("omega_api:${env.BUILD_ID}")
-                    customImage.push()
-            }
+            //checkout scm
+            def customImage = docker.build("omega_api:${env.BUILD_ID}")
+            customImage.push()
         }
     }
         post {
