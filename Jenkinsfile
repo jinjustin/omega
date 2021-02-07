@@ -10,9 +10,6 @@ def notifyLINE(status) {
 
 pipeline {
     agent any
-    /*tools {
-
-    }*/
     stages {        
         stage('Pre Test') {
             steps {
