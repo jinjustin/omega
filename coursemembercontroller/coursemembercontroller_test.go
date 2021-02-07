@@ -1,13 +1,15 @@
 package coursemembercontroller
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"omega/database"
 	"omega/student"
 	"omega/teacher"
-	"database/sql"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_AddStudentToCourse(t *testing.T){
@@ -641,4 +643,45 @@ func Test_GetUserRole(t *testing.T){
 	if err != nil {
 		panic(err)
 	}
+}
+
+func Test_AddMultipleStudentsToCourse(t *testing.T){
+
+	t.Run("Unit Test 001: Work Right", func(t *testing.T) {
+
+		//Input
+		var studentIDs []string
+
+		studentIDs = append(studentIDs, "40010135")
+		studentIDs = append(studentIDs, "40010134")
+		studentIDs = append(studentIDs, "40010133")
+		courseCode := "501B1B"
+
+		//Expected Output
+
+		var expected []student.Student
+
+		expected = append(expected, student.Student{
+			UserID: "S20002",
+			StudentID: "40010135",
+			Firstname: "black",
+			Surname: "goodman",
+			Email: "60010135@kmitl.ac.th",
+		})
+
+		expected = append(expected, student.Student{
+			UserID: "S20003",
+			StudentID: "40010134",
+			Firstname: "bruce",
+			Surname: "wayne",
+			Email: "60010135@kmitl.ac.th",
+		})
+
+		output := addMultipleStudentsToCourse(studentIDs,courseCode)
+
+		fmt.Print(output)
+
+		//Compare output to expected output 
+		assert.Equal(t,expected,output)
+	})
 }

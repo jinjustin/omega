@@ -21,8 +21,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/contrib/static"
+	//"github.com/gin-gonic/gin"
+	//"github.com/gin-gonic/contrib/static"
 
 	//"omega/student"
 	//"database/sql"
@@ -144,7 +144,7 @@ func middleware(next http.Handler) http.Handler {
 func handleRequests() {
 	myRouter := mux.NewRouter()
 
-	serve := gin.Default()
+	//serve := gin.Default()
 
 	myRouter.HandleFunc("/",testAPI) //work
 	myRouter.HandleFunc("/test",test2).Methods("POST") //work
@@ -158,6 +158,7 @@ func handleRequests() {
 	myRouter.Handle("/getannouncement",middlewareTeacher(coursecontroller.GetAnnouncement)).Methods("POST")//work
 	myRouter.Handle("/editannouncement",middlewareTeacher(coursecontroller.EditAnnouncement)).Methods("POST")//work
 	myRouter.Handle("/addstudent",middlewareTeacher(coursemembercontroller.AddStudentToCourse)).Methods("POST") // work
+	myRouter.Handle("/addstudentbyfile",coursemembercontroller.AddStudentFromExcelFile).Methods("POST") 
 	myRouter.Handle("/addteacher",middlewareTeacher(coursemembercontroller.AddTeacherToCourse)).Methods("POST") //almost-work (Bug)
 	myRouter.Handle("/acceptjoincourse",coursemembercontroller.StudentAcceptJoinCourse).Methods("GET")
 	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST") //work
@@ -185,10 +186,17 @@ func handleRequests() {
 		AllowedHeaders: []string{"*"},
 	})
 
-	serve.Use(static.Serve("/", static.LocalFile("./build", true)))
-	go http.ListenAndServe(":30000", c.Handler(myRouter))
-	go http.ListenAndServe(":5000", c.Handler(serve))
-	select{}
+
+	//serve.Use(static.Serve("/", static.LocalFile("./build", true)))
+	/*serve.Use(static.Serve("/Teacher/Course", static.LocalFile("./build", true)))
+	serve.Use(static.Serve("/Teacher/InClass", static.LocalFile("./build", true)))
+	serve.Use(static.Serve("/Teacher/UserInfo", static.LocalFile("./build", true)))*/
+
+
+	//go http.ListenAndServe(":30000", c.Handler(myRouter))
+	//go http.ListenAndServe(":5000", c.Handler(serve))
+	//select{}
+	http.ListenAndServe(":10000", c.Handler(myRouter))
 }
 
 func main() {

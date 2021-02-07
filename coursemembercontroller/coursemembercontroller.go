@@ -11,6 +11,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	
+	"os"
+	"io"
 )
 
 func addStudentToCourse(studentID string, courseCode string) []byte {
@@ -94,6 +99,82 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 	}
 
 	return s.GetStudentDetail()
+}
+
+func addMultipleStudentsToCourse(studentIDs []string, courseCode string) []student.Student {
+	var students []student.Student
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	for _, studentID := range studentIDs {
+		sqlStatement := `SELECT userid,firstname,surname,email FROM student WHERE studentid=$1;`
+		rows, err := db.Query(sqlStatement, studentID)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+	
+		for rows.Next() {
+			s := student.Student{
+				UserID:    "Can't Invite this student",
+				StudentID: studentID,
+				Firstname: "",
+				Surname:   "",
+				Email:     "",
+			}
+			err = rows.Scan(&s.UserID, &s.Firstname, &s.Surname, &s.Email)
+			if err != nil {
+				panic(err)
+			}
+			students = append(students, s)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	for _, s := range students {
+		if checkMemberInCourse(s.UserID, courseCode) && s.UserID != "Can't Invite this student" {
+	
+			sqlStatement := `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+	
+			_, err = db.Exec(sqlStatement, courseCode, s.UserID, "student", "pending")
+			if err != nil {
+				panic(err)
+			}
+	
+			var courseName string
+			var courseID string
+	
+			sqlStatement = `SELECT coursename,courseid FROM course WHERE coursecode=$1;`
+			rows, err := db.Query(sqlStatement, courseCode)
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+		
+			for rows.Next() {
+				err = rows.Scan(&courseName,&courseID)
+				if err != nil {
+					panic(err)
+				}
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+	
+			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:10000//acceptjoincourse?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
+			mail.Send(s.Email,"Course Invitation",message)
+		}
+	}
+
+	return students
 }
 
 func addTeacherToCourse(username string, courseCode string) []byte {
@@ -733,6 +814,35 @@ func checkMemberInCourse(userID string, courseCode string) bool {
 	}
 }
 
+func readStudentIDFromExcel(name string) []string{
+	var studentIDs []string
+
+	f, err := excelize.OpenFile(name)
+    if err != nil {
+        fmt.Println(err)
+        return studentIDs
+	}
+
+    // Get all the rows in the Sheet1.
+    rows, err := f.GetRows("ใบคะแนนสอบ")
+    for _, row := range rows {
+		if len(row) == 4 {
+			if len(row[1]) == 8{
+				studentIDs = append(studentIDs, row[1])
+			}
+		}
+	}
+	return studentIDs
+}
+
+func deleteFile(name string){
+	err := os.Remove(name)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
 //API
 
 //AddStudentToCourse is a API that use to add student to course.
@@ -826,4 +936,64 @@ var StudentAcceptJoinCourse = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	studentID := r.FormValue("studentid")
 	courseCode := r.FormValue("coursecode")
 	w.Write([]byte(approveStudentJoinCourse(studentID, courseCode)))
+})
+
+//AddStudentFromExcelFile is a function that teacher can add student to course by using excel file.
+var AddStudentFromExcelFile = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseCode := r.Header.Get("coursecode")
+
+	r.ParseMultipartForm(10 << 20)
+
+	file, handler, err := r.FormFile("myFile")
+	if err != nil {
+		fmt.Println("Error Retrieving the File")
+		fmt.Println(err)
+		return
+	}
+	defer deleteFile(handler.Filename)
+	defer file.Close()
+
+	dst, err := os.Create(handler.Filename)
+	defer dst.Close()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := io.Copy(dst, file); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(addMultipleStudentsToCourse(readStudentIDFromExcel(handler.Filename),courseCode))
+})
+
+//TestUploadExcelFile is a function that use to test upload file
+var TestUploadExcelFile = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	r.ParseMultipartForm(10 << 20)
+
+	file, handler, err := r.FormFile("myFile")
+	if err != nil {
+		fmt.Println("Error Retrieving the File")
+		fmt.Println(err)
+		return
+	}
+	defer deleteFile(handler.Filename)
+	defer file.Close()
+
+	dst, err := os.Create(handler.Filename)
+	defer dst.Close()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := io.Copy(dst, file); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(readStudentIDFromExcel(handler.Filename))
 })

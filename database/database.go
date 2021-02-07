@@ -19,14 +19,14 @@ type Config struct {
 }
 
 //PsqlInfo is use to export psql information
-func PsqlInfo() string{
+func PsqlInfo() string {
 	const (
-		host     = "localhost"
+		host     = "172.18.0.2" //172.18.0.2
 		port     = 5432
 		user     = "postgres"
 		password = "0135"
 		dbname   = "omega"
 	)
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",host, port, user, password, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	return psqlInfo
 }
