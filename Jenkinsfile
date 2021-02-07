@@ -11,7 +11,7 @@ def notifyLINE(status) {
 pipeline {
     agent any
     tools {
-        go 'go1.15'
+        go 'go1.13'
     }
     stages {        
         stage('Pre Test') {
@@ -45,7 +45,22 @@ pipeline {
             }
         }
     }
-    
+
+    node {    
+        def app     
+        stage('Clone repository'){               
+            checkout scm    
+        }     
+        stage('Build image'){         
+            app = docker.build("omega:${env.BUILD_NUMBER}")    
+        }     
+     
+       stage('Push image') {            
+            app.push("${env.BUILD_NUMBER}")            
+            app.push("latest")        
+        }
+    }
+
     post{
             success{
                 notifyLINE("succeed")
