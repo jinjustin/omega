@@ -186,16 +186,6 @@ func handleRequests() {
 		AllowedHeaders: []string{"*"},
 	})
 
-
-	//serve.Use(static.Serve("/", static.LocalFile("./build", true)))
-	/*serve.Use(static.Serve("/Teacher/Course", static.LocalFile("./build", true)))
-	serve.Use(static.Serve("/Teacher/InClass", static.LocalFile("./build", true)))
-	serve.Use(static.Serve("/Teacher/UserInfo", static.LocalFile("./build", true)))*/
-
-
-	//go http.ListenAndServe(":30000", c.Handler(myRouter))
-	//go http.ListenAndServe(":5000", c.Handler(serve))
-	//select{}
 	http.ListenAndServe(":10000", c.Handler(myRouter))
 }
 

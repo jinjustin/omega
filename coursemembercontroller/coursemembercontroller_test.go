@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"omega/database"
-	"omega/student"
-	"omega/teacher"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/student"
+	"github.com/jinjustin/omega/teacher"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

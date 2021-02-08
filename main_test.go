@@ -13,18 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"database/sql"
-	"omega/database"
-	"omega/student"
-	"omega/teacher"
-	"omega/test"
+	"github.com/jinjustin/omega/database"
+	"github.com/jinjustin/omega/student"
+	"github.com/jinjustin/omega/teacher"
+	"github.com/jinjustin/omega/test"
 
-	"omega/coursecontroller"
-	"omega/teachercontroller"
-	"omega/coursemembercontroller"
-	"omega/testcontroller"
+	"github.com/jinjustin/omega/coursecontroller"
+	"github.com/jinjustin/omega/teachercontroller"
+	"github.com/jinjustin/omega/coursemembercontroller"
+	"github.com/jinjustin/omega/testcontroller"
 
 	"encoding/json"
-	"omega/course"
+	"github.com/jinjustin/omega/course"
 )
 
 func Test_createCourse(t *testing.T) {

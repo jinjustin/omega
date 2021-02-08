@@ -3,8 +3,8 @@ package testcontroller
 import (
 	"database/sql"
 	"encoding/json"
-	"omega/test"
-	"omega/database"
+	"github.com/jinjustin/omega/test"
+	"github.com/jinjustin/omega/database"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

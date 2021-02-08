@@ -3,8 +3,8 @@ package coursecontroller
 import (
 	"database/sql"
 	"encoding/json"
-	"omega/course"
-	"omega/database"
+	"github.com/jinjustin/omega/course"
+	"github.com/jinjustin/omega/database"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

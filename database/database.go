@@ -30,3 +30,16 @@ func PsqlInfo() string {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	return psqlInfo
 }
+
+//TestPsqlInfo is use to export psql information
+func TestPsqlInfo() string {
+	const (
+		host     = "142.93.177.152" 
+		port     = 5432
+		user     = "postgres"
+		password = "0135"
+		dbname   = "omega"
+	)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	return psqlInfo
+}
