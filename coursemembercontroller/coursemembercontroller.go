@@ -94,7 +94,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 			panic(err)
 		}
 
-		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ 127.0.0.1:30000/acceptjoincourse?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
+		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000//Accept?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
 		mail.Send(email,"Course Invitation",message)
 	}
 
@@ -169,7 +169,7 @@ func addMultipleStudentsToCourse(studentIDs []string, courseCode string) []stude
 				panic(err)
 			}
 	
-			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:10000//acceptjoincourse?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
+			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000//Accept?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
 			mail.Send(s.Email,"Course Invitation",message)
 		}
 	}

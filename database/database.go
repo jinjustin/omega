@@ -31,8 +31,8 @@ func PsqlInfo() string {
 	return psqlInfo
 }
 
-//TestPsqlInfo is use to export psql information
-func TestPsqlInfo() string {
+//ReservePsqlInfo is use to export psql information
+func ReservePsqlInfo() string {
 	const (
 		host     = "142.93.177.152" 
 		port     = 5432
