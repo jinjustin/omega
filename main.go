@@ -144,8 +144,6 @@ func middleware(next http.Handler) http.Handler {
 func handleRequests() {
 	myRouter := mux.NewRouter()
 
-	//serve := gin.Default()
-
 	myRouter.HandleFunc("/",testAPI) //work
 	myRouter.HandleFunc("/test",test2).Methods("POST") //work
 	myRouter.Handle("/createcourse",middlewareTeacher(coursecontroller.CreateCourse)).Methods("POST") //work
@@ -178,6 +176,8 @@ func handleRequests() {
 	myRouter.Handle("/deletequestiongroup",middlewareTeacher(questiongroupcontroller.DeleteQuestionGroup)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
+
+	myRouter.Handle("/addstudenttosystem", coursemembercontroller.AddStudentToSystem).Methods("POST")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

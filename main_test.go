@@ -1012,48 +1012,6 @@ func Test_getUserRole(t *testing.T) {
 		panic(err)
 	}
 
-	t.Run("Integration Test: Get student role", func(t *testing.T) {
-		var jsonStr = `{"Username" : "getstudentrole"}`
-
-		body := strings.NewReader(jsonStr)
-	
-		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/getuserrole",coursemembercontroller.GetUserRole).Methods("POST")
-		ts := httptest.NewServer(r)
-		defer ts.Close()
-	
-		resp, err := http.Post(ts.URL + "/getuserrole","application/json",body)
-		if err != nil {
-			t.Errorf("Expected nil, received %s", err.Error())
-		}
-		defer resp.Body.Close()
-		output, err := ioutil.ReadAll(resp.Body)
-
-		assert.Equal(t,http.StatusOK,resp.StatusCode)
-		assert.Equal(t,"student",string(output))
-	})
-
-	t.Run("Integration Test: Get teacher role", func(t *testing.T) {
-		var jsonStr = `{"Username" : "getteacherrole"}`
-
-		body := strings.NewReader(jsonStr)
-	
-		r := mux.NewRouter().StrictSlash(true)
-		r.Handle("/getuserrole", coursemembercontroller.GetUserRole).Methods("POST")
-		ts := httptest.NewServer(r)
-		defer ts.Close()
-	
-		resp, err := http.Post(ts.URL + "/getuserrole","application/json",body)
-		if err != nil {
-			t.Errorf("Expected nil, received %s", err.Error())
-		}
-		defer resp.Body.Close()
-		output, err := ioutil.ReadAll(resp.Body)
-
-		assert.Equal(t,http.StatusOK,resp.StatusCode)
-		assert.Equal(t,"teacher",string(output))
-	})
-
 	sqlStatement = `DELETE FROM users WHERE userid=$1;`
 	_, err = db.Exec(sqlStatement, "ST0001")
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"crypto/rand"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	
@@ -843,6 +844,52 @@ func deleteFile(name string){
 	}
 }
 
+func addStudentToSystem(studentID string, name string, surname string){
+
+	userID := generateUserID()
+	password := generatePassword()
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
+
+	_, err = db.Exec(sqlStatement, userID, studentID, password, "student")
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `INSERT INTO student (userid , studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+
+	_, err = db.Exec(sqlStatement, userID, studentID, name, surname, studentID + "@kmitl.ac.th")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func generateUserID() string{
+	n := 3
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	s := fmt.Sprintf("%X", b)
+	return s
+}
+
+func generatePassword() string{
+	n := 4
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	s := fmt.Sprintf("%X", b)
+	return s
+}
+
 //API
 
 //AddStudentToCourse is a API that use to add student to course.
@@ -996,4 +1043,17 @@ var TestUploadExcelFile = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	}
 
 	json.NewEncoder(w).Encode(readStudentIDFromExcel(handler.Filename))
+})
+
+//AddStudentToSystem is a api that use to add student to system
+var AddStudentToSystem = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		StudentID string
+		Name string
+		Surname string
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+	addStudentToSystem(input.StudentID, input.Name, input.Surname)
 })
