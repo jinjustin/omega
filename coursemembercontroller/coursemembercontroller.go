@@ -412,6 +412,7 @@ func getTeacherInCourse(courseCode string) []byte {
 		Firstname string
 		Surname   string
 		Status    string
+		Username string
 	}
 
 	var teacherInCourses []teacherInCourse
@@ -466,10 +467,30 @@ func getTeacherInCourse(courseCode string) []byte {
 				panic(err)
 			}
 
+			var username string
+
+			sqlStatement := `SELECT username FROM users WHERE userid=$1;`
+			rows, err := db.Query(sqlStatement, a)
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+			for rows.Next() {
+				err = rows.Scan(&username)
+				if err != nil {
+					panic(err)
+				}
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+
 			t := teacherInCourse{
 				Firstname: firstname,
 				Surname:   surname,
 				Status:    "join",
+				Username: username,
 			}
 
 			teacherInCourses = append(teacherInCourses, t)
@@ -526,14 +547,35 @@ func getTeacherInCourse(courseCode string) []byte {
 				panic(err)
 			}
 
+			var username string
+
+			sqlStatement := `SELECT username FROM users WHERE userid=$1;`
+			rows, err := db.Query(sqlStatement, a)
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+			for rows.Next() {
+				err = rows.Scan(&username)
+				if err != nil {
+					panic(err)
+				}
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+
 			t := teacherInCourse{
 				Firstname: firstname,
 				Surname:   surname,
 				Status:    "pending",
+				Username: username,
 			}
 
 			teacherInCourses = append(teacherInCourses, t)
 		}
+
 		err = rows.Err()
 		if err != nil {
 			panic(err)
