@@ -87,7 +87,107 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 	}
 }
 
+func allGroupTestList(courseID string, testID string) []byte{
+
+	type GroupItem struct {
+		ID string
+		GroupName string
+		NumQuestion string
+		Score string
+	}
+
+	type GroupInTest struct {
+		Name string
+		Items []GroupItem
+	}
+
+	var groupTestMap map[string]GroupInTest
+
+	var UUIDs []string
+	var uuid string
+
+	var GroupItems []GroupItem
+
+	var g GroupInTest
+	var i GroupItem
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT uuid FROM questiongroup WHERE course=$1 and testid=$2`
+	rows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&uuid)
+		if err != nil {
+			panic(err)
+		}
+		UUIDs = append(UUIDs, uuid)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, uuid := range UUIDs {
+
+		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
+		rows, err := db.Query(sqlStatement, uuid, testID)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			err = rows.Scan(&g.Name)
+			if err != nil {
+				panic(err)
+			}
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+
+		sqlStatement = `SELECT id, groupname, numquestion, score FROM questiongroup WHERE uuid=$1 and testid=$2`
+		rows, err = db.Query(sqlStatement, uuid, testID)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score)
+			if err != nil {
+				panic(err)
+			}
+			GroupItems = append(GroupItems, i)
+		}
+		err = rows.Err()
+		if err != nil {
+			panic(err)
+		}
+
+		g.Items = GroupItems
+		groupTestMap[uuid] = g
+	}
+
+	b,err := json.Marshal(groupTestMap)
+	if err != nil{
+		panic(err)
+	}
+	return b
+}
+
 func checkQuestionGroupExist(questionGroupID string) bool {
+
 	var uuid string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -95,6 +195,7 @@ func checkQuestionGroupExist(questionGroupID string) bool {
 		panic(err)
 	}
 	defer db.Close()
+
 	sqlStatement := `SELECT uuid FROM questiongroup WHERE id=$1;`
 	row := db.QueryRow(sqlStatement, questionGroupID)
 	err = row.Scan(&uuid)
@@ -219,4 +320,14 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	deleteQuestionGroupFromTest(questionInTest, testID)
 	w.Write([]byte("success"))
+})
+
+//AllGroupTestList is a API that use to get all group test in the test.
+var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseID := r.Header.Get("CourseID")
+
+	testID := r.Header.Get("TestId")
+
+	w.Write(allGroupTestList(courseID,testID))
 })

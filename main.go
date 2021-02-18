@@ -172,6 +172,7 @@ func handleRequests() {
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 	myRouter.Handle("/grouptestlistupdate",questiongroupcontroller.GroupTestListUpdate).Methods("POST")
+	myRouter.Handle("/allgrouptestlist",questiongroupcontroller.AllGroupTestList).Methods("POST")
 
 	myRouter.Handle("/addstudenttosystem", coursemembercontroller.AddStudentToSystem).Methods("POST")
 
