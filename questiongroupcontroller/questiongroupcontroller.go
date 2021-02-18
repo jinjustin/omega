@@ -101,7 +101,7 @@ func allGroupTestList(courseID string, testID string) []byte{
 		Items []GroupItem
 	}
 
-	var groupTestMap map[string]GroupInTest
+	groupTestMap := make(map[string]GroupInTest)
 
 	var UUIDs []string
 	var uuid string
