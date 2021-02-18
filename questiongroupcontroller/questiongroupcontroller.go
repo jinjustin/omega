@@ -389,5 +389,9 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	input = objmap[key]
 
-	w.Write(groupTestListUpdate(input.Name, input.Items.ID, input.Items.GroupName, input.Items.NumQuestion, input.Items.Score, r.FormValue("CourseID"), r.FormValue("TestId"), key))
+	courseID := r.Header.Get("CourseID")
+
+	testID := r.Header.Get("TestId")
+
+	w.Write(groupTestListUpdate(input.Name, input.Items.ID, input.Items.GroupName, input.Items.NumQuestion, input.Items.Score, courseID, testID, key))
 })
