@@ -8,13 +8,13 @@ import (
 //QuestionGroup is struct that use to represent question group in test bank.
 type QuestionGroup struct{
 	Name string
-	QuestionGroupID string
-	QuestionGroupName string
+	ID string
+	GroupName string
 	NumQuestion string
 	Score string
 	CourseID string
 	TestID string
-	Key string
+	UUID string
 }
 
 // GetQuestionGroupDetail is a function that use to get question group Detail in JSON form.
