@@ -25,7 +25,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 	
 	var g questiongroup.QuestionGroup
 
-	if (checkQuestionGroupExist(questiongroupID)){
+	if (checkQuestionGroupInTest(questiongroupID, testID)){
 
 		g = questiongroup.QuestionGroup{
 			Name: name,
@@ -44,12 +44,21 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 		}
 		defer db.Close()
 
-		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
+		if(checkQuestionGroupExist(questiongroupID)){
+			sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+			_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, "", g.UUID)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID)
 		if err != nil {
 			panic(err)
 		}
+
 	}else{
 
 		g = questiongroup.QuestionGroup{
@@ -69,14 +78,13 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 		}
 		defer db.Close()
 
-		sqlStatement := `UPDATE questiongroup SET name = $1, groupname = $2, numquestion = $3, score = $4, testid= $5 uuid=$6 WHERE questiongroupid = $7`
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE questiongroupid=$6`
 
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.TestID,g.UUID, g.ID)
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
 		if err != nil {
 			panic(err)
 		}
 	}
-
 }
 
 func checkQuestionGroupExist(questionGroupID string) bool {
@@ -96,6 +104,72 @@ func checkQuestionGroupExist(questionGroupID string) bool {
 	case nil:
 		return false
 	default:
+		panic(err)
+	}
+}
+
+func checkQuestionGroupInTest(questionGroupID string, testID string) bool {
+	var uuid string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	sqlStatement := `SELECT id FROM questiongroup WHERE id=$1 and testid=$2;`
+	row := db.QueryRow(sqlStatement, questionGroupID)
+	err = row.Scan(&uuid)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
+}
+
+func deleteQuestionGroupFromTest(questionInTest []string,testID string){
+
+	var questionID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT id FROM questiongroup WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&questionID)
+		if err != nil {
+			panic(err)
+		}
+
+		check := true
+
+		for _, id := range questionInTest{
+			if questionID == id{
+				check = false
+			}
+		}
+
+		if check {
+			sqlStatement := `DELETE from questiongroup WHERE id=$1 and testid=$2;`
+			_, err = db.Exec(sqlStatement, questionID, testID)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+	err = rows.Err()
+	if err != nil {
 		panic(err)
 	}
 }
@@ -129,6 +203,8 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	var input Input
 
+	var questionInTest []string
+
 	courseID := r.Header.Get("CourseID")
 
 	testID := r.Header.Get("TestId")
@@ -137,8 +213,10 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		input = objmap[uuid]
 		for _, item := range input.Items{
 			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid)
+			questionInTest = append(questionInTest, item.ID)
 		}
 	}
 
+	deleteQuestionGroupFromTest(questionInTest, testID)
 	w.Write([]byte("success"))
 })
