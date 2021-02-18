@@ -78,7 +78,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 		}
 		defer db.Close()
 
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE questiongroupid=$6`
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
 
 		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
 		if err != nil {
