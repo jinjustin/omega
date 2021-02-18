@@ -118,7 +118,7 @@ func allGroupTestList(courseID string, testID string) []byte{
 	defer db.Close()
 
 	sqlStatement := `SELECT uuid FROM questiongroup WHERE courseid=$1 and testid=$2`
-	rows, err := db.Query(sqlStatement, testID)
+	rows, err := db.Query(sqlStatement, courseID, testID)
 	if err != nil {
 		panic(err)
 	}
