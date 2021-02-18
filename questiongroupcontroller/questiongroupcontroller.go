@@ -1,14 +1,18 @@
 package questiongroupcontroller
 
 import (
-	"fmt"
+	//"fmt"
+	//"strings"
+
 	"github.com/jinjustin/omega/questiongroup"
 
 	//"encoding/json"
-	"crypto/rand"
+	//"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
+
 	"github.com/jinjustin/omega/database"
+
 	//"omega/authentication"
 
 	"encoding/json"
@@ -17,21 +21,10 @@ import (
 	//"github.com/sqs/goreturns/returns"
 )
 
+/*
 func createQuestionGroup(name string,courseID string, questionType string) []byte {
 
 	var g questiongroup.QuestionGroup
-
-	/*if checkQuestionGroupName(courseID, name) == false {
-
-		g = questiongroup.QuestionGroup{
-			QuestionGroupID: "",
-			Name: "Duplicate Name",
-			CourseID: "",
-			Type: "",
-		}
-
-		return g.GetQuestionGroupDetail()
-	}*/
 
 	questionGroupID := generateID()
 
@@ -207,22 +200,103 @@ func checkQuestionGroupName(courseID string, name string) bool {
 	default:
 		panic(err)
 	}
+}*/
+
+func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, testID string, key string) []byte{
+	
+	var g questiongroup.QuestionGroup
+
+	g = questiongroup.QuestionGroup{
+		Name: "Error",
+		QuestionGroupID: "Error",
+		QuestionGroupName: "Error",
+		NumQuestion: "Error",
+		Score: "Error",
+		CourseID: "Error",
+		TestID: "Error",
+		Key: "Error",
+	}
+
+	if (checkQuestionGroupExist(questiongroupID)){
+
+		g = questiongroup.QuestionGroup{
+			Name: name,
+			QuestionGroupID: questiongroupID,
+			QuestionGroupName: questiongroupName,
+			NumQuestion: numQuestion,
+			Score: score,
+			CourseID: courseID,
+			TestID: testID,
+			Key: key,
+		}
+
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `INSERT INTO questiongroup (name, questiongroupid, questiongroupname, numquestion, score, courseid, testid, key)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+
+		_, err = db.Exec(sqlStatement, g.Name, g.QuestionGroupID, g.QuestionGroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.Key)
+		if err != nil {
+			panic(err)
+		}
+	}else{
+
+		g = questiongroup.QuestionGroup{
+			Name: name,
+			QuestionGroupID: questiongroupID,
+			QuestionGroupName: questiongroupName,
+			NumQuestion: numQuestion,
+			Score: score,
+			CourseID: courseID,
+			TestID: testID,
+			Key: key,
+		}
+
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		sqlStatement := `UPDATE questiongroup SET name = $1, questiongroupname = $2, numquestion = $3, score = $4 WHERE questiongroupid = $5`
+
+		_, err = db.Exec(sqlStatement, g.Name, g.QuestionGroupName, g.NumQuestion, g.Score, g.QuestionGroupID)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return g.GetQuestionGroupDetail()
 }
 
-func generateID() string {
-	n := 3
-	b := make([]byte, n)
-	if _, err := rand.Read(b); err != nil {
+func checkQuestionGroupExist(questionGroupID string) bool {
+	var key string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
 		panic(err)
 	}
-	s := fmt.Sprintf("%X", b)
-	return s
+	defer db.Close()
+	sqlStatement := `SELECT key FROM questiongroup WHERE questiongroupid=$1;`
+	row := db.QueryRow(sqlStatement, questionGroupID)
+	err = row.Scan(&key)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
 }
 
 //API
 
 //CreateQuestionGroup is a API that use to create questiongroup in the course.
-var CreateQuestionGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+/*var CreateQuestionGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
 		Name string
 		CourseID string
@@ -282,4 +356,38 @@ var DeleteQuestionGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	var input Input
 	json.Unmarshal(reqBody, &input)
 	w.Write(deleteQuestionGroup(input.QuestionGroupID))
+})*/
+
+//GroupTestListUpdate is a API that use to get add or update group test list.
+var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	type Item struct {
+		ID string
+		GroupName string
+		NumQuestion string
+		Score string
+	}
+
+	type Input struct {
+		Name string
+		Items Item
+	}
+
+	var objmap map[string]Input
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	//var input Input
+	json.Unmarshal(reqBody, &objmap)
+	keys := make([]string, 0, len(objmap))
+	for k := range objmap {
+        keys = append(keys, k)
+    }
+
+	key := keys[0]
+
+	var input Input
+
+	input = objmap[key]
+
+	w.Write(groupTestListUpdate(input.Name, input.Items.ID, input.Items.GroupName, input.Items.NumQuestion, input.Items.Score, r.FormValue("CourseID"), r.FormValue("TestId"), key))
 })
