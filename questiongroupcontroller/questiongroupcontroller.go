@@ -80,16 +80,16 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 }
 
 func checkQuestionGroupExist(questionGroupID string) bool {
-	var key string
+	var uuid string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-	sqlStatement := `SELECT key FROM questiongroup WHERE questiongroupid=$1;`
+	sqlStatement := `SELECT uuid FROM questiongroup WHERE id=$1;`
 	row := db.QueryRow(sqlStatement, questionGroupID)
-	err = row.Scan(&key)
+	err = row.Scan(&uuid)
 	switch err {
 	case sql.ErrNoRows:
 		return true
