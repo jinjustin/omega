@@ -169,11 +169,6 @@ func handleRequests() {
 	myRouter.Handle("/gettestinfo",middlewareTeacher(testcontroller.GetTestInfo)).Methods("POST")
 	myRouter.Handle("/edittestinfo",middlewareTeacher(testcontroller.EditTestInfo)).Methods("POST")
 	myRouter.Handle("/deletetest",middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
-	//myRouter.Handle("/createquestiongroup",middlewareTeacher(questiongroupcontroller.CreateQuestionGroup)).Methods("POST")
-	//myRouter.Handle("/getquestiongrouplist",middlewareTeacher(questiongroupcontroller.GetQuestionGroupList)).Methods("POST")
-	//myRouter.Handle("/getquestiongroupinfo",middlewareTeacher(questiongroupcontroller.GetQuestionGroupInfo)).Methods("POST")
-	//myRouter.Handle("/editquestiongroupname",middlewareTeacher(questiongroupcontroller.EditQuestionGroupName)).Methods("POST")
-	//myRouter.Handle("/deletequestiongroup",middlewareTeacher(questiongroupcontroller.DeleteQuestionGroup)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 	myRouter.Handle("/grouptestlistupdate",questiongroupcontroller.GroupTestListUpdate).Methods("POST")

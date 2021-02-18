@@ -117,7 +117,7 @@ func checkQuestionGroupInTest(questionGroupID string, testID string) bool {
 	}
 	defer db.Close()
 	sqlStatement := `SELECT id FROM questiongroup WHERE id=$1 and testid=$2;`
-	row := db.QueryRow(sqlStatement, questionGroupID)
+	row := db.QueryRow(sqlStatement, questionGroupID,testID)
 	err = row.Scan(&uuid)
 	switch err {
 	case sql.ErrNoRows:
