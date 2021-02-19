@@ -164,10 +164,6 @@ func handleRequests() {
 	myRouter.Handle("/deleteteacherincourse",middlewareTeacher(coursemembercontroller.DeleteTeacherInCourse)).Methods("POST") //work
 	myRouter.Handle("/deletestudentincourse",middlewareTeacher(coursemembercontroller.DeleteStudentInCourse)).Methods("POST") //work
 	myRouter.Handle("/getrole",authentication.GetRole).Methods("POST") //work
-	myRouter.Handle("/createtest",middlewareTeacher(testcontroller.CreateTest)).Methods("POST")
-	myRouter.Handle("/gettestlist",testcontroller.GetTestList).Methods("POST")
-	myRouter.Handle("/gettestinfo",middlewareTeacher(testcontroller.GetTestInfo)).Methods("POST")
-	myRouter.Handle("/edittestinfo",middlewareTeacher(testcontroller.EditTestInfo)).Methods("POST")
 	myRouter.Handle("/deletetest",middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
