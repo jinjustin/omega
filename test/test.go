@@ -9,13 +9,13 @@ import (
 type Test struct{
 	TestID string
 	CourseID string
-	CourseCode string
-	UserID string
+	//CourseCode string
+	//UserID string
 	Status string
-	Name string
+	Topic string
 	Duration string
-	Start string
-	Date string
+	Timestart string
+	Datestart string
 	Description string
 }
 
