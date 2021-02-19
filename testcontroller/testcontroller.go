@@ -63,7 +63,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		}
 		defer db.Close()
 
-		sqlStatement := `UPDATE questiongroup SET topic=$1, description=$2, datestart=$3, duration=$4, timestart=$5, status=$6 WHERE testid=$7`
+		sqlStatement := `UPDATE test SET topic=$1, description=$2, datestart=$3, duration=$4, timestart=$5, status=$6 WHERE testid=$7`
 
 		_, err = db.Exec(sqlStatement, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, t.Status, t.TestID)
 		if err != nil {
