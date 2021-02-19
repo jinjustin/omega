@@ -17,7 +17,7 @@ import (
 	//"github.com/sqs/goreturns/returns"
 )
 
-func postDetailTest(testID string, courseID string, topic string ,description string , datestart string, duration string, timestart string, status string) []byte{
+func postDetailTest(testID string, courseID string, topic string ,description string , datestart string, duration string, timestart string) []byte{
 	
 	var t test.Test
 
@@ -30,7 +30,6 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 			Datestart: datestart,
 			Duration: duration,
 			Timestart: timestart,
-			Status: status,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -39,8 +38,8 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		}
 		defer db.Close()
 	
-		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, t.Status)
+		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart)VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart)
 		if err != nil {
 			panic(err)
 		}
@@ -54,7 +53,6 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 			Datestart: datestart,
 			Duration: duration,
 			Timestart: timestart,
-			Status: status,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -63,9 +61,9 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		}
 		defer db.Close()
 
-		sqlStatement := `UPDATE test SET topic=$1, description=$2, datestart=$3, duration=$4, timestart=$5, status=$6 WHERE testid=$7`
+		sqlStatement := `UPDATE test SET topic=$1, description=$2, datestart=$3, duration=$4, timestart=$5 WHERE testid=$6`
 
-		_, err = db.Exec(sqlStatement, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, t.Status, t.TestID)
+		_, err = db.Exec(sqlStatement, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, t.TestID)
 		if err != nil {
 			panic(err)
 		}
@@ -177,7 +175,6 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		Datestart string
 		Duration string
 		Timestart string
-		Status string
 	}
 
 	courseID := r.Header.Get("CourseID")
@@ -186,7 +183,7 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(postDetailTest(testID, courseID, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart, input.Status))
+	w.Write(postDetailTest(testID, courseID, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart))
 })
 
 //GetDetailTest is a API that use to get detail of the test in database.
