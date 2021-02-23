@@ -199,3 +199,17 @@ var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 	w.Write(deleteTest(testID))
 })
+
+//TestGetImage is a API that use to test get image
+var TestGetImage = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	type Image struct {
+		URL string
+	}
+
+	var image Image
+
+	image.URL = "https://static.posttoday.com/media/content/2021/02/23/C0B71C2C4F4BF1B0F9F580236E160316.jpg"
+
+	json.NewEncoder(w).Encode(image)
+})
