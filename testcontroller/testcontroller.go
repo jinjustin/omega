@@ -204,12 +204,12 @@ var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 var TestGetImage = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	type Image struct {
-		URL string
+		url string
 	}
 
 	var image Image
 
-	image.URL = "https://static.posttoday.com/media/content/2021/02/23/C0B71C2C4F4BF1B0F9F580236E160316.jpg"
+	image.url = "https://static.posttoday.com/media/content/2021/02/23/C0B71C2C4F4BF1B0F9F580236E160316.jpg"
 
 	json.NewEncoder(w).Encode(image)
 })
