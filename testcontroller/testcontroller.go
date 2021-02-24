@@ -155,7 +155,7 @@ func getDetailTest(testID string, courseID string) []byte{
 	return t.GetTestDetail()
 }
 
-func changeDraftStatus(testid string, status string) string{
+func changeDraftStatus(testID string, status string) string{
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		panic(err)
@@ -221,5 +221,5 @@ var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 	status := r.Header.Get("Status")
-	w.Write(changeDraftStatus(testID,status))
+	w.Write([]byte(changeDraftStatus(testID,status)))
 })
