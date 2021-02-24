@@ -5,6 +5,7 @@ import (
 	//"strings"
 
 	//"github.com/golang/protobuf/descriptor"
+	"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/questiongroup"
 	//"github.com/jinjustin/omega/test"
 
@@ -22,6 +23,12 @@ import (
 	"net/http"
 	//"github.com/sqs/goreturns/returns"
 )
+
+//GrouptestList is struct that use to return grouptestlist.
+type GrouptestList struct{
+	ID string
+	GroupName string
+}
 
 func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, testID string, uuid string) {
 	
@@ -113,78 +120,79 @@ func getGroupInTest(courseID string, testID string) []byte{
 	var g GroupInTest
 	var i GroupItem
 
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	sqlStatement := `SELECT uuid FROM questiongroup WHERE courseid=$1 and testid=$2`
-	rows, err := db.Query(sqlStatement, courseID, testID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		err = rows.Scan(&uuid)
+		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
 			panic(err)
 		}
-		UUIDs = append(UUIDs, uuid)
-	}
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
+		defer db.Close()
 
-	for _, uuid := range UUIDs {
-
-		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err := db.Query(sqlStatement, uuid, testID)
+		sqlStatement := `SELECT uuid FROM questiongroup WHERE courseid=$1 and testid=$2`
+		rows, err := db.Query(sqlStatement, courseID, testID)
 		if err != nil {
 			panic(err)
 		}
 		defer rows.Close()
 
 		for rows.Next() {
-			err = rows.Scan(&g.Name)
+			err = rows.Scan(&uuid)
 			if err != nil {
 				panic(err)
 			}
+			UUIDs = append(UUIDs, uuid)
 		}
 		err = rows.Err()
 		if err != nil {
 			panic(err)
 		}
 
-		sqlStatement = `SELECT id, groupname, numquestion, score FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err = db.Query(sqlStatement, uuid, testID)
-		if err != nil {
-			panic(err)
-		}
-		defer rows.Close()
+		for _, uuid := range UUIDs {
 
-		for rows.Next() {
-			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score)
+			sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
+			rows, err := db.Query(sqlStatement, uuid, testID)
 			if err != nil {
 				panic(err)
 			}
-			GroupItems = append(GroupItems, i)
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&g.Name)
+				if err != nil {
+					panic(err)
+				}
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+
+			sqlStatement = `SELECT id, groupname, numquestion, score FROM questiongroup WHERE uuid=$1 and testid=$2`
+			rows, err = db.Query(sqlStatement, uuid, testID)
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score)
+				if err != nil {
+					panic(err)
+				}
+				GroupItems = append(GroupItems, i)
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+
+			g.Items = GroupItems
+			groupTestMap[uuid] = g
 		}
-		err = rows.Err()
-		if err != nil {
+
+		b,err := json.Marshal(groupTestMap)
+		if err != nil{
 			panic(err)
 		}
 
-		g.Items = GroupItems
-		groupTestMap[uuid] = g
-	}
-
-	b,err := json.Marshal(groupTestMap)
-	if err != nil{
-		panic(err)
-	}
 	return b
 }
 
@@ -232,7 +240,7 @@ func checkQuestionGroupInTest(questionGroupID string, testID string) bool {
 	}
 }
 
-func deleteQuestionGroupFromTest(questionInTest []string,testID string){
+func deleteQuestionGroupFromTest(questionInTest []string, testID string, courseID string){
 
 	var questionID string
 
@@ -242,8 +250,8 @@ func deleteQuestionGroupFromTest(questionInTest []string,testID string){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT id FROM questiongroup WHERE testid=$1;`
-	rows, err := db.Query(sqlStatement, testID)
+	sqlStatement := `SELECT id FROM questiongroup WHERE testid=$1 and courseid=$2;`
+	rows, err := db.Query(sqlStatement, testID, courseID)
 	if err != nil {
 		panic(err)
 	}
@@ -275,6 +283,7 @@ func deleteQuestionGroupFromTest(questionInTest []string,testID string){
 	if err != nil {
 		panic(err)
 	}
+	
 }
 
 func deleteQuestionGroupFromTestbank(id string) []byte{
@@ -313,6 +322,38 @@ func deleteQuestionGroupFromTestbank(id string) []byte{
 	}
 
 	return q.GetQuestionGroupDetail()
+}
+
+func allgrouptestlist(courseid string) []GrouptestList{
+	var grouptestList []GrouptestList
+
+	var grouptest GrouptestList
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT id, groupname FROM questiongroup WHERE courseid=$1 and testid='';`
+	rows, err := db.Query(sqlStatement, courseid)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&grouptest.ID, &grouptest.GroupName)
+		if err != nil {
+			panic(err)
+		}
+		grouptestList = append(grouptestList, grouptest)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return grouptestList
 }
 
 //API
@@ -358,7 +399,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	deleteQuestionGroupFromTest(questionInTest, testID)
+	deleteQuestionGroupFromTest(questionInTest, testID, courseID)
 	w.Write([]byte("success"))
 })
 
@@ -378,4 +419,12 @@ var DeleteGroupInTestbank = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	ID := r.Header.Get("id")
 
 	w.Write(deleteQuestionGroupFromTestbank(ID))
+})
+
+//AllGroupTestList is a API that use to get all grouptestlist in that course 
+var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseID := r.Header.Get("CourseID")
+
+	json.NewEncoder(w).Encode(allgrouptestlist(courseID))
 })

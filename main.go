@@ -171,6 +171,7 @@ func handleRequests() {
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
 	myRouter.Handle("/getgroupintest",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
 	myRouter.Handle("/deletegroupintestbank",middlewareTeacher(questiongroupcontroller.DeleteGroupInTestbank)).Methods("GET")
+	myRouter.Handle("/allgrouptestlist",middlewareTeacher(questiongroupcontroller.AllGroupTestList)).Methods("GET")
 	myRouter.Handle("/postdetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
 	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
