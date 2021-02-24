@@ -155,6 +155,23 @@ func getDetailTest(testID string, courseID string) []byte{
 	return t.GetTestDetail()
 }
 
+func changeDraftStatus(testid string, status string) string{
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE test SET status=$1 WHERE testid=$2`
+
+	_, err = db.Exec(sqlStatement, status, testID)
+	if err != nil {
+		panic(err)
+	}
+
+	return status
+}
+
 func generateTestID() string {
 	n := 3
 	b := make([]byte, n)
@@ -198,4 +215,11 @@ var GetDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 	w.Write(deleteTest(testID))
+})
+
+//ChangeDraftStatus is a API that use to change draft status of the test
+var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testID := r.Header.Get("TestId")
+	status := r.Header.Get("Status")
+	w.Write(changeDraftStatus(testID,status))
 })

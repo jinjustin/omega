@@ -175,6 +175,7 @@ func handleRequests() {
 	myRouter.Handle("/postdetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
 	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
+	myRouter.Handle("/changedraftstatus", middlewareTeacher(testcontroller.ChangeDraftStatus)).Methods("POST")
 
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 
