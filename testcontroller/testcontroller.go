@@ -38,8 +38,8 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		}
 		defer db.Close()
 	
-		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart)VALUES ($1, $2, $3, $4, $5, $6, $7)`
-		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart)
+		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart,"Unset")
 		if err != nil {
 			panic(err)
 		}
@@ -198,18 +198,4 @@ var GetDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 	w.Write(deleteTest(testID))
-})
-
-//TestGetImage is a API that use to test get image
-var TestGetImage = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-	type Imgae struct {
-		url string
-	}
-
-	var image Imgae
-
-	image.url = "https://static.posttoday.com/media/content/2021/02/23/C0B71C2C4F4BF1B0F9F580236E160316.jpg"
-
-	json.NewEncoder(w).Encode(image)
 })

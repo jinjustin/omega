@@ -175,8 +175,6 @@ func handleRequests() {
 	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 
-	myRouter.Handle("/testgetimage",testcontroller.TestGetImage).Methods("GET")
-
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 
 	c := cors.New(cors.Options{
