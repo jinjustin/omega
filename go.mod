@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	//github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0
+	github.com/minio/minio-go/v7 v7.0.10
 	github.com/rs/cors v1.7.0
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/stretchr/testify v1.6.1

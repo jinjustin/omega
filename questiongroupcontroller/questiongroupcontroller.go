@@ -89,7 +89,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 	}
 }
 
-func allGroupTestList(courseID string, testID string) []byte{
+func getGroupInTest(courseID string, testID string) []byte{
 
 	type GroupItem struct {
 		ID string
@@ -277,6 +277,44 @@ func deleteQuestionGroupFromTest(questionInTest []string,testID string){
 	}
 }
 
+func deleteQuestionGroupFromTestbank(id string) []byte{
+	var q questiongroup.QuestionGroup
+
+	q.ID = id
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT name, groupname, numquestion, score, courseid, testid, uuid  FROM questiongroup WHERE id=$1;`
+	rows, err := db.Query(sqlStatement, id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&q.Name, &q.GroupName, &q.NumQuestion, &q.Score, &q.CourseID, &q.TestID, &q.UUID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlStatement = `DELETE from questiongroup WHERE id=$1;`
+	_, err = db.Exec(sqlStatement, id)
+	if err != nil {
+		panic(err)
+	}
+
+	return q.GetQuestionGroupDetail()
+}
+
 //API
 
 //GroupTestListUpdate is a API that use to get add or update group test list.
@@ -324,12 +362,20 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	w.Write([]byte("success"))
 })
 
-//AllGroupTestList is a API that use to get all group test in the test.
-var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//GetGroupInTest is a API that use to get all group test in the test.
+var GetGroupInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	courseID := r.Header.Get("CourseID")
 
 	testID := r.Header.Get("TestId")
 
-	w.Write(allGroupTestList(courseID,testID))
+	w.Write(getGroupInTest(courseID,testID))
+})
+
+//DeleteGroupInTestbank is a API that use to delete 
+var DeleteGroupInTestbank = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	ID := r.Header.Get("id")
+
+	w.Write(deleteQuestionGroupFromTestbank(ID))
 })

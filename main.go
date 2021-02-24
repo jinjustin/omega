@@ -10,6 +10,7 @@ import (
 	"github.com/jinjustin/omega/testcontroller"
 	"github.com/jinjustin/omega/authentication"
 	"github.com/jinjustin/omega/questiongroupcontroller"
+	"github.com/jinjustin/omega/storage"
 
 	//"omega/database"
 	"context"
@@ -168,12 +169,15 @@ func handleRequests() {
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
-	myRouter.Handle("/allgrouptestlist",middlewareTeacher(questiongroupcontroller.AllGroupTestList)).Methods("GET")
+	myRouter.Handle("/getgroupintest",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
+	myRouter.Handle("/deletegroupintestbank",middlewareTeacher(questiongroupcontroller.DeleteGroupInTestbank)).Methods("GET")
 	myRouter.Handle("/postdetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
 	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 
 	myRouter.Handle("/testgetimage",testcontroller.TestGetImage).Methods("GET")
+
+	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
