@@ -5,7 +5,7 @@ import (
 	//"strings"
 
 	//"github.com/golang/protobuf/descriptor"
-	"github.com/jinjustin/omega/question"
+	//"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/questiongroup"
 	//"github.com/jinjustin/omega/test"
 
