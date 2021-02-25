@@ -86,9 +86,10 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 			panic(err)
 		}
 		defer db.Close()
-
-		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, "", g.UUID)
+	
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
+	
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
 		if err != nil {
 			panic(err)
 		}
@@ -99,28 +100,56 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 	
 	var g questiongroup.QuestionGroup
 
-	g = questiongroup.QuestionGroup{
-		Name: name,
-		ID: questiongroupID,
-		GroupName: questiongroupName,
-		NumQuestion: numQuestion,
-		Score: score,
-		CourseID: courseID,
-		TestID: "",
-		UUID: uuid,
-	}
+	if (checkQuestionGroupInTestbank(questiongroupID)){
 
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+		g = questiongroup.QuestionGroup{
+			Name: name,
+			ID: questiongroupID,
+			GroupName: questiongroupName,
+			NumQuestion: numQuestion,
+			Score: score,
+			CourseID: courseID,
+			TestID: "",
+			UUID: uuid,
+		}
 
-	sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
 
-	_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
-	if err != nil {
-		panic(err)
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID)
+		if err != nil {
+			panic(err)
+		}
+
+	}else{
+
+		g = questiongroup.QuestionGroup{
+			Name: name,
+			ID: questiongroupID,
+			GroupName: questiongroupName,
+			NumQuestion: numQuestion,
+			Score: score,
+			CourseID: courseID,
+			TestID: "",
+			UUID: uuid,
+		}
+
+		db, err := sql.Open("postgres", database.PsqlInfo())
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+	
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
+	
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -357,6 +386,27 @@ func checkQuestionGroupInTest(questionGroupID string, testID string) bool {
 	defer db.Close()
 	sqlStatement := `SELECT id FROM questiongroup WHERE id=$1 and testid=$2;`
 	row := db.QueryRow(sqlStatement, questionGroupID,testID)
+	err = row.Scan(&uuid)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
+}
+
+func checkQuestionGroupInTestbank(questionGroupID string) bool {
+	var uuid string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	sqlStatement := `SELECT id FROM questiongroup WHERE id=$1 and testid='';`
+	row := db.QueryRow(sqlStatement, questionGroupID)
 	err = row.Scan(&uuid)
 	switch err {
 	case sql.ErrNoRows:
