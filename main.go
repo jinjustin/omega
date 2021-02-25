@@ -168,6 +168,7 @@ func handleRequests() {
 	myRouter.Handle("/deletetest",middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") //work
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
+	
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
 	myRouter.Handle("/getgroupintest",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.TestbankUpdate)).Methods("POST")

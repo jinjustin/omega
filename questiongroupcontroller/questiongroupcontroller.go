@@ -87,9 +87,8 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 		}
 		defer db.Close()
 
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
-
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, "", g.UUID)
 		if err != nil {
 			panic(err)
 		}
