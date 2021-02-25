@@ -172,10 +172,12 @@ func getGroupInTest(courseID string, testID string) []byte{
 	var UUIDs []string
 	var uuid string
 
+	/*
 	var GroupItems []GroupItem
 
 	var g GroupInTest
 	var i GroupItem
+	*/
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
@@ -203,6 +205,11 @@ func getGroupInTest(courseID string, testID string) []byte{
 		}
 
 		for _, uuid := range UUIDs {
+
+			var GroupItems []GroupItem
+
+			var g GroupInTest
+			var i GroupItem
 
 			sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
 			rows, err := db.Query(sqlStatement, uuid, testID)
@@ -272,10 +279,10 @@ func getGroupInTestbank(courseID string) []byte{
 	var UUIDs []string
 	var uuid string
 
-	var GroupItems []GroupItem
+	/*var GroupItems []GroupItem
 
 	var g GroupInTest
-	var i GroupItem
+	var i GroupItem*/
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -304,7 +311,10 @@ func getGroupInTestbank(courseID string) []byte{
 
 	for _, uuid := range UUIDs {
 
-		GroupItems = nil
+		var GroupItems []GroupItem
+
+		var g GroupInTest
+		var i GroupItem
 
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=''`
 		rows, err := db.Query(sqlStatement, uuid)
