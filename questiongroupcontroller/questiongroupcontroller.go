@@ -304,6 +304,8 @@ func getGroupInTestbank(courseID string) []byte{
 
 	for _, uuid := range UUIDs {
 
+		GroupItems = nil
+
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=''`
 		rows, err := db.Query(sqlStatement, uuid)
 		if err != nil {
