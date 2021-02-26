@@ -302,6 +302,9 @@ func getGroupInTest(courseID string, testID string) []byte{
 		//groupTestMap[uuid.UUID] = g
 	}
 
+	fmt.Println("----")
+	fmt.Println(groupTestMap)
+
 	b,err := json.Marshal(groupTestMap)
 	if err != nil{
 		panic(err)
@@ -630,7 +633,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
         uuids = append(uuids, i)
     }
 
-	fmt.Println(uuids)
+	//fmt.Println(uuids)
 
 	var input Input
 
