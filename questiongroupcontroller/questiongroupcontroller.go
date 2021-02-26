@@ -219,6 +219,8 @@ func getGroupInTest(courseID string, testID string) []byte{
 		}
 	}
 
+	fmt.Println(UUIDs)
+
 	for _, uuid := range UUIDs {
 
 		var GroupItems []GroupItem
