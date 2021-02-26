@@ -588,7 +588,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
-			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid)
+			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			questionInTest = append(questionInTest, item.ID)
 		}
 	}
