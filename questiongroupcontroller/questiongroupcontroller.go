@@ -234,7 +234,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 		}
 	}
 
-	fmt.Println(UUIDs)
+	//fmt.Println(UUIDs)
 
 	for _, uuid := range UUIDs {
 
@@ -291,7 +291,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 			}
 		}
 
-		fmt.Println(GroupItems)
+		//fmt.Println(GroupItems)
 
 		g.Items = GroupItems
 
@@ -624,9 +624,6 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(reqBody, &objmap)
-
-	fmt.Println(reqBody)
-	fmt.Println(objmap)
 
 	uuids := make([]string, 0, len(objmap))
 	for i := range objmap {
