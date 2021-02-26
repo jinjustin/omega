@@ -200,7 +200,18 @@ func getGroupInTest(courseID string, testID string) []byte{
 		if err != nil {
 			panic(err)
 		}
-		UUIDs = append(UUIDs, uuid)
+
+		check := true
+
+		for _, u := range UUIDs{
+			if u.UUID == uuid.UUID{
+				check = false
+			}
+		}
+
+		if check{
+			UUIDs = append(UUIDs, uuid)
+		}
 	}
 	err = rows.Err()
 	if err != nil {
@@ -211,7 +222,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 	for i := range UUIDs {
 		for j := range UUIDs{
-			if UUIDs[i].Order > UUIDs[j].Order{
+			if UUIDs[i].Order < UUIDs[j].Order{
 				uuidTemp = UUIDs[i]
 				UUIDs[i] = UUIDs[j]
 				UUIDs[j] = uuidTemp
@@ -268,13 +279,15 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 		for i := range GroupItems {
 			for j := range GroupItems{
-				if GroupItems[i].Order > GroupItems[j].Order{
+				if GroupItems[i].Order < GroupItems[j].Order{
 					groupTemp = GroupItems[i]
 					GroupItems[i] = GroupItems[j]
 					GroupItems[j] = groupTemp
 				}
 			}
 		}
+
+		fmt.Println(GroupItems)
 
 		g.Items = GroupItems
 		groupTestMap[uuid.UUID] = g
