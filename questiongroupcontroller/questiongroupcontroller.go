@@ -16,8 +16,6 @@ import (
 
 	"github.com/jinjustin/omega/database"
 
-	//"github.com/wk8/go-ordered-map"
-
 	//"omega/authentication"
 
 	"encoding/json"
@@ -181,8 +179,6 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 	groupTestMap := make(map[string]GroupInTest)
 
-	//groupTestMap := orderedmap.New()
-
 	var UUIDs []UUIDinGroup
 	var uuid UUIDinGroup
 
@@ -291,15 +287,9 @@ func getGroupInTest(courseID string, testID string) []byte{
 			}
 		}
 
-		//fmt.Println(GroupItems)
-
 		g.Items = GroupItems
 
-		//groupTestMap.Set(uuid.UUID,g)
-
-		//fmt.Println(groupTestMap.Get(uuid.UUID))
-
-		//groupTestMap[uuid.UUID] = g
+		groupTestMap[uuid.UUID] = g
 	}
 
 	//fmt.Println("----")
