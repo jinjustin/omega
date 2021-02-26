@@ -1,7 +1,7 @@
 package questiongroupcontroller
 
 import (
-	//"fmt"
+	"fmt"
 	//"strings"
 
 	//"github.com/golang/protobuf/descriptor"
@@ -164,6 +164,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 		GroupName string
 		NumQuestion string
 		Score string
+		Order int
 	}
 
 	type GroupInTest struct {
@@ -171,10 +172,15 @@ func getGroupInTest(courseID string, testID string) []byte{
 		Items []GroupItem
 	}
 
+	type UUIDinGroup struct {
+		Order int
+		UUID string
+	}
+
 	groupTestMap := make(map[string]GroupInTest)
 
-	var UUIDs []string
-	var uuid string
+	var UUIDs []UUIDinGroup
+	var uuid UUIDinGroup
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -182,7 +188,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT uuid FROM questiongroup WHERE courseid=$1 and testid=$2`
+	sqlStatement := `SELECT uuid and headerorder FROM questiongroup WHERE courseid=$1 and testid=$2`
 	rows, err := db.Query(sqlStatement, courseID, testID)
 	if err != nil {
 		panic(err)
@@ -190,7 +196,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.Scan(&uuid)
+		err = rows.Scan(&uuid.UUID, &uuid.Order)
 		if err != nil {
 			panic(err)
 		}
@@ -201,15 +207,28 @@ func getGroupInTest(courseID string, testID string) []byte{
 		panic(err)
 	}
 
+	var uuidTemp UUIDinGroup
+
+	for i := range UUIDs {
+		for j := range UUIDs{
+			if UUIDs[i].Order > UUIDs[j].Order{
+				uuidTemp = UUIDs[i]
+				UUIDs[i] = UUIDs[j]
+				UUIDs[j] = uuidTemp
+			}
+		}
+	}
+
 	for _, uuid := range UUIDs {
 
 		var GroupItems []GroupItem
 
 		var g GroupInTest
 		var i GroupItem
+		var groupTemp GroupItem
 
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err := db.Query(sqlStatement, uuid, testID)
+		rows, err := db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
 			panic(err)
 		}
@@ -226,15 +245,15 @@ func getGroupInTest(courseID string, testID string) []byte{
 			panic(err)
 		}
 
-		sqlStatement = `SELECT id, groupname, numquestion, score FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err = db.Query(sqlStatement, uuid, testID)
+		sqlStatement = `SELECT id, groupname, numquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=$2`
+		rows, err = db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
 			panic(err)
 		}
 		defer rows.Close()
 
 		for rows.Next() {
-			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score)
+			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
 			if err != nil {
 				panic(err)
 			}
@@ -245,8 +264,18 @@ func getGroupInTest(courseID string, testID string) []byte{
 			panic(err)
 		}
 
+		for i := range GroupItems {
+			for j := range GroupItems{
+				if GroupItems[i].Order > GroupItems[j].Order{
+					groupTemp = GroupItems[i]
+					GroupItems[i] = GroupItems[j]
+					GroupItems[j] = groupTemp
+				}
+			}
+		}
+
 		g.Items = GroupItems
-		groupTestMap[uuid] = g
+		groupTestMap[uuid.UUID] = g
 	}
 
 	b,err := json.Marshal(groupTestMap)
@@ -576,6 +605,8 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	for i := range objmap {
         uuids = append(uuids, i)
     }
+
+	fmt.Println(uuids)
 
 	var input Input
 
