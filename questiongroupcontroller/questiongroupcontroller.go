@@ -297,6 +297,8 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 		groupTestMap.Set(uuid.UUID,g)
 
+		fmt.Println(groupTestMap.Get(uuid.UUID))
+
 		//groupTestMap[uuid.UUID] = g
 	}
 
