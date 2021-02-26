@@ -16,6 +16,8 @@ import (
 
 	"github.com/jinjustin/omega/database"
 
+	"github.com/wk8/go-ordered-map"
+
 	//"omega/authentication"
 
 	"encoding/json"
@@ -177,7 +179,9 @@ func getGroupInTest(courseID string, testID string) []byte{
 		UUID string
 	}
 
-	groupTestMap := make(map[string]GroupInTest)
+	//groupTestMap := make(map[string]GroupInTest)
+
+	groupTestMap := orderedmap.New()
 
 	var UUIDs []UUIDinGroup
 	var uuid UUIDinGroup
@@ -290,7 +294,10 @@ func getGroupInTest(courseID string, testID string) []byte{
 		fmt.Println(GroupItems)
 
 		g.Items = GroupItems
-		groupTestMap[uuid.UUID] = g
+
+		groupTestMap.Set(uuid.UUID,g)
+
+		//groupTestMap[uuid.UUID] = g
 	}
 
 	b,err := json.Marshal(groupTestMap)
@@ -614,8 +621,11 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	var objmap map[string]Input
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
-	//var input Input
 	json.Unmarshal(reqBody, &objmap)
+
+	fmt.Println(reqBody)
+	fmt.Println(objmap)
+
 	uuids := make([]string, 0, len(objmap))
 	for i := range objmap {
         uuids = append(uuids, i)
