@@ -15,6 +15,8 @@ type QuestionGroup struct{
 	CourseID string
 	TestID string
 	UUID string
+	HeaderOrder int
+	GroupOrder int
 }
 
 // GetQuestionGroupDetail is a function that use to get question group Detail in JSON form.
