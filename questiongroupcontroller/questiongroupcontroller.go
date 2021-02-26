@@ -1,7 +1,7 @@
 package questiongroupcontroller
 
 import (
-	"fmt"
+	//"fmt"
 	//"strings"
 
 	//"github.com/golang/protobuf/descriptor"
@@ -16,7 +16,7 @@ import (
 
 	"github.com/jinjustin/omega/database"
 
-	"github.com/wk8/go-ordered-map"
+	//"github.com/wk8/go-ordered-map"
 
 	//"omega/authentication"
 
@@ -179,9 +179,9 @@ func getGroupInTest(courseID string, testID string) []byte{
 		UUID string
 	}
 
-	//groupTestMap := make(map[string]GroupInTest)
+	groupTestMap := make(map[string]GroupInTest)
 
-	groupTestMap := orderedmap.New()
+	//groupTestMap := orderedmap.New()
 
 	var UUIDs []UUIDinGroup
 	var uuid UUIDinGroup
@@ -295,15 +295,15 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 		g.Items = GroupItems
 
-		groupTestMap.Set(uuid.UUID,g)
+		//groupTestMap.Set(uuid.UUID,g)
 
-		fmt.Println(groupTestMap.Get(uuid.UUID))
+		//fmt.Println(groupTestMap.Get(uuid.UUID))
 
 		//groupTestMap[uuid.UUID] = g
 	}
 
-	fmt.Println("----")
-	fmt.Println(groupTestMap)
+	//fmt.Println("----")
+	//fmt.Println(groupTestMap)
 
 	b,err := json.Marshal(groupTestMap)
 	if err != nil{
