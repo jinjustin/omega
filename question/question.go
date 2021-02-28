@@ -7,9 +7,12 @@ import (
 
 //Question is struct that use to represent question in question group.
 type Question struct{
-	QuestionID string
-	QuestionGroupID string
+	TestID string
+	GroupID string
 	Question string
+	QuestionID string
+	QuestionType string
+	Data string
 }
 
 // GetQuestionDetail is a function that use to get question detail in JSON form.

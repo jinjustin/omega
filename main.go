@@ -35,9 +35,6 @@ func testAPI(w http.ResponseWriter, r *http.Request){
 }
 
 func test2(w http.ResponseWriter, r *http.Request){
-	type Input struct{
-		test string
-	}
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	w.Write(reqBody)

@@ -9,9 +9,11 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19 // indirect
 	github.com/gin-gonic/gin v1.6.3 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/iancoleman/orderedmap v0.2.0
 	//github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0
 	github.com/minio/minio-go/v7 v7.0.10
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/rs/cors v1.7.0
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/stretchr/testify v1.7.0

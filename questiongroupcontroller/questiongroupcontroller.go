@@ -6,6 +6,7 @@ import (
 
 	//"github.com/golang/protobuf/descriptor"
 	//"github.com/jinjustin/omega/question"
+
 	"github.com/jinjustin/omega/questiongroup"
 	//"github.com/jinjustin/omega/test"
 
@@ -21,7 +22,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
 	//"github.com/sqs/goreturns/returns"
+	"github.com/iancoleman/orderedmap"
+	//"github.com/mitchellh/mapstructure"
 )
 
 //GrouptestList is struct that use to return grouptestlist.
@@ -29,6 +33,7 @@ type GrouptestList struct{
 	ID string
 	GroupName string
 }
+
 
 func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int) {
 	
@@ -100,7 +105,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 	}
 }
 
-func testbankUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, uuid string) {
+func testbankUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, uuid string, headerOrder int, groupOrder int) {
 	
 	var g questiongroup.QuestionGroup
 
@@ -115,6 +120,8 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			CourseID: courseID,
 			TestID: "",
 			UUID: uuid,
+			HeaderOrder: headerOrder,
+			GroupOrder: groupOrder,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -123,8 +130,8 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 		}
 		defer db.Close()
 
-		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID)
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID, g.HeaderOrder, g.GroupOrder)
 		if err != nil {
 			panic(err)
 		}
@@ -140,6 +147,8 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			CourseID: courseID,
 			TestID: "",
 			UUID: uuid,
+			HeaderOrder: headerOrder,
+			GroupOrder: groupOrder,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -148,9 +157,9 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 		}
 		defer db.Close()
 	
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5 WHERE id=$6`
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5, headerorder=$6, grouporder=$7 WHERE id=$8`
 	
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.ID)
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
 		if err != nil {
 			panic(err)
 		}
@@ -602,30 +611,45 @@ func allgrouptestlist(courseid string) []GrouptestList{
 var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	type Item struct {
-		ID string
-		GroupName string
-		NumQuestion string
-		Score string
+		ID string `json:"id"`
+		GroupName string `json:"groupName"`
+		NumQuestion string `json:"numQuestion"`
+		Score string `json:"score"`
 	}
 
 	type Input struct {
-		Name string
-		Items []Item
+		Name string `json:"name"`
+		Items []Item `array:"item"`
 	}
 
 	var objmap map[string]Input
 
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(reqBody, &objmap)
+	o := orderedmap.New()
 
-	uuids := make([]string, 0, len(objmap))
-	for i := range objmap {
-        uuids = append(uuids, i)
-    }
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "can't read body", http.StatusBadRequest)
+            return
+	}
 
-	//fmt.Println(uuids)
+	err = o.UnmarshalJSON(reqBody)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	err = json.Unmarshal(reqBody,&objmap)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
 
 	var input Input
+
+	uuids := make([]string, 0, len(o.Keys()))
+	for _, uuid := range o.Keys() {
+        uuids = append(uuids, uuid)
+    }
 
 	var questionInTest []string
 
@@ -638,6 +662,8 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		for grouporder, item := range input.Items{
 			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			questionInTest = append(questionInTest, item.ID)
+			//fmt.Println(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
+			//fmt.Println("---")
 		}
 	}
 
@@ -667,37 +693,54 @@ var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	type Item struct {
-		ID string
-		GroupName string
-		NumQuestion string
-		Score string
+		ID string `json:"id"`
+		GroupName string `json:"groupName"`
+		NumQuestion string `json:"numQuestion"`
+		Score string `json:"score"`
 	}
 
 	type Input struct {
-		Name string
-		Items []Item
+		Name string `json:"name"`
+		Items []Item `array:"item"`
 	}
 
 	var objmap map[string]Input
 
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	//var input Input
-	json.Unmarshal(reqBody, &objmap)
-	uuids := make([]string, 0, len(objmap))
-	for i := range objmap {
-        uuids = append(uuids, i)
-    }
+	o := orderedmap.New()
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "can't read body", http.StatusBadRequest)
+            return
+	}
+
+	err = o.UnmarshalJSON(reqBody)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	err = json.Unmarshal(reqBody,&objmap)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
 
 	var input Input
+
+	uuids := make([]string, 0, len(o.Keys()))
+	for _, uuid := range o.Keys() {
+        uuids = append(uuids, uuid)
+    }
 
 	var questionInTest []string
 
 	courseID := r.Header.Get("CourseID")
 
-	for _, uuid := range uuids {
+	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
-		for _, item := range input.Items{
-			testbankUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, uuid)
+		for grouporder, item := range input.Items{
+			testbankUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, uuid, headerorder, grouporder)
 			questionInTest = append(questionInTest, item.ID)
 		}
 	}
