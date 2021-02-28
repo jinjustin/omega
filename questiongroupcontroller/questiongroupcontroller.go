@@ -169,16 +169,16 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 func getGroupInTest(courseID string, testID string) []byte{
 
 	type GroupItem struct {
-		ID string
-		GroupName string
-		NumQuestion string
-		Score string
-		Order int
+		ID string `json:"id"`
+		GroupName string `json:"groupName"`
+		NumQuestion string `json:"numQuestion"`
+		Score string `json:"score"`
+		Order int `json:"order"`
 	}
 
 	type GroupInTest struct {
-		Name string
-		Items []GroupItem
+		Name string `json:"name"`
+		Items []GroupItem `array:"items"`
 	}
 
 	type UUIDinGroup struct {
@@ -317,16 +317,16 @@ func getGroupInTest(courseID string, testID string) []byte{
 func getGroupInTestbank(courseID string) []byte{
 
 	type GroupItem struct {
-		ID string
-		GroupName string
-		NumQuestion string
-		Score string
-		Order int
+		ID string `json:"id"`
+		GroupName string `json:"groupName"`
+		NumQuestion string `json:"numQuestion"`
+		Score string `json:"score"`
+		Order int `json:"order"`
 	}
 
 	type GroupInTest struct {
-		Name string
-		Items []GroupItem
+		Name string `json:"name"`
+		Items []GroupItem `array:"items"`
 	}
 
 	type UUIDinGroup struct {
