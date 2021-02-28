@@ -178,7 +178,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 	type GroupInTest struct {
 		Name string `json:"name"`
-		Items []GroupItem `array:"items"`
+		Items []GroupItem `json:"items"`
 	}
 
 	type UUIDinGroup struct {
@@ -326,7 +326,7 @@ func getGroupInTestbank(courseID string) []byte{
 
 	type GroupInTest struct {
 		Name string `json:"name"`
-		Items []GroupItem `array:"items"`
+		Items []GroupItem `json:"items"`
 	}
 
 	type UUIDinGroup struct {
