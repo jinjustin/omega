@@ -11,6 +11,7 @@ import (
 	"github.com/jinjustin/omega/authentication"
 	"github.com/jinjustin/omega/questiongroupcontroller"
 	"github.com/jinjustin/omega/storage"
+	"github.com/jinjustin/omega/questioncontroller"
 
 	//"omega/database"
 	"context"
@@ -175,6 +176,11 @@ func handleRequests() {
 	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 	myRouter.Handle("/changedraftstatus", middlewareTeacher(testcontroller.ChangeDraftStatus)).Methods("POST")
+
+	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.AddNewQuestion)).Methods("POST")
+	myRouter.Handle("/getquestion", middlewareTeacher(questioncontroller.GetQuestion)).Methods("GET")
+	myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("DELETE")
+	myRouter.Handle("/getallquestioningroup", middlewareTeacher(questioncontroller.GetAllQuestionInGroup)).Methods("GET")
 
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 
