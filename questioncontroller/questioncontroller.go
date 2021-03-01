@@ -61,8 +61,8 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 
 		checkExist := checkQuestionExist(questionID)
 
-		//fmt.Println(checkInTest)
-		//fmt.Println(checkExist)
+		fmt.Println(checkInTest, "555")
+		fmt.Println(checkExist, "666")
 
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
