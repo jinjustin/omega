@@ -40,14 +40,13 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 		fmt.Println(checkExist)
 
 		if checkExist == sql.ErrNoRows{
-			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ('', $1, $2, $3, $4)`
-			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
+			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ('', $1, $2, $3, $4, $5)`
+			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 			if err != nil {
 				return err
 			}
 		}else if checkExist == nil{
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
-	
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
 			if err != nil {
 				return err
@@ -61,19 +60,23 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 
 		checkExist := checkQuestionExist(questionID)
 
-		fmt.Println(checkInTest, "555")
-		fmt.Println(checkExist, "666")
-
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
-				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ('', $1, $2, $3, $4)`
-				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
+				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ('', $1, $2, $3, $4, $5)`
+				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID ,q.QuestionType, q.Data)
 				if err != nil {
 					return err
 				}
+
+				sqlStatement = `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ($1, $2, $3, $4, $5, $6)`
+				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+				if err != nil {
+					return err
+				}
+
 			}else if checkExist == nil{
-				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ($1, $2, $3, $4, $5)`
-				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
+				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ($1, $2, $3, $4, $5, $6)`
+				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 				if err != nil {
 					return err
 				}
@@ -274,7 +277,7 @@ var AddNewQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
 		fmt.Println(err)
 	}else{
 		w.WriteHeader(http.StatusOK)
@@ -293,7 +296,7 @@ var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
 		fmt.Println(err)
 	}else{
 		w.WriteHeader(http.StatusOK)
@@ -312,7 +315,7 @@ var DeleteQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
 		fmt.Println(err)
 	}else{
 		w.WriteHeader(http.StatusOK)
@@ -330,7 +333,7 @@ var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
 		fmt.Println(err)
 	}else{
 		w.WriteHeader(http.StatusOK)
