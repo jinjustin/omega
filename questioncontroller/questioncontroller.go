@@ -35,43 +35,57 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 	defer db.Close()
 
 	if testID ==""{
-		if checkQuestionExist(questionID){
+
+		checkExist := checkQuestionExist(questionID)
+
+		if checkExist == sql.ErrNoRows{
 			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ('', $1, $2, $3, $4)`
 			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
 			if err != nil {
 				return err
 			}
-		}else{
+		}else if checkExist == nil{
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
 	
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
 			if err != nil {
 				return err
 			}
+		}else{
+			return err
 		}
 	}else{
-		if checkQuestionInTest(questionID, testID){
-			if checkQuestionExist(questionID){
+
+		checkInTest := checkQuestionInTest(questionID, testID)
+
+		checkExist := checkQuestionExist(questionID)
+
+		if checkInTest == sql.ErrNoRows{
+			if checkExist == sql.ErrNoRows{
 				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ('', $1, $2, $3, $4)`
 				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
 				if err != nil {
 					return err
 				}
-			}
-			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ($1, $2, $3, $4, $5)`
+			}else if checkExist == nil{
+				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ($1, $2, $3, $4, $5)`
 				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionType, q.Data)
 				if err != nil {
 					return err
 				}
-		}else{
+			}else{
+				return err
+			}
+		}else if checkInTest == nil {
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
 			if err != nil {
 				return err
 			}
+		}else{
+			return err
 		}
 	}
-
 	return err
 }
 
@@ -192,67 +206,46 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 	return allQuestionInGroup, err
 }
 
-func checkQuestionInGroup(questionID string, groupID string) bool {
+func checkQuestionInGroup(questionID string, groupID string) error {
 	var questionName string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 	sqlStatement := `SELECT questionname FROM question WHERE questionid=$1 and groupid=$2;`
 	row := db.QueryRow(sqlStatement, questionID, groupID)
 	err = row.Scan(&questionName)
-	switch err {
-	case sql.ErrNoRows:
-		return true
-	case nil:
-		return false
-	default:
-		panic(err)
-	}
+	return err
 }
 
-func checkQuestionInTest(questionID string, testID string) bool {
+func checkQuestionInTest(questionID string, testID string) error {
 	var questionName string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 	sqlStatement := `SELECT questionname FROM question WHERE questionid=$1 and testid=$2;`
 	row := db.QueryRow(sqlStatement, questionID, testID)
 	err = row.Scan(&questionName)
-	switch err {
-	case sql.ErrNoRows:
-		return true
-	case nil:
-		return false
-	default:
-		panic(err)
-	}
+	return err
 }
 
-func checkQuestionExist(questionID string) bool {
+func checkQuestionExist(questionID string) error {
 	var questionName string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 	sqlStatement := `SELECT questionname FROM question WHERE questionid=$1;`
 	row := db.QueryRow(sqlStatement, questionID)
 	err = row.Scan(&questionName)
-	switch err {
-	case sql.ErrNoRows:
-		return true
-	case nil:
-		return false
-	default:
-		panic(err)
-	}
+	return err
 }
 
 //API
