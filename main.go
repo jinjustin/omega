@@ -179,7 +179,7 @@ func handleRequests() {
 
 	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.AddNewQuestion)).Methods("POST")
 	myRouter.Handle("/getquestion", middlewareTeacher(questioncontroller.GetQuestion)).Methods("GET")
-	myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("DELETE")
+	myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("GET")
 	myRouter.Handle("/getallquestioningroup", middlewareTeacher(questioncontroller.GetAllQuestionInGroup)).Methods("GET")
 
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
