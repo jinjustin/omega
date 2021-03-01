@@ -140,12 +140,16 @@ func deleteQuestion(testID string, questionID string, groupID string) error {
 	defer db.Close()
 
 	if testID==""{
-		sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 ;`
+		sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2;`
 		_, err = db.Exec(sqlStatement, questionID, groupID)
 		if err != nil {
 			return err
 		}
 	}else{
+		fmt.Println(testID)
+		fmt.Println(questionID)
+		fmt.Println(groupID)
+
 		sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 and testid=$3;`
 		_, err = db.Exec(sqlStatement, questionID, groupID, testID)
 		if err != nil {
