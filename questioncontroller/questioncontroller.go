@@ -53,7 +53,7 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 				return err
 			}
 		}else{
-			return err
+			return checkExist
 		}
 	}else{
 
@@ -61,8 +61,8 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 
 		checkExist := checkQuestionExist(questionID)
 
-		fmt.Println(checkInTest)
-		fmt.Println(checkExist)
+		//fmt.Println(checkInTest)
+		//fmt.Println(checkExist)
 
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
@@ -78,7 +78,7 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 					return err
 				}
 			}else{
-				return err
+				return checkExist
 			}
 		}else if checkInTest == nil {
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
@@ -87,7 +87,7 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 				return err
 			}
 		}else{
-			return err
+			return checkInTest
 		}
 	}
 	return err
