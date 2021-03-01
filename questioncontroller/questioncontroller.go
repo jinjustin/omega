@@ -37,6 +37,7 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 	if testID ==""{
 
 		checkExist := checkQuestionExist(questionID)
+		fmt.Println(checkExist)
 
 		if checkExist == sql.ErrNoRows{
 			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questiontype, data)VALUES ('', $1, $2, $3, $4)`
@@ -59,6 +60,9 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 		checkInTest := checkQuestionInTest(questionID, testID)
 
 		checkExist := checkQuestionExist(questionID)
+
+		fmt.Println(checkInTest)
+		fmt.Println(checkExist)
 
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
