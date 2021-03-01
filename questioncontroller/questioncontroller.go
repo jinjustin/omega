@@ -131,7 +131,7 @@ func getQuestion(groupID string, testID string, questionID string) (question.Que
 	return q, err
 }
 
-func deleteQuestion(testID string, questionID string, groupID string) error {
+func deleteQuestion(testID string, questionID string) error {
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -140,18 +140,16 @@ func deleteQuestion(testID string, questionID string, groupID string) error {
 	defer db.Close()
 
 	if testID==""{
-		sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2;`
-		_, err = db.Exec(sqlStatement, questionID, groupID)
+		sqlStatement := `DELETE from question WHERE questionid=$1;`
+		_, err = db.Exec(sqlStatement, questionID)
 		if err != nil {
 			return err
 		}
 	}else{
 		fmt.Println(testID)
 		fmt.Println(questionID)
-		fmt.Println(groupID)
-
-		sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 and testid=$3;`
-		_, err = db.Exec(sqlStatement, questionID, groupID, testID)
+		sqlStatement := `DELETE from question WHERE questionid=$1 and testid=$2;`
+		_, err = db.Exec(sqlStatement, questionID, testID)
 		if err != nil {
 			return err
 		}
@@ -311,11 +309,10 @@ var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 //DeleteQuestion is a API that use to delete question in question group (in test or in all question group).
 var DeleteQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	groupID := r.Header.Get("GroupId")
 	testID := r.Header.Get("TestID")
 	questionID := r.Header.Get("QuestionID")
 
-	err := deleteQuestion(groupID,testID,questionID)
+	err := deleteQuestion(testID,questionID)
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
