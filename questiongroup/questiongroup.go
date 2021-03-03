@@ -11,6 +11,7 @@ type QuestionGroup struct{
 	ID string
 	GroupName string
 	NumQuestion string
+	MaxQuestion string
 	Score string
 	CourseID string
 	TestID string

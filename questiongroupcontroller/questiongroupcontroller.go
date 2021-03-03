@@ -37,7 +37,7 @@ type GrouptestList struct{
 }
 
 
-func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int) {
+func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, maxQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int) error{
 	
 	var g questiongroup.QuestionGroup
 
@@ -48,6 +48,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 			ID: questiongroupID,
 			GroupName: questiongroupName,
 			NumQuestion: numQuestion,
+			MaxQuestion: maxQuestion,
 			Score: score,
 			CourseID: courseID,
 			TestID: testID,
@@ -58,23 +59,23 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer db.Close()
 
 
 		if(checkQuestionGroupExist(questiongroupID)){
-			sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
-			_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, "", g.UUID, g.HeaderOrder, g.GroupOrder)
+			sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, maxquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+			_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.CourseID, "", g.UUID, g.HeaderOrder, g.GroupOrder)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 
-		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
-		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID, g.HeaderOrder, g.GroupOrder)
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, maxquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.CourseID, g.TestID, g.UUID, g.HeaderOrder, g.GroupOrder)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 	}else{
@@ -84,6 +85,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 			ID: questiongroupID,
 			GroupName: questiongroupName,
 			NumQuestion: numQuestion,
+			MaxQuestion: maxQuestion,
 			Score: score,
 			CourseID: courseID,
 			TestID: testID,
@@ -94,17 +96,19 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer db.Close()
 	
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5, headerorder=$6, grouporder=$7 WHERE id=$8`
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, maxquestion=$4, score=$5, uuid=$6, headerorder=$7, grouporder=$8 WHERE id=$9`
 	
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+
+	return nil
 }
 
 func testbankUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, uuid string, headerOrder int, groupOrder int) {
@@ -683,6 +687,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		ID string `json:"id"`
 		GroupName string `json:"groupName"`
 		NumQuestion string `json:"numQuestion"`
+		MaxQuestion string `json:"maxQuestion"`
 		Score string `json:"score"`
 		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
@@ -732,7 +737,12 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
-			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
+			err = groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				fmt.Println(err)
+            		return
+			}
 			questionInTest = append(questionInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
 				fmt.Println(questionItem.QuestionName)
@@ -784,6 +794,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		GroupName string `json:"groupName"`
 		NumQuestion string `json:"numQuestion"`
 		Score string `json:"score"`
+		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
 
 	type Input struct {
@@ -821,6 +832,8 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
     }
 
 	var questionInTest []string
+
+	//var questionInGroup []string
 
 	courseID := r.Header.Get("CourseID")
 
