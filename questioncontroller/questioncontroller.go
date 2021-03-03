@@ -83,12 +83,6 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 					return err
 				}
 
-				sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
-				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID ,q.Data)
-				if err != nil {
-					return err
-				}
-
 				sqlStatement = `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ($1, $2, $3, $4, $5)`
 				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 				if err != nil {
@@ -107,13 +101,6 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 				if err != nil {
 					return err
 				}
-
-				sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
-				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID, q.Data)
-				if err != nil {
-					return err
-				}
-
 			}else{
 				return checkExist
 			}

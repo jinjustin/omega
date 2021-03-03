@@ -735,6 +735,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			questionInTest = append(questionInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
+				fmt.Println(questionItem.QuestionName)
 				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
