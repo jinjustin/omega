@@ -30,11 +30,7 @@ import (
 	//"github.com/mitchellh/mapstructure"
 )
 
-//GrouptestList is struct that use to return grouptestlist.
-type GrouptestList struct{
-	ID string
-	GroupName string
-}
+
 
 
 func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, maxQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int) error{
@@ -111,9 +107,15 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 	return nil
 }
 
-func testbankUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, score string, courseID string, uuid string, headerOrder int, groupOrder int) {
+func testbankUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, maxQuestion string, score string, courseID string, uuid string, headerOrder int, groupOrder int) error{
 	
 	var g questiongroup.QuestionGroup
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
 
 	if (checkQuestionGroupInTestbank(questiongroupID)){
 
@@ -122,6 +124,7 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			ID: questiongroupID,
 			GroupName: questiongroupName,
 			NumQuestion: numQuestion,
+			MaxQuestion: maxQuestion,
 			Score: score,
 			CourseID: courseID,
 			TestID: "",
@@ -130,16 +133,10 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			GroupOrder: groupOrder,
 		}
 
-		db, err := sql.Open("postgres", database.PsqlInfo())
+		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, maxquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.CourseID, g.TestID, g.UUID, g.HeaderOrder, g.GroupOrder)
 		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
-
-		sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
-		_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, g.NumQuestion, g.Score, g.CourseID, g.TestID, g.UUID, g.HeaderOrder, g.GroupOrder)
-		if err != nil {
-			panic(err)
+			return err
 		}
 
 	}else{
@@ -149,6 +146,7 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			ID: questiongroupID,
 			GroupName: questiongroupName,
 			NumQuestion: numQuestion,
+			MaxQuestion: maxQuestion,
 			Score: score,
 			CourseID: courseID,
 			TestID: "",
@@ -156,23 +154,18 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			HeaderOrder: headerOrder,
 			GroupOrder: groupOrder,
 		}
-
-		db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
 	
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, score=$4, uuid=$5, headerorder=$6, grouporder=$7 WHERE id=$8`
+		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, maxquestion=$4, score=$5, uuid=$6, headerorder=$7, grouporder=$8 WHERE id=$9`
 	
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
+		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }
 
-func getGroupInTest(courseID string, testID string) []byte{
+func getGroupInTest(courseID string, testID string) ([]byte, error){
 
 	type GroupItem struct {
 		ID string `json:"id"`
@@ -201,21 +194,21 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer db.Close()
 
 	sqlStatement := `SELECT uuid, headerorder FROM questiongroup WHERE courseid=$1 and testid=$2`
 	rows, err := db.Query(sqlStatement, courseID, testID)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err = rows.Scan(&uuid.UUID, &uuid.Order)
 		if err != nil {
-			panic(err)
+			return nil ,err
 		}
 
 		check := true
@@ -232,7 +225,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 	}
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var uuidTemp UUIDinGroup
@@ -246,8 +239,6 @@ func getGroupInTest(courseID string, testID string) []byte{
 			}
 		}
 	}
-
-	//fmt.Println(UUIDs)
 
 	for _, uuid := range UUIDs {
 
@@ -264,51 +255,51 @@ func getGroupInTest(courseID string, testID string) []byte{
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
 		rows, err := db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			err = rows.Scan(&g.Name)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 		}
 		err = rows.Err()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		sqlStatement = `SELECT id, groupname, numquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=$2`
 		rows, err = db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 
 			sqlStatement = `SELECT questionid, questionname FROM question WHERE testid=$1 and groupid=$2`
 			rows, err = db.Query(sqlStatement, testID, i.ID)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			defer rows.Close()
 
 			for rows.Next() {
 				err = rows.Scan(&a.QuestionID, &a.QuestionName)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				allQuestionInGroup = append(allQuestionInGroup, a)
 			}
 			err = rows.Err()
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			i.QuestionList = allQuestionInGroup
 
@@ -316,7 +307,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 		}
 		err = rows.Err()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		for i := range GroupItems {
@@ -331,22 +322,19 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 		g.Items = GroupItems
 
-		//groupTestMap[uuid.UUID] = g
 		o.Set(uuid.UUID,g)
 	}
 
-	//fmt.Println("----")
-	//fmt.Println(groupTestMap)
 
 	b,err := o.MarshalJSON()
 	if err != nil{
-		panic(err)
+		return nil, err
 	}
 
-	return b
+	return b, nil
 }
 
-func getGroupInTestbank(courseID string) []byte{
+func getGroupInTestbank(courseID string) ([]byte, error){
 
 	type GroupItem struct {
 		ID string `json:"id"`
@@ -354,6 +342,7 @@ func getGroupInTestbank(courseID string) []byte{
 		NumQuestion string `json:"numQuestion"`
 		Score string `json:"score"`
 		Order int `json:"order"`
+		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
 
 	type GroupInTest struct {
@@ -366,9 +355,6 @@ func getGroupInTestbank(courseID string) []byte{
 		UUID string
 	}
 
-
-	//groupTestMap := make(map[string]GroupInTest)
-
 	o := orderedmap.New()
 
 	var UUIDs []UUIDinGroup
@@ -376,21 +362,21 @@ func getGroupInTestbank(courseID string) []byte{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer db.Close()
 
 	sqlStatement := `SELECT uuid, headerorder FROM questiongroup WHERE courseid=$1 and testid=''`
 	rows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err = rows.Scan(&uuid.UUID, &uuid.Order)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		check := true
@@ -407,7 +393,7 @@ func getGroupInTestbank(courseID string) []byte{
 	}
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var uuidTemp UUIDinGroup
@@ -426,45 +412,70 @@ func getGroupInTestbank(courseID string) []byte{
 
 		var GroupItems []GroupItem
 
+		var allQuestionInGroup []question.AllQuestionInGroup
+
 		var g GroupInTest
 		var i GroupItem
 		var groupTemp GroupItem
 
+		var a question.AllQuestionInGroup
+
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=''`
 		rows, err := db.Query(sqlStatement, uuid.UUID)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			err = rows.Scan(&g.Name)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 		}
 		err = rows.Err()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		sqlStatement = `SELECT id, groupname, numquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=''`
 		rows, err = db.Query(sqlStatement, uuid.UUID)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
+
+			sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
+			rows, err = db.Query(sqlStatement, i.ID)
+			if err != nil {
+				return nil, err
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&a.QuestionID, &a.QuestionName)
+				if err != nil {
+					return nil, err
+				}
+				allQuestionInGroup = append(allQuestionInGroup, a)
+			}
+			err = rows.Err()
+			if err != nil {
+				return nil, err
+			}
+			i.QuestionList = allQuestionInGroup
+
 			GroupItems = append(GroupItems, i)
 		}
 		err = rows.Err()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		for i := range GroupItems {
@@ -484,10 +495,10 @@ func getGroupInTestbank(courseID string) []byte{
 
 	b,err := o.MarshalJSON()
 	if err != nil{
-		panic(err)
+		return nil, err
 	}
 
-	return b
+	return b, nil
 }
 
 func checkQuestionGroupExist(questionGroupID string) bool {
@@ -646,36 +657,62 @@ func deleteQuestionGroupFromTestbank(questionInTest []string, courseID string){
 	}
 }
 
-func allgrouptestlist(courseid string) []GrouptestList{
-	var grouptestList []GrouptestList
+func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
+	var grouptestList []questiongroup.GrouptestList
 
-	var grouptest GrouptestList
+	var grouptest questiongroup.GrouptestList
+
+	var allQuestionInGroup []question.AllQuestionInGroup
+
+	var questionInGroup question.AllQuestionInGroup
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return grouptestList, err
 	}
 	defer db.Close()
 
 	sqlStatement := `SELECT id, groupname FROM questiongroup WHERE courseid=$1 and testid='';`
 	rows, err := db.Query(sqlStatement, courseid)
 	if err != nil {
-		panic(err)
+		return grouptestList, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&grouptest.ID, &grouptest.GroupName)
 		if err != nil {
-			panic(err)
+			return grouptestList, err
 		}
+
+		sqlStatement = `SELECT questionid, questionname FROM question WHERE groupid=$1 and testid='';`
+		rows, err := db.Query(sqlStatement, grouptest.ID)
+		if err != nil {
+			return grouptestList, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&questionInGroup.QuestionID, &questionInGroup.QuestionName)
+			if err != nil {
+				return grouptestList, err
+			}
+			
+			allQuestionInGroup = append(allQuestionInGroup, questionInGroup)
+		}
+		err = rows.Err()
+		if err != nil {
+			return grouptestList, err
+		}
+		grouptest.QuestionList = allQuestionInGroup
+		allQuestionInGroup = nil
+
 		grouptestList = append(grouptestList, grouptest)
 	}
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		return grouptestList, err
 	}
 
-	return grouptestList
+	return grouptestList, nil
 }
 
 //API
@@ -775,7 +812,13 @@ var GetGroupInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	testID := r.Header.Get("TestId")
 
-	w.Write(getGroupInTest(courseID,testID))
+	g, err := getGroupInTest(courseID,testID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.Write(g)
 })
 
 //AllGroupTestList is a API that use to get all grouptestlist in that course 
@@ -783,7 +826,13 @@ var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 
 	courseID := r.Header.Get("CourseID")
 
-	json.NewEncoder(w).Encode(allgrouptestlist(courseID))
+	a, err := allgrouptestlist(courseID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	json.NewEncoder(w).Encode(a)
 })
 
 //TestbankUpdate is a API that use to get add or update group test list.
@@ -793,6 +842,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		ID string `json:"id"`
 		GroupName string `json:"groupName"`
 		NumQuestion string `json:"numQuestion"`
+		MaxQuestion string `json:"maxQuestion"`
 		Score string `json:"score"`
 		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
@@ -833,15 +883,36 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	var questionInTest []string
 
-	//var questionInGroup []string
+	var questionInGroup []string
 
 	courseID := r.Header.Get("CourseID")
 
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
-			testbankUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, uuid, headerorder, grouporder)
+			err = testbankUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, uuid, headerorder, grouporder)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				fmt.Println(err)
+            		return
+			}
 			questionInTest = append(questionInTest, item.ID)
+			for _, questionItem := range item.QuestionList{
+				fmt.Println(questionItem.QuestionName)
+				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
+				if err != nil{
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					fmt.Println(err)
+            			return
+				}
+				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
+			}
+			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,item.ID)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+			}
+			questionInGroup = nil
 		}
 	}
 
@@ -854,5 +925,11 @@ var GetGroupInTestbank = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 
 	courseID := r.Header.Get("CourseID")
 
-	w.Write(getGroupInTestbank(courseID))
+	g, err := getGroupInTestbank(courseID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.Write(g)
 })

@@ -241,7 +241,7 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 	return allQuestionInGroup, err
 }
 
-//DeleteQuestionFromGroupInTest is a function that use to auto delete question in questiongroup.
+//DeleteQuestionFromGroupInTest is a function that use to auto delete question in questiongroup from that testID.
 func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, groupID string) error{
 	
 	var questionID string
@@ -276,6 +276,54 @@ func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, grou
 		if check {
 			sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 and testid=$3;`
 			_, err = db.Exec(sqlStatement, questionID, groupID, testID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//DeleteQuestionFromTestbank is a function that use to auto delete question in questiongroup.
+func DeleteQuestionFromTestbank(questionInGroup []string, groupID string) error{
+	
+	var questionID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT questionid FROM question WHERE testid='' and groupid=$1;`
+	rows, err := db.Query(sqlStatement, groupID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&questionID)
+		if err != nil {
+			return err
+		}
+
+		check := true
+
+		for _, id := range questionInGroup{
+			if questionID == id{
+				check = false
+			}
+		}
+
+		if check {
+			sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2;`
+			_, err = db.Exec(sqlStatement, questionID, groupID)
 			if err != nil {
 				return err
 			}
