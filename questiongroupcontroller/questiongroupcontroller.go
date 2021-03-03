@@ -1,7 +1,7 @@
 package questiongroupcontroller
 
 import (
-	//"fmt"
+	"fmt"
 	//"strings"
 
 	//"github.com/golang/protobuf/descriptor"
@@ -737,14 +737,15 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			for _, questionItem := range item.QuestionList{
 				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
-					http.Error(w, "500 - Internal server error JJ for fix.", http.StatusBadRequest)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					fmt.Println(err)
             			return
 				}
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
 			}
 			err = questioncontroller.DeleteQuestionFromGroup(questionInGroup,testID,item.ID)
 			if err != nil{
-				http.Error(w, "500 - Internal server error JJ for fix.", http.StatusBadRequest)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
             		return
 			}
 			questionInGroup = nil
