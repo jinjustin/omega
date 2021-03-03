@@ -168,6 +168,9 @@ func handleRequests() {
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 	
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
+
+	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
+
 	myRouter.Handle("/getgroupintest",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.TestbankUpdate)).Methods("POST")
 	myRouter.Handle("/getgroupintestbank",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
@@ -177,10 +180,12 @@ func handleRequests() {
 	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 	myRouter.Handle("/changedraftstatus", middlewareTeacher(testcontroller.ChangeDraftStatus)).Methods("POST")
 
-	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.AddNewQuestion)).Methods("POST")
+	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.UpdateQuestion)).Methods("POST")
 	myRouter.Handle("/getquestion", middlewareTeacher(questioncontroller.GetQuestion)).Methods("GET")
-	myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("DELETE")
+	//myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("DELETE")
 	myRouter.Handle("/getallquestioningroup", middlewareTeacher(questioncontroller.GetAllQuestionInGroup)).Methods("GET")
+
+	myRouter.Handle("/getstudentcourselist", middlewareTeacher(coursecontroller.GetStudentCourselist)).Methods("GET")
 
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 

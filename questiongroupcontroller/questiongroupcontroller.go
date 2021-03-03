@@ -8,6 +8,8 @@ import (
 	//"github.com/jinjustin/omega/question"
 
 	"github.com/jinjustin/omega/questiongroup"
+	"github.com/jinjustin/omega/question"
+	"github.com/jinjustin/omega/questioncontroller"
 	//"github.com/jinjustin/omega/test"
 
 	//"encoding/json"
@@ -174,6 +176,7 @@ func getGroupInTest(courseID string, testID string) []byte{
 		NumQuestion string `json:"numQuestion"`
 		Score string `json:"score"`
 		Order int `json:"order"`
+		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
 
 	type GroupInTest struct {
@@ -246,9 +249,13 @@ func getGroupInTest(courseID string, testID string) []byte{
 
 		var GroupItems []GroupItem
 
+		var allQuestionInGroup []question.AllQuestionInGroup
+
 		var g GroupInTest
 		var i GroupItem
 		var groupTemp GroupItem
+
+		var a question.AllQuestionInGroup
 
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
 		rows, err := db.Query(sqlStatement, uuid.UUID, testID)
@@ -280,6 +287,27 @@ func getGroupInTest(courseID string, testID string) []byte{
 			if err != nil {
 				panic(err)
 			}
+
+			sqlStatement = `SELECT questionid, questionname FROM question WHERE testid=$1 and groupid=$2`
+			rows, err = db.Query(sqlStatement, testID, i.ID)
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&a.QuestionID, &a.QuestionName)
+				if err != nil {
+					panic(err)
+				}
+				allQuestionInGroup = append(allQuestionInGroup, a)
+			}
+			err = rows.Err()
+			if err != nil {
+				panic(err)
+			}
+			i.QuestionList = allQuestionInGroup
+
 			GroupItems = append(GroupItems, i)
 		}
 		err = rows.Err()
@@ -523,9 +551,9 @@ func checkQuestionGroupInTestbank(questionGroupID string) bool {
 	}
 }
 
-func deleteQuestionGroupFromTest(questionInTest []string, testID string, courseID string){
+func deleteQuestionGroupFromTest(groupInTest []string, testID string, courseID string){
 
-	var questionID string
+	var groupID string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -541,22 +569,22 @@ func deleteQuestionGroupFromTest(questionInTest []string, testID string, courseI
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.Scan(&questionID)
+		err = rows.Scan(&groupID)
 		if err != nil {
 			panic(err)
 		}
 
 		check := true
 
-		for _, id := range questionInTest{
-			if questionID == id{
+		for _, id := range groupInTest{
+			if groupID == id{
 				check = false
 			}
 		}
 
 		if check {
 			sqlStatement := `DELETE from questiongroup WHERE id=$1 and testid=$2;`
-			_, err = db.Exec(sqlStatement, questionID, testID)
+			_, err = db.Exec(sqlStatement, groupID, testID)
 			if err != nil {
 				panic(err)
 			}
@@ -656,6 +684,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		GroupName string `json:"groupName"`
 		NumQuestion string `json:"numQuestion"`
 		Score string `json:"score"`
+		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
 
 	type Input struct {
@@ -694,6 +723,8 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	var questionInTest []string
 
+	var questionInGroup []string
+
 	courseID := r.Header.Get("CourseID")
 
 	testID := r.Header.Get("TestId")
@@ -703,13 +734,26 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		for grouporder, item := range input.Items{
 			groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			questionInTest = append(questionInTest, item.ID)
-			//fmt.Println(input.Name, item.ID, item.GroupName, item.NumQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
-			//fmt.Println("---")
+			for _, questionItem := range item.QuestionList{
+				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
+				if err != nil{
+					http.Error(w, "500 - Internal server error JJ for fix.", http.StatusBadRequest)
+            			return
+				}
+				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
+			}
+			err = questioncontroller.DeleteQuestionFromGroup(questionInGroup,testID,item.ID)
+			if err != nil{
+				http.Error(w, "500 - Internal server error JJ for fix.", http.StatusBadRequest)
+            		return
+			}
+			questionInGroup = nil
 		}
 	}
 
 	deleteQuestionGroupFromTest(questionInTest, testID, courseID)
-	w.Write([]byte("success"))
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })
 
 //GetGroupInTest is a API that use to get all group test in the test.

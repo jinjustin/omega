@@ -268,6 +268,95 @@ func getCourseList(username string) []course.Course {
 	return courses
 }
 
+func getStudentCourseList(username string) ([]course.Course, error) {
+	var courseCodes []string
+	var courses []course.Course
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlStatement = `SELECT coursecode FROM coursemember WHERE userid=$1 and status=$2;`
+	rows, err = db.Query(sqlStatement, userID,"join")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var courseCode string
+		err = rows.Scan(&courseCode)
+		if err != nil {
+			return nil, err
+		}
+		courseCodes = append(courseCodes, courseCode)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range courseCodes {
+
+		sqlStatement = `SELECT courseid,coursename,year,permission FROM course WHERE coursecode=$1;`
+		rows, err := db.Query(sqlStatement, a)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var courseID string
+			var courseName string
+			var year string
+			var permission string
+
+			err = rows.Scan(&courseID, &courseName, &year, &permission)
+			if err != nil {
+				return nil, err
+			}
+
+			c := course.Course{
+				CourseCode: a,
+				CourseID:   courseID,
+				CourseName: courseName,
+				Year:       year,
+				Permission: permission,
+			}
+
+			courses = append(courses, c)
+		}
+
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return courses, nil
+}
+
 func getDescription(courseCode string) string{
 
 	var description string
@@ -468,6 +557,21 @@ var CreateCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 var GetCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	username := authentication.GetUsername(r)
 	json.NewEncoder(w).Encode(getCourseList(username))
+})
+
+//GetStudentCourselist is a API that use for get course list for that student.
+var GetStudentCourselist = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	username := authentication.GetUsername(r)
+
+	courseList, err := getStudentCourseList(username)
+	if err != nil{
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
+		fmt.Println(err)
+	}else{
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(courseList)
+	}
 })
 
 //DeleteCourse is a API that use for delete course

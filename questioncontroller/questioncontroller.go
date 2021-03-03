@@ -16,7 +16,8 @@ import (
 	//"github.com/sqs/goreturns/returns"
 )
 
-func addNewQuestion(groupID string, testID string, questionName string, questionID string, questionType string, data string) error{
+//AddNewQuestion is a function that use to add new question to questiongroup.
+func AddNewQuestion(groupID string, testID string, questionName string, questionID string, questionType string, data string) error{
 	var q question.Question
 
 	q = question.Question{
@@ -40,17 +41,31 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 		fmt.Println(checkExist)
 
 		if checkExist == sql.ErrNoRows{
-			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ('', $1, $2, $3, $4, $5)`
-			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
+			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 			if err != nil {
 				return err
 			}
+
+			sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
+			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID, q.Data)
+			if err != nil {
+				return err
+			}
+
 		}else if checkExist == nil{
-			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
-			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
+			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2 WHERE questionid=$3`
+			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.QuestionID)
 			if err != nil {
 				return err
 			}
+
+			sqlStatement = `UPDATE questiondata SET data=$1 WHERE questionid=$2 and groupid=$3`
+			_, err = db.Exec(sqlStatement,q.Data, q.QuestionID, q.GroupID)
+			if err != nil {
+				return err
+			}
+
 		}else{
 			return checkExist
 		}
@@ -62,8 +77,14 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
-				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ('', $1, $2, $3, $4, $5)`
-				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID ,q.QuestionType, q.Data)
+				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
+				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID ,q.QuestionType)
+				if err != nil {
+					return err
+				}
+
+				sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
+				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID ,q.Data)
 				if err != nil {
 					return err
 				}
@@ -74,18 +95,37 @@ func addNewQuestion(groupID string, testID string, questionName string, question
 					return err
 				}
 
+				sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
+				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID, q.Data)
+				if err != nil {
+					return err
+				}
+
 			}else if checkExist == nil{
 				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ($1, $2, $3, $4, $5, $6)`
 				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 				if err != nil {
 					return err
 				}
+
+				sqlStatement = `INSERT INTO questiondata (groupid, questionid, data)VALUES ($1, $2, $3)`
+				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionID, q.Data)
+				if err != nil {
+					return err
+				}
+
 			}else{
 				return checkExist
 			}
 		}else if checkInTest == nil {
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
+			if err != nil {
+				return err
+			}
+
+			sqlStatement = `UPDATE questiondata SET data=$1 WHERE questionid=$2 and groupid=$3`
+			_, err = db.Exec(sqlStatement, q.Data, q.QuestionID, q.GroupID)
 			if err != nil {
 				return err
 			}
@@ -131,7 +171,8 @@ func getQuestion(groupID string, testID string, questionID string) (question.Que
 	return q, err
 }
 
-func deleteQuestion(testID string, questionID string) error {
+//DeleteQuestion is a function that use to delete question in function group.
+func DeleteQuestion(testID string, questionID string) error {
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -215,6 +256,54 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 	return allQuestionInGroup, err
 }
 
+//DeleteQuestionFromGroup is a function that use to auto delete question in questiongroup.
+func DeleteQuestionFromGroup(questionInGroup []string, testID string, groupID string) error{
+	
+	var questionID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT id FROM question WHERE testid=$1 and groupid=$2;`
+	rows, err := db.Query(sqlStatement, testID, groupID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&questionID)
+		if err != nil {
+			return err
+		}
+
+		check := true
+
+		for _, id := range questionInGroup{
+			if questionID == id{
+				check = false
+			}
+		}
+
+		if check {
+			sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 and testid=$3;`
+			_, err = db.Exec(sqlStatement, questionID, groupID, testID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func checkQuestionInGroup(questionID string, groupID string) error {
 	var questionName string
 
@@ -259,8 +348,8 @@ func checkQuestionExist(questionID string) error {
 
 //API
 
-//AddNewQuestion is a API that use to add question to question group.
-var AddNewQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//UpdateQuestion is a API that use to add question to question group.
+var UpdateQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
 		Data string
 	}
@@ -275,7 +364,7 @@ var AddNewQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	var input Input
 	json.Unmarshal(reqBody, &input)
 
-	err := addNewQuestion(groupID,testID,questionName,questionID,questionType,input.Data)
+	err := AddNewQuestion(groupID,testID,questionName,questionID,questionType,input.Data)
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
@@ -307,7 +396,7 @@ var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 })
 
 //DeleteQuestion is a API that use to delete question in question group (in test or in all question group).
-var DeleteQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+/*var DeleteQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	testID := r.Header.Get("TestID")
 	questionID := r.Header.Get("QuestionID")
@@ -322,7 +411,7 @@ var DeleteQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("200 - OK"))
 	}
-})
+})*/
 
 //GetAllQuestionInGroup is a API that use to get id and name of all question in question group.
 var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

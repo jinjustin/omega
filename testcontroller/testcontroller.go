@@ -182,6 +182,10 @@ func generateTestID() string {
 	return s
 }
 
+/*func studentGetTestList() ([]test.StudentCourseList, error){
+	
+}*/
+
 //API
 
 //PostDetailTest is a API that use to send create or update detail of the test to database.
