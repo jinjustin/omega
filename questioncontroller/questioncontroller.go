@@ -89,8 +89,8 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 					return err
 				}
 
-				sqlStatement = `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ($1, $2, $3, $4, $5, $6)`
-				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+				sqlStatement = `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ($1, $2, $3, $4, $5)`
+				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 				if err != nil {
 					return err
 				}
@@ -102,8 +102,8 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 				}
 
 			}else if checkExist == nil{
-				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype, data)VALUES ($1, $2, $3, $4, $5, $6)`
-				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ($1, $2, $3, $4, $5)`
+				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 				if err != nil {
 					return err
 				}
@@ -118,8 +118,8 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 				return checkExist
 			}
 		}else if checkInTest == nil {
-			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2, data=$3 WHERE questionid=$4`
-			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.Data, q.QuestionID)
+			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2 WHERE questionid=$3`
+			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.QuestionID)
 			if err != nil {
 				return err
 			}
@@ -187,8 +187,6 @@ func DeleteQuestion(testID string, questionID string) error {
 			return err
 		}
 	}else{
-		fmt.Println(testID)
-		fmt.Println(questionID)
 		sqlStatement := `DELETE from question WHERE questionid=$1 and testid=$2;`
 		_, err = db.Exec(sqlStatement, questionID, testID)
 		if err != nil {
@@ -256,8 +254,8 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 	return allQuestionInGroup, err
 }
 
-//DeleteQuestionFromGroup is a function that use to auto delete question in questiongroup.
-func DeleteQuestionFromGroup(questionInGroup []string, testID string, groupID string) error{
+//DeleteQuestionFromGroupInTest is a function that use to auto delete question in questiongroup.
+func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, groupID string) error{
 	
 	var questionID string
 
@@ -267,7 +265,7 @@ func DeleteQuestionFromGroup(questionInGroup []string, testID string, groupID st
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT id FROM question WHERE testid=$1 and groupid=$2;`
+	sqlStatement := `SELECT questionid FROM question WHERE testid=$1 and groupid=$2;`
 	rows, err := db.Query(sqlStatement, testID, groupID)
 	if err != nil {
 		return err

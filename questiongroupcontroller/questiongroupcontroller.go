@@ -743,7 +743,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 				}
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
 			}
-			err = questioncontroller.DeleteQuestionFromGroup(questionInGroup,testID,item.ID)
+			err = questioncontroller.DeleteQuestionFromGroupInTest(questionInGroup,testID,item.ID)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
             		return
