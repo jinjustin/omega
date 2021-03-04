@@ -793,5 +793,5 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 			return
 		}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(allQuestionInTest)
+	w.Write(allQuestionInTest)
 })
