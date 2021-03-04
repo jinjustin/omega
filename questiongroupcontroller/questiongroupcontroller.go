@@ -817,7 +817,8 @@ var GetGroupInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return
 	}
-
+	
+	w.WriteHeader(http.StatusOK)
 	w.Write(g)
 })
 
@@ -832,6 +833,7 @@ var AllGroupTestList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
             return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(a)
 })
 
@@ -917,7 +919,8 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	}
 
 	deleteQuestionGroupFromTestbank(questionInTest, courseID)
-	w.Write([]byte("success"))
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })
 
 //GetGroupInTestbank is a API that use to get all questiongroup in the testbsnk.

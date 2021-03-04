@@ -17,7 +17,7 @@ import (
 	//"github.com/sqs/goreturns/returns"
 )
 
-func postDetailTest(testID string, courseID string, topic string ,description string , datestart string, duration string, timestart string) []byte{
+func postDetailTest(testID string, courseID string, topic string ,description string , datestart string, duration string, timestart string) error{
 	
 	var t test.Test
 
@@ -34,14 +34,14 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer db.Close()
 	
 		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart,"Unset")
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 	}else{
@@ -57,7 +57,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer db.Close()
 
@@ -65,59 +65,32 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 
 		_, err = db.Exec(sqlStatement, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, t.TestID)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
-	return t.GetTestDetail()
+	return nil
 }
 
-func deleteTest(testID string) []byte{
-
-	t := test.Test{
-		TestID : testID,
-		CourseID : "",
-		Topic: "",
-		Description: "",
-		Datestart: "",
-		Duration: "",
-		Timestart: "",
-		Status: "",
-	}
+func deleteTest(testID string) error{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT courseid, topic, description, datestart, duration, timestart, status FROM test WHERE testid=$1;`
-	rows, err := db.Query(sqlStatement, testID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(&t.CourseID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
-		if err != nil {
-			panic(err)
-		}
-	}
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	sqlStatement = `DELETE FROM test WHERE testID=$1;`
+	sqlStatement := `DELETE FROM test WHERE testID=$1;`
 	_, err = db.Exec(sqlStatement, testID)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	return t.GetTestDetail()
+	return nil
 }
 
-func getDetailTest(testID string, courseID string) []byte{
+func getDetailTest(testID string, courseID string) ([]byte, error){
+
 	t := test.Test{
 		TestID : testID,
 		CourseID : "",
@@ -131,34 +104,34 @@ func getDetailTest(testID string, courseID string) []byte{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer db.Close()
 
 	sqlStatement := `SELECT courseid, topic, description, datestart, duration, timestart, status FROM test WHERE testid=$1 and courseid=$2;`
 	rows, err := db.Query(sqlStatement, testID,courseID)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&t.CourseID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return t.GetTestDetail()
+	return t.GetTestDetail(), nil
 }
 
-func changeDraftStatus(testID string, status string) string{
+func changeDraftStatus(testID string, status string) error{
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 
@@ -166,10 +139,10 @@ func changeDraftStatus(testID string, status string) string{
 
 	_, err = db.Exec(sqlStatement, status, testID)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	return status
+	return nil
 }
 
 func generateTestID() string {
@@ -201,29 +174,65 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
 
-	reqBody, _ := ioutil.ReadAll(r.Body)
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "Can't read body.", http.StatusBadRequest)
+            return
+	}
 	var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(postDetailTest(testID, courseID, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart))
+
+	err = postDetailTest(testID, courseID, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })
 
 //GetDetailTest is a API that use to get detail of the test in database.
 var GetDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
-	w.Write(getDetailTest(testID, courseID))
+
+	test, err := getDetailTest(testID, courseID)
+
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(test)
 })
 
 //DeleteTest is a API that use to delete test
 var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
-	w.Write(deleteTest(testID))
+
+	err := deleteTest(testID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })
 
 //ChangeDraftStatus is a API that use to change draft status of the test
 var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 	status := r.Header.Get("Status")
-	w.Write([]byte(changeDraftStatus(testID,status)))
+
+	err := changeDraftStatus(testID,status)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })

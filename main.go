@@ -170,22 +170,23 @@ func handleRequests() {
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
 
-	//myRouter.Handle("/getgroupintest",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
-
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.TestbankUpdate)).Methods("POST")
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
 
-	//myRouter.Handle("/getgroupintestbank",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
 	myRouter.Handle("/allgrouptestlist",middlewareTeacher(questiongroupcontroller.AllGroupTestList)).Methods("GET")
-	myRouter.Handle("/postdetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
-	myRouter.Handle("/getdetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
-	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
+
+	myRouter.Handle("/updatedetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
+	myRouter.Handle("/updatedetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
+	myRouter.Handle("/deletetest", middlewareTeacher(testcontroller.DeleteTest)).Methods("DELETE")
 	myRouter.Handle("/changedraftstatus", middlewareTeacher(testcontroller.ChangeDraftStatus)).Methods("POST")
 
 	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.UpdateQuestion)).Methods("POST")
 	myRouter.Handle("/getquestion", middlewareTeacher(questioncontroller.GetQuestion)).Methods("GET")
 	//myRouter.Handle("/deletequestion", middlewareTeacher(questioncontroller.DeleteQuestion)).Methods("DELETE")
 	myRouter.Handle("/getallquestioningroup", middlewareTeacher(questioncontroller.GetAllQuestionInGroup)).Methods("GET")
+
+	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.UpdateAllQuestionInTest)).Methods("POST")
+	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.GetAllQuestionInTest)).Methods("GET")
 
 	myRouter.Handle("/getstudentcourselist", middlewareTeacher(coursecontroller.GetStudentCourselist)).Methods("GET")
 

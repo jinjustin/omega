@@ -5,15 +5,23 @@ import (
 	//"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
+
+	//"github.com/jinjustin/omega/choice"
+	"github.com/jinjustin/omega/choicecontroller"
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
-	
+	"github.com/jinjustin/omega/choice"
+
 	//"omega/authentication"
 
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
 	//"github.com/sqs/goreturns/returns"
+
+	"github.com/iancoleman/orderedmap"
+	//"github.com/jinjustin/omega/choice"
 )
 
 //AddNewQuestion is a function that use to add new question to questiongroup.
@@ -241,6 +249,193 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 	return allQuestionInGroup, err
 }
 
+
+func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
+
+	var questionChoice choice.Choice
+
+	var questionChoices []choice.Choice
+
+	var qws question.WithChoice
+
+	var groupIDs []string
+
+	var groupID string
+
+	var questionID string
+
+	o := orderedmap.New()
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	if testID == ""{
+
+		sqlStatement := `SELECT id FROM questiongroup WHERE testid='' and courseid=$1`
+		rows, err := db.Query(sqlStatement, courseID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+	
+		for rows.Next() {
+			err = rows.Scan(&groupID)
+			if err != nil {
+				return nil, err
+			}
+
+			groupIDs = append(groupIDs, groupID)
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range groupIDs{
+			sqlStatement := `SELECT questionid, questionname, questiontype FROM question WHERE testid='' and groupid=$1`
+			rows, err := db.Query(sqlStatement, id)
+			if err != nil {
+				return nil, err
+			}
+			defer rows.Close()
+		
+			for rows.Next() {
+				err = rows.Scan(&questionID, &qws.QuestionName, &qws.QuestionType)
+				if err != nil {
+					return nil, err
+				}
+				qws.GroupID = id
+				qws.TestID = ""
+
+				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
+				rows, err = db.Query(sqlStatement, id, questionID)
+				if err != nil {
+					return nil, err
+				}
+				defer rows.Close()
+			
+				for rows.Next() {
+					err = rows.Scan(&qws.Data)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				sqlStatement = `SELECT choiceid, data, imagelink, check FROM choice WHERE questionid=$1`
+				rows, err = db.Query(sqlStatement, id, questionID)
+				if err != nil {
+					return nil, err
+				}
+				defer rows.Close()
+			
+				for rows.Next() {
+					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink,&questionChoice.Check)
+					if err != nil {
+						return nil, err
+					}
+					questionChoices = append(questionChoices, questionChoice)
+				}
+
+				qws.ChoiceDetail = questionChoices
+	
+				o.Set(questionID,qws)
+				//allQuestionInGroup = append(allQuestionInGroup, a)
+			}
+			err = rows.Err()
+			if err != nil {
+				return nil, err
+			}
+		} 
+
+	}else{
+
+		sqlStatement := `SELECT id FROM questiongroup WHERE testid=$1 and courseid=$2`
+		rows, err := db.Query(sqlStatement, testID, courseID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+	
+		for rows.Next() {
+			err = rows.Scan(&groupID)
+			if err != nil {
+				return nil, err
+			}
+
+			groupIDs = append(groupIDs, groupID)
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range groupIDs{
+			sqlStatement := `SELECT questionid, questionname, questiontype FROM question WHERE testid=$1 and groupid=$2`
+			rows, err := db.Query(sqlStatement,testID, id)
+			if err != nil {
+				return nil, err
+			}
+			defer rows.Close()
+		
+			for rows.Next() {
+				err = rows.Scan(&questionID, &qws.QuestionName, &qws.QuestionType)
+				if err != nil {
+					return nil, err
+				}
+				qws.GroupID = id
+				qws.TestID = testID
+
+				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
+				rows, err = db.Query(sqlStatement, id, questionID)
+				if err != nil {
+					return nil, err
+				}
+				defer rows.Close()
+			
+				for rows.Next() {
+					err = rows.Scan(&qws.Data)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				sqlStatement = `SELECT choiceid, data, imagelink, check FROM choice WHERE questionid=$1`
+				rows, err = db.Query(sqlStatement, id, questionID)
+				if err != nil {
+					return nil, err
+				}
+				defer rows.Close()
+			
+				for rows.Next() {
+					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink,&questionChoice.Check)
+					if err != nil {
+						return nil, err
+					}
+					questionChoices = append(questionChoices, questionChoice)
+				}
+
+				qws.ChoiceDetail = questionChoices
+	
+				o.Set(questionID,qws)
+			}
+			err = rows.Err()
+			if err != nil {
+				return nil, err
+			}
+		} 
+	}
+
+	b,err := o.MarshalJSON()
+	if err != nil{
+		return nil, err
+	}
+
+	return b, nil
+}
+
 //DeleteQuestionFromGroupInTest is a function that use to auto delete question in questiongroup from that testID.
 func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, groupID string) error{
 	
@@ -276,6 +471,54 @@ func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, grou
 		if check {
 			sqlStatement := `DELETE from question WHERE questionid=$1 and groupid=$2 and testid=$3;`
 			_, err = db.Exec(sqlStatement, questionID, groupID, testID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//DeleteQuestionFromTest is a function that use to auto delete question from test directly.
+func DeleteQuestionFromTest(questionInGroup []string, testID string) error{
+	
+	var questionID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT questionid FROM question WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&questionID)
+		if err != nil {
+			return err
+		}
+
+		check := true
+
+		for _, id := range questionInGroup{
+			if questionID == id{
+				check = false
+			}
+		}
+
+		if check {
+			sqlStatement := `DELETE from question WHERE questionid=$1 and testid=$2;`
+			_, err = db.Exec(sqlStatement, questionID, testID)
 			if err != nil {
 				return err
 			}
@@ -379,6 +622,7 @@ func checkQuestionExist(questionID string) error {
 	return err
 }
 
+
 //API
 
 //UpdateQuestion is a API that use to add question to question group.
@@ -461,5 +705,93 @@ var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	}else{
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(allQuestionInGroup)
+	}
+})
+
+//UpdateAllQuestionInTest is a function that use to update all question in test.
+var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	var objmap map[string]question.WithChoice
+
+	o := orderedmap.New()
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "can't read body", http.StatusBadRequest)
+            return
+	}
+
+	err = o.UnmarshalJSON(reqBody)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	err = json.Unmarshal(reqBody,&objmap)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	var qwc question.WithChoice
+	
+	var questionInTest []string
+
+	var choiceInQuestion []string
+
+	questionIDs := make([]string, 0, len(o.Keys()))
+	for _, questionID := range o.Keys() {
+        questionIDs = append(questionIDs, questionID)
+    }
+
+	//groupID := r.Header.Get("GroupID")
+
+	testID := r.Header.Get("TestId")
+
+	for _, questionID := range questionIDs {
+		qwc = objmap[questionID]
+		err = AddNewQuestion(qwc.GroupID, testID, qwc.QuestionName, questionID, qwc.QuestionType, qwc.Data)
+		if err != nil{
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println(err)
+				return
+		}
+
+		for _, choice := range qwc.ChoiceDetail{
+			err = choicecontroller.AddNewChoice(choice.ChoiceID, questionID, choice.Data, choice.ImageLink, choice.Check)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				fmt.Println(err)
+            		return
+			}
+
+			choiceInQuestion = append(choiceInQuestion, choice.ChoiceID)
+		}
+		choicecontroller.DeleteChoiceFromQuestion(choiceInQuestion, questionID)
+		choiceInQuestion = nil
+		questionInTest = append(questionInTest, questionID)
+	}
+
+	DeleteQuestionFromTest(questionIDs, testID)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
+
+
+//GetAllQuestionInTest is a API that use to get information of all question in test.
+var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseID := r.Header.Get("CourseID")
+	testID := r.Header.Get("TestID")
+
+	allQuestionInTest, err := getAllQuestionInTest(courseID,testID)
+
+	if err != nil{
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
+		fmt.Println(err)
+	}else{
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(allQuestionInTest)
 	}
 })
