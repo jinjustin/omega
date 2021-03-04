@@ -404,7 +404,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, id, questionID)
+				rows, err = db.Query(sqlStatement, questionID)
 				if err != nil {
 					return nil, err
 				}
