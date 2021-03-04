@@ -7,10 +7,11 @@ import (
 	"database/sql"
 
 	//"github.com/jinjustin/omega/choice"
+	"github.com/jinjustin/omega/choice"
 	"github.com/jinjustin/omega/choicecontroller"
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
-	"github.com/jinjustin/omega/choice"
+	"github.com/sqs/goreturns/returns"
 
 	//"omega/authentication"
 
@@ -325,7 +326,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, id, questionID)
+				rows, err = db.Query(sqlStatement, questionID)
 				if err != nil {
 					return nil, err
 				}
@@ -787,11 +788,10 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 	allQuestionInTest, err := getAllQuestionInTest(courseID,testID)
 
 	if err != nil{
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
-	}else{
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(allQuestionInTest)
-	}
+			return
+		}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(allQuestionInTest)
 })
