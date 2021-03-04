@@ -31,14 +31,14 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 	checkExist := checkChoiceExist(choiceID)
 
 	if checkExist == sql.ErrNoRows{
-		sqlStatement := `INSERT INTO choice (choiceid, questionid, data, imagelink, check)VALUES ($1, $2, $3, $4, $5)`
+		sqlStatement := `INSERT INTO choice (choiceid, questionid, data, imagelink, correctcheck)VALUES ($1, $2, $3, $4, $5)`
 		_, err = db.Exec(sqlStatement, c.ChoiceID, c.QuestionID, c.Data, c.ImageLink, c.Check)
 		if err != nil {
 			return err
 		}
 
 	}else if checkExist == nil{
-		sqlStatement := `UPDATE choice SET data=$1, imagelink=$2, check=$3 WHERE choiceid=$4`
+		sqlStatement := `UPDATE choice SET data=$1, imagelink=$2, correctcheck=$3 WHERE choiceid=$4`
 		_, err = db.Exec(sqlStatement, c.Data, c.ImageLink, c.Check, c.ChoiceID)
 		if err != nil {
 			return err

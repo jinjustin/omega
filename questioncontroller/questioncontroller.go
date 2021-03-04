@@ -324,7 +324,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					}
 				}
 
-				sqlStatement = `SELECT choiceid, data, imagelink, check FROM choice WHERE questionid=$1`
+				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
 				rows, err = db.Query(sqlStatement, id, questionID)
 				if err != nil {
 					return nil, err
@@ -402,7 +402,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					}
 				}
 
-				sqlStatement = `SELECT choiceid, data, imagelink, check FROM choice WHERE questionid=$1`
+				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
 				rows, err = db.Query(sqlStatement, id, questionID)
 				if err != nil {
 					return nil, err
