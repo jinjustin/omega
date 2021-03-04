@@ -11,7 +11,7 @@ import (
 	"github.com/jinjustin/omega/choicecontroller"
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
-	"github.com/sqs/goreturns/returns"
+	//"github.com/sqs/goreturns/returns"
 
 	//"omega/authentication"
 
