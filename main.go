@@ -12,7 +12,7 @@ import (
 	"github.com/jinjustin/omega/questiongroupcontroller"
 	"github.com/jinjustin/omega/storage"
 	"github.com/jinjustin/omega/questioncontroller"
-	"github.com/jinjustin/omega/answercontroller"
+	//"github.com/jinjustin/omega/answercontroller"
 
 	//"omega/database"
 	"context"
