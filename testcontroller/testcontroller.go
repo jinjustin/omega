@@ -24,9 +24,11 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 	
 	var t test.Test
 
-	if testID == ""{
+	checkExist := checkTestExist(testID)
+
+	if checkExist == sql.ErrNoRows{
 		t = test.Test{
-			TestID : GenerateTestID(),
+			TestID : testID,
 			CourseID : courseID,
 			Topic: topic,
 			Description: description,
@@ -47,7 +49,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 			return err
 		}
 
-	}else{
+	}else if checkExist == nil{
 		t = test.Test{
 			TestID : testID,
 			CourseID : courseID,
@@ -70,6 +72,8 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		if err != nil {
 			return err
 		}
+	}else{
+		return checkExist
 	}
 
 	return nil
@@ -157,6 +161,22 @@ func GenerateTestID() string {
 	}
 	s := fmt.Sprintf("%X", b)
 	return s
+}
+
+func checkTestExist(testID string) error {
+
+	var status string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT status FROM test WHERE testid=$1;`
+	row := db.QueryRow(sqlStatement, testID)
+	err = row.Scan(&status)
+	return err
 }
 
 func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
