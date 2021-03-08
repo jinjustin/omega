@@ -10,6 +10,7 @@ import (
 	"github.com/jinjustin/omega/questiongroup"
 	"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/questioncontroller"
+	"github.com/jinjustin/omega/testcontroller"
 	//"github.com/jinjustin/omega/test"
 
 	//"encoding/json"
@@ -33,7 +34,7 @@ import (
 
 
 
-func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, maxQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int) error{
+func groupTestListUpdate(name string, questiongroupID string, questiongroupName string, numQuestion string, maxQuestion string, score string, courseID string, testID string, uuid string, headerOrder int, groupOrder int)  error{
 	
 	var g questiongroup.QuestionGroup
 
@@ -771,6 +772,10 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	testID := r.Header.Get("TestId")
 
+	if testID == ""{
+		testID = testcontroller.GenerateTestID()
+	}
+
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
@@ -802,7 +807,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	deleteQuestionGroupFromTest(questionInTest, testID, courseID)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("200 - OK"))
+	w.Write([]byte(testID))
 })
 
 //GetGroupInTest is a API that use to get all group test in the test.
@@ -849,7 +854,9 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		QuestionList []question.AllQuestionInGroup `json:"questionList"`
 	}
 
-	type Input struct {
+	var items []Item
+
+	/*type Input struct {
 		Name string `json:"name"`
 		Items []Item `array:"item"`
 	}
@@ -918,7 +925,22 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	deleteQuestionGroupFromTestbank(questionInTest, courseID)
+	deleteQuestionGroupFromTestbank(questionInTest, courseID)*/
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "can't read body", http.StatusBadRequest)
+            return
+	}
+
+	err = json.Unmarshal(reqBody,&items)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	fmt.Println(items)
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
 })

@@ -148,7 +148,8 @@ func changeDraftStatus(testID string, status string) error{
 	return nil
 }
 
-func generateTestID() string {
+//GenerateTestID is a function that use to generate testID.
+func GenerateTestID() string {
 	n := 3
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
