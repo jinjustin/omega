@@ -26,7 +26,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 
 	if testID == ""{
 		t = test.Test{
-			TestID : generateTestID(),
+			TestID : GenerateTestID(),
 			CourseID : courseID,
 			Topic: topic,
 			Description: description,

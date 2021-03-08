@@ -772,8 +772,11 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	testID := r.Header.Get("TestId")
 
+	check := false
+
 	if testID == ""{
 		testID = testcontroller.GenerateTestID()
+		check = true
 	}
 
 	for headerorder, uuid := range uuids {
@@ -807,7 +810,11 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	deleteQuestionGroupFromTest(questionInTest, testID, courseID)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(testID))
+	if check{
+		w.Write([]byte(testID))
+	}else{
+		w.Write([]byte(""))
+	}
 })
 
 //GetGroupInTest is a API that use to get all group test in the test.
