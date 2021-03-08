@@ -76,6 +76,8 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		return checkExist
 	}
 
+	fmt.Println("Check Exist", checkExist)
+
 	return nil
 }
 
@@ -431,6 +433,8 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
+
+	fmt.Println("Updatetestdatail", testID)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil{

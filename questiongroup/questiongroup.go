@@ -28,6 +28,17 @@ type GrouptestList struct{
 	QuestionList []question.AllQuestionInGroup `json:"questionList"`
 }
 
+//GroupItem is a struct that use to return questiongroup to frontend.
+type GroupItem struct {
+	ID string `json:"id"`
+	GroupName string `json:"groupName"`
+	NumQuestion string `json:"numQuestion"`
+	MaxQuestion string `json:"maxQuestion"`
+	Score string `json:"score"`
+	Order int `json:"order"`
+	QuestionList []question.AllQuestionInGroup `json:"questionList"`
+}
+
 // GetQuestionGroupDetail is a function that use to get question group Detail in JSON form.
 func (g QuestionGroup) GetQuestionGroupDetail() []byte{
 	b,err := json.Marshal(g)
