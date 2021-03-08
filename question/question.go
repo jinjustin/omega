@@ -11,14 +11,14 @@ type Question struct{
 	TestID string `json:"testID"`
 	GroupID string `json:"groupID"`
 	QuestionName string `json:"question"`
-	QuestionID string `json:"questionID"`
+	QuestionID string `json:"id"`
 	QuestionType string `json:"type"`
 	Data string `json:"data"`
 }
 
 //AllQuestionInGroup is struct that use to return all question in group.
 type AllQuestionInGroup struct{
-	QuestionID string `json:"questionID"`
+	QuestionID string `json:"id"`
 	QuestionName string `json:"question"`
 }
 
