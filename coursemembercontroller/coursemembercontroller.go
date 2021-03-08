@@ -7,6 +7,8 @@ import (
 	"github.com/jinjustin/omega/teacher"
 	"github.com/jinjustin/omega/mail"
 
+	"github.com/jinjustin/omega/authentication"
+
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -912,6 +914,24 @@ func addStudentToSystem(studentID string, name string, surname string){
 	}
 }
 
+func editStudentPassword(username string, oldPassword string, newPassword string) error{
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `UPDATE users SET password = $1 WHERE username = $2 and password = $3`
+
+	_, err = db.Exec(sqlStatement, newPassword, username, oldPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func generateUserID() string{
 	n := 3
 	b := make([]byte, n)
@@ -1098,4 +1118,21 @@ var AddStudentToSystem = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	var input Input
 	json.Unmarshal(reqBody, &input)
 	addStudentToSystem(input.StudentID, input.Name, input.Surname)
+})
+
+//ChangeStudentPassword is a api that use to allow student to change password.
+var ChangeStudentPassword = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	
+	oldPassword := r.Header.Get("OldPassword")
+	newPassword := r.Header.Get("NewPassword")
+
+	username := authentication.GetUsername(r)
+
+	err := editStudentPassword(username, oldPassword, newPassword)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })

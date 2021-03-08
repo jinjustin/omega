@@ -9,8 +9,6 @@ import (
 type Test struct{
 	TestID string
 	CourseID string
-	//CourseCode string
-	//UserID string
 	Status string
 	Topic string
 	Duration string

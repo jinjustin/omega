@@ -97,81 +97,49 @@ func createCourse(courseName string, courseID string, year string, permission st
 }
 
 
-func deleteCourse(courseCode string, username string) []byte {
-	c := course.Course{
-		CourseCode: "Can't find.",
-		CourseID:   "",
-		CourseName: "",
-		Year:       "",
-		Permission: "",
-	}
+func deleteCourse(courseCode string, username string) error {
 
 	var userID string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 
 	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
 	rows, err := db.Query(sqlStatement, username)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&userID)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if checkCourse(courseCode) && checkUser(courseCode, userID) {
-		var courseName string
-		var courseID string
-		var year string
-		var permission string
 
-		db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
-
-		sqlStatement := `SELECT courseName,courseID,year,permission FROM course WHERE coursecode=$1;`
-		row := db.QueryRow(sqlStatement, courseCode)
-		err = row.Scan(&courseName, &courseID, &year, &permission)
-		if err != nil {
-			panic(err)
-		}
-
-		c := course.Course{
-			CourseCode: courseCode,
-			CourseID:   courseID,
-			CourseName: courseName,
-			Year:       year,
-			Permission: permission,
-		}
-
-		sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
-		_, err = db.Exec(sqlStatement, courseCode)
-		if err != nil {
-			panic(err)
-		}
-
-		sqlStatement = `DELETE FROM coursemember WHERE coursecode=$1 and userid=$2;`
-		_, err = db.Exec(sqlStatement, courseCode, userID)
-		if err != nil {
-			panic(err)
-		}
-		return c.GetCourseDetail()
+	sqlStatement = `DELETE FROM course WHERE coursecode=$1;`
+	_, err = db.Exec(sqlStatement, courseCode)
+	if err != nil {
+		return err
 	}
-	return c.GetCourseDetail()
+
+	sqlStatement = `DELETE FROM coursemember WHERE coursecode=$1 and userid=$2;`
+	_, err = db.Exec(sqlStatement, courseCode, userID)
+	if err != nil {
+		return err
+	}
+		return nil
+	}
+	return sql.ErrNoRows
 }
 
 func getCourseList(username string) []course.Course {
@@ -268,7 +236,8 @@ func getCourseList(username string) []course.Course {
 	return courses
 }
 
-func getStudentCourseList(username string) ([]course.Course, error) {
+//GetStudentCourseList is a function that use to get all course that student is a member.
+func GetStudentCourseList(studentID string) ([]course.Course, error) {
 	var courseCodes []string
 	var courses []course.Course
 	var userID string
@@ -279,8 +248,8 @@ func getStudentCourseList(username string) ([]course.Course, error) {
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
-	rows, err := db.Query(sqlStatement, username)
+	sqlStatement := `SELECT userid FROM student WHERE studentid=$1;`
+	rows, err := db.Query(sqlStatement, studentID)
 	if err != nil {
 		return nil, err
 	}
@@ -559,11 +528,11 @@ var GetCourseList = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(getCourseList(username))
 })
 
-//GetStudentCourselist is a API that use for get course list for that student.
-var GetStudentCourselist = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//GetStudentCourse is a API that use for get course list for that student.
+var GetStudentCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	username := authentication.GetUsername(r)
 
-	courseList, err := getStudentCourseList(username)
+	courseList, err := GetStudentCourseList(username)
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
@@ -581,10 +550,23 @@ var DeleteCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	username := authentication.GetUsername(r)
-	reqBody, _ := ioutil.ReadAll(r.Body)
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "400 - Bad request", http.StatusBadRequest)
+            return
+	}
     var input Input
 	json.Unmarshal(reqBody, &input)
-	w.Write(deleteCourse(input.CourseCode,username))
+
+	err = deleteCourse(input.CourseCode,username)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+			return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
 })
 
 //GetDescription is a API that use for get course description.

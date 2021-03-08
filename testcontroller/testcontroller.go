@@ -3,6 +3,8 @@ package testcontroller
 import (
 	"fmt"
 	"github.com/jinjustin/omega/test"
+	//"github.com/jinjustin/omega/course"
+	"github.com/jinjustin/omega/coursecontroller"
 
 	//"encoding/json"
 	"crypto/rand"
@@ -14,6 +16,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	//"github.com/sqs/goreturns/returns"
 )
 
@@ -155,9 +158,200 @@ func generateTestID() string {
 	return s
 }
 
-/*func studentGetTestList() ([]test.StudentCourseList, error){
-	
-}*/
+func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
+	var studentCourseList  test.StudentCourseList
+	var studentCourseLists  []test.StudentCourseList
+
+	var testList []test.Test
+
+	var testData []test.Test
+
+	var t test.Test
+
+	var testdates []string
+
+	courselist , err := coursecontroller.GetStudentCourseList(studentID)
+	if err != nil{
+		return studentCourseLists, err
+	}
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return studentCourseLists, err
+	}
+	defer db.Close()
+
+	for _, c := range courselist {
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE courseid=$1, status='publish';`
+		rows, err := db.Query(sqlStatement, c.CourseID)
+		if err != nil {
+			return studentCourseLists, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart)
+			if err != nil {
+				return studentCourseLists, err
+			}
+			t.CourseID = c.CourseID
+			t.Status = "publish"
+			testList = append(testList, t)
+
+			check := true
+
+			for _, d := range testdates{
+				if d == t.Datestart{
+					check = false
+				}
+			}
+
+			if check{
+				testdates = append(testdates, t.Datestart)
+			}
+
+		}
+		err = rows.Err()
+		if err != nil {
+			return studentCourseLists, err
+		}
+	}
+
+	sortedDate, err := sortDate(testdates)
+	if err != nil{
+		return studentCourseLists, err
+	}
+
+	for _, d := range sortedDate{
+		studentCourseList.Datestart = d
+		for _, l := range testList{
+			if d == l.Datestart{
+				t = l
+			}
+			testData = append(testData, t)
+		}
+
+		sortedTestData, err := sortTime(testData)
+		if err != nil{
+			return studentCourseLists, err
+		}
+
+		studentCourseList.TestData = sortedTestData
+		testData = nil
+		studentCourseLists = append(studentCourseLists, studentCourseList)
+	}
+
+	return studentCourseLists, nil
+}
+
+//sortDate is a function that use to sort date
+func sortDate(testdates []string) ([]string, error){
+	//var date string
+
+	for num1, i := range testdates{
+		for num2, j := range testdates{
+			check := false
+
+			yearI , err := strconv.Atoi(i[6:10])
+			if err != nil{
+				return testdates, err
+			}
+
+			yearJ , err := strconv.Atoi(j[6:10])
+			if err != nil{
+				return testdates, err
+			}
+
+			monthI , err := strconv.Atoi(i[3:5])
+			if err != nil{
+				return testdates, err
+			}
+
+			monthJ , err := strconv.Atoi(j[3:5])
+			if err != nil{
+				return testdates, err
+			}
+
+			dayI , err := strconv.Atoi(i[0:2])
+			if err != nil{
+				return testdates, err
+			}
+
+			dayJ , err := strconv.Atoi(j[0:2])
+			if err != nil{
+				return testdates, err
+			}
+
+			if yearI < yearJ{
+				check = true
+			}else if monthI < monthJ && yearI == yearJ{
+				check = true
+			}else if dayI < dayJ && monthI == monthJ && yearI == yearJ{
+				check = true
+			}
+
+			if check{
+			testdates[num1], testdates[num2] = testdates[num2], testdates[num1]
+			}
+		}
+	}
+
+	return testdates, nil
+}
+
+//sortTime is a function that use to sort date
+func sortTime(testdata []test.Test) ([]test.Test, error){
+	//var date string
+
+	for num1, i := range testdata{
+		for num2, j := range testdata{
+			check := false
+
+			hourI , err := strconv.Atoi(i.Timestart[0:2])
+			if err != nil{
+				return testdata, err
+			}
+
+			hourJ , err := strconv.Atoi(j.Timestart[0:2])
+			if err != nil{
+				return testdata, err
+			}
+
+			minuteI , err := strconv.Atoi(i.Timestart[3:5])
+			if err != nil{
+				return testdata, err
+			}
+
+			minuteJ , err := strconv.Atoi(j.Timestart[3:5])
+			if err != nil{
+				return testdata, err
+			}
+
+			secondI , err := strconv.Atoi(i.Timestart[6:8])
+			if err != nil{
+				return testdata, err
+			}
+
+			secondJ , err := strconv.Atoi(j.Timestart[6:8])
+			if err != nil{
+				return testdata, err
+			}
+
+			if hourI < hourJ{
+				check = true
+			}else if minuteI < minuteJ && hourI == hourJ{
+				check = true
+			}else if secondI < secondJ && minuteI == minuteJ && hourI == hourJ{
+				check = true
+			}
+
+			if check{
+				testdata[num1], testdata[num2] = testdata[num2], testdata[num1]
+			}
+		}
+	}
+
+	return testdata, nil
+}
 
 //API
 
@@ -232,6 +426,66 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
+
+//TestSortDate is a API that use to change draft status of the test
+var TestSortDate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	date1 := "01-01-2565"
+	date2 := "16-06-2564"
+	date3 := "16-05-2564"
+	date4 := "15-05-2564"
+
+	var dates []string
+
+	dates = append(dates, date1)
+	dates = append(dates, date2)
+	dates = append(dates, date3)
+	dates = append(dates, date4)
+
+	data, err := sortDate(dates)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	fmt.Println(data)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
+
+//TestSortTime is a API that use to change draft status of the test
+var TestSortTime = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	var t test.Test
+
+	time1 := "01:01:00"
+	time2 := "13:30:00"
+	time3 := "13:00:00"
+	time4 := "09:30:00"
+
+	var testdata []test.Test
+
+	t.Timestart = time1
+	testdata = append(testdata, t)
+	t.Timestart = time2
+	testdata = append(testdata, t)
+	t.Timestart = time3
+	testdata = append(testdata, t)
+	t.Timestart = time4
+	testdata = append(testdata, t)
+
+	data, err := sortTime(testdata)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	fmt.Println(data)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
