@@ -135,6 +135,49 @@ func getDetailTest(testID string, courseID string) ([]byte, error){
 	return t.GetTestDetail(), nil
 }
 
+func getAllTestInCourse(courseID string) ([]test.Test, error){
+
+	t := test.Test{
+		TestID : "",
+		CourseID : courseID,
+		Topic: "",
+		Description: "",
+		Datestart: "",
+		Duration: "",
+		Timestart: "",
+		Status: "",
+	}
+
+	var allTest []test.Test
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE courseid=$1;`
+	rows, err := db.Query(sqlStatement, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
+		if err != nil {
+			return nil, err
+		}
+
+		allTest = append(allTest, t)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return allTest, nil
+}
+
 func changeDraftStatus(testID string, status string) error{
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -450,6 +493,20 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
+})
+
+//GetAllTestInCourse is a API that use to get information of all the tests in course.
+var GetAllTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testID := r.Header.Get("TestId")
+
+	allTest, err := getAllTestInCourse(testID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(allTest)
 })
 
 //TestSortDate is a API that use to change draft status of the test
