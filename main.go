@@ -201,6 +201,7 @@ func handleRequests() {
 	myRouter.Handle("/changestudentpassword",middlewareStudent(coursemembercontroller.ChangeStudentPassword)).Methods("POST")
 
 	myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
+	myRouter.Handle("/getanswer", answercontroller.GetAnswer).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

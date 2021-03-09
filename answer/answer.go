@@ -16,10 +16,10 @@ type Answer struct{
 
 //Info is struct that use to store answer of the student.
 type Info struct{
-	QuestionName string
-	QuestionType string
-	Answer string
-	Score string
+	QuestionName string `json:"question"`
+	QuestionType string `json:"type"`
+	Answer string `json:"answer"`
+	Score string `json:"score"`
 }
 
 

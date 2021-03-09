@@ -54,6 +54,37 @@ func submitAnswer(testID string, studentID string, studentAnswer map[string]answ
 	return nil
 }
 
+func getStudentAnswer(testID string, studentID string) ([]byte, error){
+
+	var b []byte
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT studentanswer FROM answer WHERE testid=$1 and studentid=$2`
+	rows, err := db.Query(sqlStatement, testID, studentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&b)
+		if err != nil {
+			return nil ,err
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return b, err
+}
+
 func autoScoring (studentAnswer map[string]answer.Info, keys []string, testID string) error{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -122,9 +153,9 @@ var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
             return
 	}
 
-	testID := r.Header.Get("testID")
+	testID := r.Header.Get("TestId")
 
-	studentID := r.Header.Get("studentID")
+	studentID := r.Header.Get("StudentID")
 
 	err = submitAnswer(testID, studentID, studentAnswer, keys)
 	if err != nil{
@@ -134,4 +165,21 @@ var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
+})
+
+//GetAnswer is a function that use to get student answer from database.
+var GetAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	testID := r.Header.Get("TestId")
+
+	studentID := r.Header.Get("StudentID")
+
+	b, err := getStudentAnswer(testID, studentID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
 })
