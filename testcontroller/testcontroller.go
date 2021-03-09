@@ -20,7 +20,7 @@ import (
 	//"github.com/sqs/goreturns/returns"
 )
 
-func postDetailTest(testID string, courseID string, topic string ,description string , datestart string, duration string, timestart string) error{
+func postDetailTest(testID string, courseCode string, topic string ,description string , datestart string, duration string, timestart string) error{
 	
 	var t test.Test
 
@@ -29,7 +29,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 	if checkExist == sql.ErrNoRows{
 		t = test.Test{
 			TestID : testID,
-			CourseID : courseID,
+			CourseCode : courseCode,
 			Topic: topic,
 			Description: description,
 			Datestart: datestart,
@@ -43,8 +43,8 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 		}
 		defer db.Close()
 	
-		sqlStatement := `INSERT INTO test (testid, courseid, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, t.TestID, t.CourseID, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart,"Unset")
+		sqlStatement := `INSERT INTO test (testid, coursecode, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err = db.Exec(sqlStatement, t.TestID, t.CourseCode, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart,"Unset")
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func postDetailTest(testID string, courseID string, topic string ,description st
 	}else if checkExist == nil{
 		t = test.Test{
 			TestID : testID,
-			CourseID : courseID,
+			CourseCode : courseCode,
 			Topic: topic,
 			Description: description,
 			Datestart: datestart,
@@ -98,11 +98,11 @@ func deleteTest(testID string) error{
 	return nil
 }
 
-func getDetailTest(testID string, courseID string) ([]byte, error){
+func getDetailTest(testID string, courseCode string) ([]byte, error){
 
 	t := test.Test{
 		TestID : testID,
-		CourseID : "",
+		CourseCode : "",
 		Topic: "",
 		Description: "",
 		Datestart: "",
@@ -117,14 +117,14 @@ func getDetailTest(testID string, courseID string) ([]byte, error){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT courseid, topic, description, datestart, duration, timestart, status FROM test WHERE testid=$1 and courseid=$2;`
-	rows, err := db.Query(sqlStatement, testID,courseID)
+	sqlStatement := `SELECT courseCode, topic, description, datestart, duration, timestart, status FROM test WHERE testid=$1 and coursecode=$2;`
+	rows, err := db.Query(sqlStatement, testID, courseCode)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&t.CourseID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
+		err = rows.Scan(&t.CourseCode, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -137,11 +137,11 @@ func getDetailTest(testID string, courseID string) ([]byte, error){
 	return t.GetTestDetail(), nil
 }
 
-func getAllTestInCourse(courseID string) ([]test.Test, error){
+func getAllTestInCourse(courseCode string) ([]test.Test, error){
 
 	t := test.Test{
 		TestID : "",
-		CourseID : courseID,
+		CourseCode : courseCode,
 		Topic: "",
 		Description: "",
 		Datestart: "",
@@ -158,8 +158,8 @@ func getAllTestInCourse(courseID string) ([]test.Test, error){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE courseid=$1;`
-	rows, err := db.Query(sqlStatement, courseID)
+	sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1;`
+	rows, err := db.Query(sqlStatement, courseCode)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,8 @@ func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
 	defer db.Close()
 
 	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE courseid=$1, status='publish';`
-		rows, err := db.Query(sqlStatement, c.CourseID)
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE coursecode=$1, status='publish';`
+		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
 			return studentCourseLists, err
 		}
@@ -259,7 +259,7 @@ func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
 			if err != nil {
 				return studentCourseLists, err
 			}
-			t.CourseID = c.CourseID
+			t.CourseCode = c.CourseCode
 			t.Status = "publish"
 			testList = append(testList, t)
 
@@ -431,7 +431,7 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		Timestart string
 	}
 
-	courseID := r.Header.Get("CourseID")
+	courseCode := r.Header.Get("CourseCode")
 	testID := r.Header.Get("TestId")
 
 	fmt.Println("Updatetestdatail", testID)
@@ -444,7 +444,7 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	var input Input
 	json.Unmarshal(reqBody, &input)
 
-	err = postDetailTest(testID, courseID, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart)
+	err = postDetailTest(testID, courseCode, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -456,10 +456,10 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 //GetDetailTest is a API that use to get detail of the test in database.
 var GetDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	courseID := r.Header.Get("CourseID")
+	courseCode := r.Header.Get("CourseCode")
 	testID := r.Header.Get("TestId")
 
-	test, err := getDetailTest(testID, courseID)
+	test, err := getDetailTest(testID, courseCode)
 
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -501,9 +501,10 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 //GetAllTestInCourse is a API that use to get information of all the tests in course.
 var GetAllTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	testID := r.Header.Get("TestId")
 
-	allTest, err := getAllTestInCourse(testID)
+	courseCode := r.Header.Get("CourseCode")
+
+	allTest, err := getAllTestInCourse(courseCode)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return

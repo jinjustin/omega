@@ -8,7 +8,7 @@ import (
 //Test is struct that use to represent class in Omega.
 type Test struct{
 	TestID string
-	CourseID string
+	CourseCode string
 	Status string
 	Topic string
 	Duration string
