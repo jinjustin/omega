@@ -257,15 +257,13 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 
 	var questionChoices []choice.Choice
 
-	var qws question.WithChoice
+	var qwc question.WithChoice
+
+	var questionWithChoices []question.WithChoice
 
 	var groupIDs []string
 
 	var groupID string
-
-	var questionID string
-
-	o := orderedmap.New()
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -304,29 +302,29 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 			defer rows.Close()
 		
 			for rows.Next() {
-				err = rows.Scan(&questionID, &qws.QuestionName, &qws.QuestionType)
+				err = rows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
 				if err != nil {
 					return nil, err
 				}
-				qws.GroupID = id
-				qws.TestID = ""
+				qwc.GroupID = id
+				qwc.TestID = ""
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
-				rows, err = db.Query(sqlStatement, id, questionID)
+				rows, err = db.Query(sqlStatement, id, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
 				defer rows.Close()
 			
 				for rows.Next() {
-					err = rows.Scan(&qws.Data)
+					err = rows.Scan(&qwc.Data)
 					if err != nil {
 						return nil, err
 					}
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, questionID)
+				rows, err = db.Query(sqlStatement, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
@@ -340,10 +338,9 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
-				qws.ChoiceDetail = questionChoices
+				qwc.ChoiceDetail = questionChoices
 	
-				o.Set(questionID,qws)
-				//allQuestionInGroup = append(allQuestionInGroup, a)
+				questionWithChoices = append(questionWithChoices, qwc)
 			}
 			err = rows.Err()
 			if err != nil {
@@ -382,29 +379,29 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 			defer rows.Close()
 		
 			for rows.Next() {
-				err = rows.Scan(&questionID, &qws.QuestionName, &qws.QuestionType)
+				err = rows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
 				if err != nil {
 					return nil, err
 				}
-				qws.GroupID = id
-				qws.TestID = testID
+				qwc.GroupID = id
+				qwc.TestID = testID
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
-				rows, err = db.Query(sqlStatement, id, questionID)
+				rows, err = db.Query(sqlStatement, id, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
 				defer rows.Close()
 			
 				for rows.Next() {
-					err = rows.Scan(&qws.Data)
+					err = rows.Scan(&qwc.Data)
 					if err != nil {
 						return nil, err
 					}
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, questionID)
+				rows, err = db.Query(sqlStatement, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
@@ -418,9 +415,9 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
-				qws.ChoiceDetail = questionChoices
+				qwc.ChoiceDetail = questionChoices
 	
-				o.Set(questionID,qws)
+				questionWithChoices = append(questionWithChoices, qwc)
 			}
 			err = rows.Err()
 			if err != nil {
@@ -429,9 +426,9 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 		} 
 	}
 
-	b,err := o.MarshalJSON()
+	b,err := json.Marshal(questionWithChoices)
 	if err != nil{
-		return nil, err
+		fmt.Println(err)
 	}
 
 	return b, nil
@@ -712,9 +709,11 @@ var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http
 //UpdateAllQuestionInTest is a function that use to update all question in test.
 var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	var objmap map[string]question.WithChoice
+	var questionWithChoices []question.WithChoice
 
-	o := orderedmap.New()
+	var questionInTest []string
+
+	var choiceInQuestion []string
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil{
@@ -722,44 +721,24 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
             return
 	}
 
-	err = o.UnmarshalJSON(reqBody)
+	err = json.Unmarshal(reqBody,&questionWithChoices)
 	if err != nil{
 		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
             return
 	}
-
-	err = json.Unmarshal(reqBody,&objmap)
-	if err != nil{
-		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
-            return
-	}
-
-	var qwc question.WithChoice
-	
-	var questionInTest []string
-
-	var choiceInQuestion []string
-
-	questionIDs := make([]string, 0, len(o.Keys()))
-	for _, questionID := range o.Keys() {
-        questionIDs = append(questionIDs, questionID)
-    }
-
-	//groupID := r.Header.Get("GroupID")
 
 	testID := r.Header.Get("TestId")
 
-	for _, questionID := range questionIDs {
-		qwc = objmap[questionID]
-		err = AddNewQuestion(qwc.GroupID, testID, qwc.QuestionName, questionID, qwc.QuestionType, qwc.Data)
+	for _, q := range questionWithChoices {
+		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			fmt.Println(err)
 				return
 		}
 
-		for _, choice := range qwc.ChoiceDetail{
-			err = choicecontroller.AddNewChoice(choice.ChoiceID, questionID, choice.Data, choice.ImageLink, choice.Check)
+		for _, choice := range q.ChoiceDetail{
+			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				fmt.Println(err)
@@ -768,12 +747,12 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 			choiceInQuestion = append(choiceInQuestion, choice.ChoiceID)
 		}
-		choicecontroller.DeleteChoiceFromQuestion(choiceInQuestion, questionID)
+		choicecontroller.DeleteChoiceFromQuestion(choiceInQuestion, q.QuestionID)
 		choiceInQuestion = nil
-		questionInTest = append(questionInTest, questionID)
+		questionInTest = append(questionInTest, q.QuestionID)
 	}
 
-	DeleteQuestionFromTest(questionIDs, testID)
+	DeleteQuestionFromTest(questionInTest, testID)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
 })

@@ -11,7 +11,7 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 	"github.com/jinjustin/omega/database"
-	//"github.com/jinjustin/omega/authentication"
+	"github.com/jinjustin/omega/authentication"
 
 	"encoding/json"
 	"io/ioutil"
@@ -137,7 +137,7 @@ func getDetailTest(testID string, courseCode string) ([]byte, error){
 	return t.GetTestDetail(), nil
 }
 
-func getAllTestInCourse(courseCode string) ([]test.Test, error){
+func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 
 	t := test.Test{
 		TestID : "",
@@ -158,23 +158,48 @@ func getAllTestInCourse(courseCode string) ([]test.Test, error){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1;`
-	rows, err := db.Query(sqlStatement, courseCode)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
+	if role=="teacher"{
+
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1;`
+		rows, err := db.Query(sqlStatement, courseCode)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
+			if err != nil {
+				return nil, err
+			}
+	
+			allTest = append(allTest, t)
+		}
+		err = rows.Err()
 		if err != nil {
 			return nil, err
 		}
 
-		allTest = append(allTest, t)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
+	}else if role=="student"{
+
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1 and status='false';`
+		rows, err := db.Query(sqlStatement, courseCode)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status)
+			if err != nil {
+				return nil, err
+			}
+	
+			allTest = append(allTest, t)
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return allTest, nil
@@ -503,8 +528,9 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 var GetAllTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	courseCode := r.Header.Get("CourseCode")
+	role := authentication.GetUserRole(r)
 
-	allTest, err := getAllTestInCourse(courseCode)
+	allTest, err := getAllTestInCourse(courseCode, role)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return

@@ -9,13 +9,14 @@ import (
 type Answer struct{
 	TestID string `json:"testID"`
 	StudentID string `json:"studentID"`
-	StudentAnswer map[string]Info `json:"studentAnswer"`
+	StudentAnswer []Info `json:"studentAnswer"`
 	TotalScore string `json:"totalScore"`
 	CompletePercent string `json:"completePercent"`
 }
 
 //Info is struct that use to store answer of the student.
 type Info struct{
+	QuestionID string `json:"id"`
 	QuestionName string `json:"question"`
 	QuestionType string `json:"type"`
 	Answer string `json:"answer"`
