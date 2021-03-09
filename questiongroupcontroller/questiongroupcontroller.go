@@ -681,7 +681,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		check = true
 	}
 
-	fmt.Println("OrderList: ", o)
+	fmt.Println("Recieve: ", objmap)
 
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
