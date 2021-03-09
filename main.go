@@ -12,7 +12,7 @@ import (
 	"github.com/jinjustin/omega/questiongroupcontroller"
 	"github.com/jinjustin/omega/storage"
 	"github.com/jinjustin/omega/questioncontroller"
-	//"github.com/jinjustin/omega/answercontroller"
+	"github.com/jinjustin/omega/answercontroller"
 
 	//"omega/database"
 	"context"
@@ -199,6 +199,8 @@ func handleRequests() {
 	myRouter.Handle("/testsorttime", testcontroller.TestSortTime).Methods("GET")
 
 	myRouter.Handle("/changestudentpassword",middlewareStudent(coursemembercontroller.ChangeStudentPassword)).Methods("POST")
+
+	myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

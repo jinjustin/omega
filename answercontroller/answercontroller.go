@@ -46,7 +46,7 @@ func submitAnswer(testID string, studentID string, studentAnswer map[string]answ
 
 	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, completepercent)VALUES ($1, $2, $3, $4, $5)`
 
-	_, err = db.Exec(sqlStatement, testID, studentID, b, totalScore, 0)
+	_, err = db.Exec(sqlStatement, testID, studentID, b, totalScore, "0")
 	if err != nil {
 		return err
 	}

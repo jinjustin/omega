@@ -10,8 +10,8 @@ type Answer struct{
 	TestID string `json:"testID"`
 	StudentID string `json:"studentID"`
 	StudentAnswer map[string]Info `json:"studentAnswer"`
-	TotalScore int `json:"totalScore"`
-	CompletePercent int `json:"completePercent"`
+	TotalScore string `json:"totalScore"`
+	CompletePercent string `json:"completePercent"`
 }
 
 //Info is struct that use to store answer of the student.
