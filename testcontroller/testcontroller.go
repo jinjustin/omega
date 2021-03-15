@@ -2,7 +2,9 @@ package testcontroller
 
 import (
 	"fmt"
+
 	"github.com/jinjustin/omega/test"
+
 	//"github.com/jinjustin/omega/course"
 	"github.com/jinjustin/omega/coursecontroller"
 
@@ -10,32 +12,34 @@ import (
 	"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
-	"github.com/jinjustin/omega/database"
+
 	"github.com/jinjustin/omega/authentication"
+	"github.com/jinjustin/omega/database"
 
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
 	"github.com/iancoleman/orderedmap"
 	//"github.com/sqs/goreturns/returns"
 )
 
-func postDetailTest(testID string, courseCode string, topic string ,description string , datestart string, duration string, timestart string) error{
-	
+func postDetailTest(testID string, courseCode string, topic string, description string, datestart string, duration string, timestart string) error {
+
 	var t test.Test
 
 	checkExist := checkTestExist(testID)
 
-	if checkExist == sql.ErrNoRows{
+	if checkExist == sql.ErrNoRows {
 		t = test.Test{
-			TestID : testID,
-			CourseCode : courseCode,
-			Topic: topic,
+			TestID:      testID,
+			CourseCode:  courseCode,
+			Topic:       topic,
 			Description: description,
-			Datestart: datestart,
-			Duration: duration,
-			Timestart: timestart,
+			Datestart:   datestart,
+			Duration:    duration,
+			Timestart:   timestart,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -43,22 +47,22 @@ func postDetailTest(testID string, courseCode string, topic string ,description 
 			return err
 		}
 		defer db.Close()
-	
+
 		sqlStatement := `INSERT INTO test (testid, coursecode, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, t.TestID, t.CourseCode, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart,"Unset")
+		_, err = db.Exec(sqlStatement, t.TestID, t.CourseCode, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, "Unset")
 		if err != nil {
 			return err
 		}
 
-	}else if checkExist == nil{
+	} else if checkExist == nil {
 		t = test.Test{
-			TestID : testID,
-			CourseCode : courseCode,
-			Topic: topic,
+			TestID:      testID,
+			CourseCode:  courseCode,
+			Topic:       topic,
 			Description: description,
-			Datestart: datestart,
-			Duration: duration,
-			Timestart: timestart,
+			Datestart:   datestart,
+			Duration:    duration,
+			Timestart:   timestart,
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -73,7 +77,7 @@ func postDetailTest(testID string, courseCode string, topic string ,description 
 		if err != nil {
 			return err
 		}
-	}else{
+	} else {
 		return checkExist
 	}
 
@@ -82,7 +86,7 @@ func postDetailTest(testID string, courseCode string, topic string ,description 
 	return nil
 }
 
-func deleteTest(testID string) error{
+func deleteTest(testID string) error {
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -99,17 +103,17 @@ func deleteTest(testID string) error{
 	return nil
 }
 
-func getDetailTest(testID string, courseCode string) ([]byte, error){
+func getDetailTest(testID string, courseCode string) ([]byte, error) {
 
 	t := test.Test{
-		TestID : testID,
-		CourseCode : "",
-		Topic: "",
+		TestID:      testID,
+		CourseCode:  "",
+		Topic:       "",
 		Description: "",
-		Datestart: "",
-		Duration: "",
-		Timestart: "",
-		Status: "",
+		Datestart:   "",
+		Duration:    "",
+		Timestart:   "",
+		Status:      "",
 	}
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -138,17 +142,17 @@ func getDetailTest(testID string, courseCode string) ([]byte, error){
 	return t.GetTestDetail(), nil
 }
 
-func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
+func getAllTestInCourse(courseCode string, role string) ([]test.Test, error) {
 
 	t := test.Test{
-		TestID : "",
-		CourseCode : courseCode,
-		Topic: "",
+		TestID:      "",
+		CourseCode:  courseCode,
+		Topic:       "",
 		Description: "",
-		Datestart: "",
-		Duration: "",
-		Timestart: "",
-		Status: "",
+		Datestart:   "",
+		Duration:    "",
+		Timestart:   "",
+		Status:      "",
 	}
 
 	var allTest []test.Test
@@ -159,7 +163,7 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 	}
 	defer db.Close()
 
-	if role=="teacher"{
+	if role == "teacher" {
 
 		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1;`
 		rows, err := db.Query(sqlStatement, courseCode)
@@ -172,7 +176,7 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 			if err != nil {
 				return nil, err
 			}
-	
+
 			allTest = append(allTest, t)
 		}
 		err = rows.Err()
@@ -180,7 +184,7 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 			return nil, err
 		}
 
-	}else if role=="student"{
+	} else if role == "student" {
 
 		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, status FROM test WHERE coursecode=$1 and status='false';`
 		rows, err := db.Query(sqlStatement, courseCode)
@@ -193,7 +197,7 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 			if err != nil {
 				return nil, err
 			}
-	
+
 			allTest = append(allTest, t)
 		}
 		err = rows.Err()
@@ -206,7 +210,7 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error){
 	return allTest, nil
 }
 
-func changeDraftStatus(testID string, status string) error{
+func changeDraftStatus(testID string, status string) error {
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		return err
@@ -250,7 +254,7 @@ func checkTestExist(testID string) error {
 	return err
 }
 
-func studentGetTestList(studentID string) ([]byte, error){
+func studentGetTestList(studentID string) ([]byte, error) {
 
 	var testList []test.Test
 
@@ -262,8 +266,8 @@ func studentGetTestList(studentID string) ([]byte, error){
 
 	o := orderedmap.New()
 
-	courselist , err := coursecontroller.GetStudentCourseList(studentID)
-	if err != nil{
+	courselist, err := coursecontroller.GetStudentCourseList(studentID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -274,7 +278,7 @@ func studentGetTestList(studentID string) ([]byte, error){
 	defer db.Close()
 
 	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE coursecode=$1 and status='true';`
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='true';`
 		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -292,13 +296,13 @@ func studentGetTestList(studentID string) ([]byte, error){
 
 			check := true
 
-			for _, d := range testdates{
-				if d == t.Datestart{
+			for _, d := range testdates {
+				if d == t.Datestart {
 					check = false
 				}
 			}
 
-			if check{
+			if check {
 				testdates = append(testdates, t.Datestart)
 			}
 
@@ -310,29 +314,29 @@ func studentGetTestList(studentID string) ([]byte, error){
 	}
 
 	sortedDate, err := sortDate(testdates)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
-	for _, d := range sortedDate{
-		for _, l := range testList{
-			if d == l.Datestart{
+	for _, d := range sortedDate {
+		for _, l := range testList {
+			if d == l.Datestart {
 				t = l
 			}
 			testData = append(testData, t)
 		}
 
 		sortedTestData, err := sortTime(testData)
-		if err != nil{
+		if err != nil {
 			return nil, err
 		}
 
-		o.Set(d,sortedTestData)
+		o.Set(d, sortedTestData)
 		testData = nil
 	}
 
-	b,err := o.MarshalJSON()
-	if err != nil{
+	b, err := o.MarshalJSON()
+	if err != nil {
 		return nil, err
 	}
 
@@ -340,53 +344,53 @@ func studentGetTestList(studentID string) ([]byte, error){
 }
 
 //sortDate is a function that use to sort date
-func sortDate(testdates []string) ([]string, error){
+func sortDate(testdates []string) ([]string, error) {
 	//var date string
 
-	for num1, i := range testdates{
-		for num2, j := range testdates{
+	for num1, i := range testdates {
+		for num2, j := range testdates {
 			check := false
 
-			yearI , err := strconv.Atoi(i[6:10])
-			if err != nil{
+			yearI, err := strconv.Atoi(i[6:10])
+			if err != nil {
 				return testdates, err
 			}
 
-			yearJ , err := strconv.Atoi(j[6:10])
-			if err != nil{
+			yearJ, err := strconv.Atoi(j[6:10])
+			if err != nil {
 				return testdates, err
 			}
 
-			monthI , err := strconv.Atoi(i[3:5])
-			if err != nil{
+			monthI, err := strconv.Atoi(i[3:5])
+			if err != nil {
 				return testdates, err
 			}
 
-			monthJ , err := strconv.Atoi(j[3:5])
-			if err != nil{
+			monthJ, err := strconv.Atoi(j[3:5])
+			if err != nil {
 				return testdates, err
 			}
 
-			dayI , err := strconv.Atoi(i[0:2])
-			if err != nil{
+			dayI, err := strconv.Atoi(i[0:2])
+			if err != nil {
 				return testdates, err
 			}
 
-			dayJ , err := strconv.Atoi(j[0:2])
-			if err != nil{
+			dayJ, err := strconv.Atoi(j[0:2])
+			if err != nil {
 				return testdates, err
 			}
 
-			if yearI < yearJ{
+			if yearI < yearJ {
 				check = true
-			}else if monthI < monthJ && yearI == yearJ{
+			} else if monthI < monthJ && yearI == yearJ {
 				check = true
-			}else if dayI < dayJ && monthI == monthJ && yearI == yearJ{
+			} else if dayI < dayJ && monthI == monthJ && yearI == yearJ {
 				check = true
 			}
 
-			if check{
-			testdates[num1], testdates[num2] = testdates[num2], testdates[num1]
+			if check {
+				testdates[num1], testdates[num2] = testdates[num2], testdates[num1]
 			}
 		}
 	}
@@ -395,52 +399,52 @@ func sortDate(testdates []string) ([]string, error){
 }
 
 //sortTime is a function that use to sort date
-func sortTime(testdata []test.Test) ([]test.Test, error){
+func sortTime(testdata []test.Test) ([]test.Test, error) {
 	//var date string
 
-	for num1, i := range testdata{
-		for num2, j := range testdata{
+	for num1, i := range testdata {
+		for num2, j := range testdata {
 			check := false
 
-			hourI , err := strconv.Atoi(i.Timestart[0:2])
-			if err != nil{
+			hourI, err := strconv.Atoi(i.Timestart[0:2])
+			if err != nil {
 				return testdata, err
 			}
 
-			hourJ , err := strconv.Atoi(j.Timestart[0:2])
-			if err != nil{
+			hourJ, err := strconv.Atoi(j.Timestart[0:2])
+			if err != nil {
 				return testdata, err
 			}
 
-			minuteI , err := strconv.Atoi(i.Timestart[3:5])
-			if err != nil{
+			minuteI, err := strconv.Atoi(i.Timestart[3:5])
+			if err != nil {
 				return testdata, err
 			}
 
-			minuteJ , err := strconv.Atoi(j.Timestart[3:5])
-			if err != nil{
+			minuteJ, err := strconv.Atoi(j.Timestart[3:5])
+			if err != nil {
 				return testdata, err
 			}
 
-			secondI , err := strconv.Atoi(i.Timestart[6:8])
-			if err != nil{
+			secondI, err := strconv.Atoi(i.Timestart[6:8])
+			if err != nil {
 				return testdata, err
 			}
 
-			secondJ , err := strconv.Atoi(j.Timestart[6:8])
-			if err != nil{
+			secondJ, err := strconv.Atoi(j.Timestart[6:8])
+			if err != nil {
 				return testdata, err
 			}
 
-			if hourI < hourJ{
+			if hourI < hourJ {
 				check = true
-			}else if minuteI < minuteJ && hourI == hourJ{
+			} else if minuteI < minuteJ && hourI == hourJ {
 				check = true
-			}else if secondI < secondJ && minuteI == minuteJ && hourI == hourJ{
+			} else if secondI < secondJ && minuteI == minuteJ && hourI == hourJ {
 				check = true
 			}
 
-			if check{
+			if check {
 				testdata[num1], testdata[num2] = testdata[num2], testdata[num1]
 			}
 		}
@@ -454,11 +458,11 @@ func sortTime(testdata []test.Test) ([]test.Test, error){
 //PostDetailTest is a API that use to send create or update detail of the test to database.
 var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
-		Topic string
+		Topic       string
 		Description string
-		Datestart string
-		Duration string
-		Timestart string
+		Datestart   string
+		Duration    string
+		Timestart   string
 	}
 
 	courseCode := r.Header.Get("CourseCode")
@@ -467,17 +471,17 @@ var PostDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	fmt.Println("Updatetestdatail", testID)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil{
+	if err != nil {
 		http.Error(w, "Can't read body.", http.StatusBadRequest)
-            return
+		return
 	}
 	var input Input
 	json.Unmarshal(reqBody, &input)
 
 	err = postDetailTest(testID, courseCode, input.Topic, input.Description, input.Datestart, input.Duration, input.Timestart)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -491,9 +495,9 @@ var GetDetailTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 
 	test, err := getDetailTest(testID, courseCode)
 
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -505,9 +509,9 @@ var DeleteTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	testID := r.Header.Get("TestId")
 
 	err := deleteTest(testID)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -519,10 +523,10 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 	testID := r.Header.Get("TestId")
 	status := r.Header.Get("Status")
 
-	err := changeDraftStatus(testID,status)
-	if err != nil{
+	err := changeDraftStatus(testID, status)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -536,9 +540,9 @@ var GetAllTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	role := authentication.GetUserRole(r)
 
 	allTest, err := getAllTestInCourse(courseCode, role)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -561,9 +565,9 @@ var TestSortDate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	dates = append(dates, date4)
 
 	data, err := sortDate(dates)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	fmt.Println(data)
@@ -594,9 +598,9 @@ var TestSortTime = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	testdata = append(testdata, t)
 
 	data, err := sortTime(testdata)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	fmt.Println(data)
@@ -611,9 +615,9 @@ var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	studentID := r.Header.Get("StudentID")
 
 	testlist, err := studentGetTestList(studentID)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
