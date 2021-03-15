@@ -322,9 +322,12 @@ func studentGetTestList(studentID string) ([]byte, error) {
 	fmt.Println(testList)
 
 	for _, d := range sortedDate {
+		fmt.Println("-----")
+		fmt.Println(testData)
 		for _, l := range testList {
 			if d == l.Datestart {
 				t = l
+				fmt.Println(t)
 			}
 			testData = append(testData, t)
 		}
