@@ -277,6 +277,7 @@ func studentGetTestList(studentID string) ([]byte, error){
 		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE coursecode=$1, status='true';`
 		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
+			fmt.Println(err.Error())
 			return nil, err
 		}
 		defer rows.Close()
