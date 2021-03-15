@@ -318,6 +318,9 @@ func studentGetTestList(studentID string) ([]byte, error) {
 		return nil, err
 	}
 
+	fmt.Println(sortedDate)
+	fmt.Println(testList)
+
 	for _, d := range sortedDate {
 		for _, l := range testList {
 			if d == l.Datestart {
@@ -612,9 +615,9 @@ var TestSortTime = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 //StudentGetTestListByDay is a API that student use to get information of all the tests in course.
 var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	studentID := r.Header.Get("StudentID")
+	username := authentication.GetUsername(r)
 
-	testlist, err := studentGetTestList(studentID)
+	testlist, err := studentGetTestList(username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
