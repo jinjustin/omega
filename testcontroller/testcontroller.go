@@ -332,10 +332,16 @@ func studentGetTestList(studentID string) ([]byte, error) {
 			testData = append(testData, t)
 		}
 
+		fmt.Println(testData)
+		fmt.Println("*****")
+
 		sortedTestData, err := sortTime(testData)
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println(sortedTestData)
+		fmt.Println("")
 
 		o.Set(d, sortedTestData)
 		testData = nil
