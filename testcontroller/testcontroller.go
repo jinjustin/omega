@@ -621,5 +621,5 @@ var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(testlist)
+	w.Write([]byte(testlist))
 })
