@@ -17,12 +17,6 @@ type Test struct{
 	Description string
 }
 
-//StudentCourseList is a struct that use to return student courselist to student.
-type StudentCourseList struct{
-	Datestart string `json:"datestart"`
-	TestData []Test `json:"test"`
-}
-
 // GetTestDetail is function that use to get test Detail in JSON form.
 func (t Test) GetTestDetail() []byte{
 	b,err := json.Marshal(t)

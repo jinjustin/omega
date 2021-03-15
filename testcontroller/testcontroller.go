@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"github.com/iancoleman/orderedmap"
 	//"github.com/sqs/goreturns/returns"
 )
 
@@ -249,9 +250,7 @@ func checkTestExist(testID string) error {
 	return err
 }
 
-func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
-	var studentCourseList  test.StudentCourseList
-	var studentCourseLists  []test.StudentCourseList
+func studentGetTestList(studentID string) ([]byte, error){
 
 	var testList []test.Test
 
@@ -261,31 +260,33 @@ func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
 
 	var testdates []string
 
+	o := orderedmap.New()
+
 	courselist , err := coursecontroller.GetStudentCourseList(studentID)
 	if err != nil{
-		return studentCourseLists, err
+		return nil, err
 	}
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		return studentCourseLists, err
+		return nil, err
 	}
 	defer db.Close()
 
 	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE coursecode=$1, status='publish';`
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM student WHERE coursecode=$1, status='true';`
 		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
-			return studentCourseLists, err
+			return nil, err
 		}
 		defer rows.Close()
 		for rows.Next() {
 			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart)
 			if err != nil {
-				return studentCourseLists, err
+				return nil, err
 			}
 			t.CourseCode = c.CourseCode
-			t.Status = "publish"
+			t.Status = "true"
 			testList = append(testList, t)
 
 			check := true
@@ -303,17 +304,16 @@ func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
 		}
 		err = rows.Err()
 		if err != nil {
-			return studentCourseLists, err
+			return nil, err
 		}
 	}
 
 	sortedDate, err := sortDate(testdates)
 	if err != nil{
-		return studentCourseLists, err
+		return nil, err
 	}
 
 	for _, d := range sortedDate{
-		studentCourseList.Datestart = d
 		for _, l := range testList{
 			if d == l.Datestart{
 				t = l
@@ -323,15 +323,19 @@ func studentGetTestList(studentID string) ([]test.StudentCourseList, error){
 
 		sortedTestData, err := sortTime(testData)
 		if err != nil{
-			return studentCourseLists, err
+			return nil, err
 		}
 
-		studentCourseList.TestData = sortedTestData
+		o.Set(d,sortedTestData)
 		testData = nil
-		studentCourseLists = append(studentCourseLists, studentCourseList)
 	}
 
-	return studentCourseLists, nil
+	b,err := o.MarshalJSON()
+	if err != nil{
+		return nil, err
+	}
+
+	return b, nil
 }
 
 //sortDate is a function that use to sort date
@@ -598,4 +602,19 @@ var TestSortTime = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
+})
+
+//StudentGetTestListByDay is a API that student use to get information of all the tests in course.
+var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	studentID := r.Header.Get("StudentID")
+
+	testlist, err := studentGetTestList(studentID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(testlist)
 })
