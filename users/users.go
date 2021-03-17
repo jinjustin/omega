@@ -14,7 +14,7 @@ type Users struct{
 }
 
 // GetStudentDetail is function use to get student detail in form of JSON.
-func (u Users) GetStudentDetail() []byte{
+func (u Users) GetUserDetail() []byte{
 	b,err := json.Marshal(u)
 	if err != nil{
 		fmt.Println(err)

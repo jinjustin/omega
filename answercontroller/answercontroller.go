@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 )
 
-
 func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) error {
 
 	//PlaceHolder
@@ -35,7 +34,6 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 	if err != nil {
 		panic(err)
 	}
-
 
 	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, completepercent)VALUES ($1, $2, $3, $4, $5)`
 
@@ -160,7 +158,6 @@ func autoScoring (studentAnswer []answer.Info, testID string) error{
 
 //SubmitAnswer is a function that use to store student answer to database.
 var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 
 	var studentAnswer []answer.Info
 

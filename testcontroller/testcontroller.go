@@ -227,6 +227,36 @@ func changeDraftStatus(testID string, status string) error {
 	return nil
 }
 
+func getDraftStatus(testID string) (string, error) {
+
+	var status string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT status FROM test WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&status)
+		if err != nil {
+			return "", err
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
+}
+
 //GenerateTestID is a function that use to generate testID.
 func GenerateTestID() string {
 	n := 3
@@ -534,6 +564,20 @@ var ChangeDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
+})
+
+//GetDraftStatus is a API that use to get draft status of the test
+var GetDraftStatus = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testID := r.Header.Get("TestId")
+
+	status, err := getDraftStatus(testID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(status))
 })
 
 //GetAllTestInCourse is a API that use to get information of all the tests in course.
