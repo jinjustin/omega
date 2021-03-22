@@ -19,6 +19,8 @@ import (
 	
 	"os"
 	"io"
+
+	"errors"
 )
 
 func addStudentToCourse(studentID string, courseCode string) []byte {
@@ -97,7 +99,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 			panic(err)
 		}
 
-		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000//Accept?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
+		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
 		mail.Send(email,"Course Invitation",message)
 	}
 
@@ -172,7 +174,7 @@ func addMultipleStudentsToCourse(studentIDs []string, courseCode string) []stude
 				panic(err)
 			}
 	
-			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000//Accept?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
+			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
 			mail.Send(s.Email,"Course Invitation",message)
 		}
 	}
@@ -216,8 +218,6 @@ func addTeacherToCourse(username string, courseCode string) []byte {
 		panic(err)
 	}
 
-	fmt.Println(userID)
-
 	sqlStatement = `SELECT firstname,surname FROM teacher WHERE userid=$1;`
 	rows, err = db.Query(sqlStatement, userID)
 	if err != nil {
@@ -235,9 +235,6 @@ func addTeacherToCourse(username string, courseCode string) []byte {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(firstName)
-	fmt.Println(surName)
 
 	if checkMemberInCourse(userID, courseCode) {
 		t = teacher.Teacher{
@@ -257,6 +254,47 @@ func addTeacherToCourse(username string, courseCode string) []byte {
 	}
 
 	return t.GetTeacherDetail()
+}
+
+func teacherAddCourse(username string, courseCode string) error {
+
+	var userID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	rows, err := db.Query(sqlStatement, username)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			return err
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
+	if checkMemberInCourse(userID, courseCode) {
+
+		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
+
+		_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "join")
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	return errors.New("omega: User already course member.")
 }
 
 func getStudentInCourse(courseCode string) []byte {
@@ -1132,6 +1170,21 @@ var ChangeStudentPassword = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
+
+//TeacherAddCourse is a api that teacher use to add course.
+var TeacherAddCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	
+	courseCode := r.Header.Get("CourseCode")
+	username := authentication.GetUsername(r)
+
+	err := teacherAddCourse(username, courseCode)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))

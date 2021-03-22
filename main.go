@@ -7,6 +7,7 @@ import (
 	"github.com/jinjustin/omega/coursemembercontroller"
 	"github.com/jinjustin/omega/login"
 	"github.com/jinjustin/omega/teachercontroller"
+	"github.com/jinjustin/omega/studentcontroller"
 	"github.com/jinjustin/omega/testcontroller"
 	"github.com/jinjustin/omega/authentication"
 	"github.com/jinjustin/omega/questiongroupcontroller"
@@ -148,13 +149,20 @@ func handleRequests() {
 	myRouter.HandleFunc("/test",test2).Methods("POST") 
 	myRouter.Handle("/createcourse",middlewareTeacher(coursecontroller.CreateCourse)).Methods("POST") 
 	myRouter.Handle("/getcourselist",middleware(coursecontroller.GetCourseList)).Methods("POST") 
-	myRouter.Handle("/deletecourse",middlewareTeacher(coursecontroller.DeleteCourse)).Methods("POST") 
+	myRouter.Handle("/deletecourse",middlewareTeacher(coursecontroller.DeleteCourse)).Methods("POST")
+
 	myRouter.Handle("/getteacherinfo",middlewareTeacher(teachercontroller.GetTeacherInfo)).Methods("POST") 
-	myRouter.Handle("/editteacherinfo",middlewareTeacher(teachercontroller.EditTeacherInfo)).Methods("POST") 
+	myRouter.Handle("/editteacherinfo",middlewareTeacher(teachercontroller.EditTeacherInfo)).Methods("POST")
+	
+	myRouter.Handle("/getstudentinfo",middlewareStudent(studentcontroller.GetStudentInfo)).Methods("GET")
+	myRouter.Handle("/editstudentinfo",middlewareStudent(studentcontroller.EditTeacherInfo)).Methods("POST")
+
 	myRouter.Handle("/getdescription",middlewareTeacher(coursecontroller.GetDescription)).Methods("POST") 
 	myRouter.Handle("/editdescription",middlewareTeacher(coursecontroller.EditDescription)).Methods("POST") 
 	myRouter.Handle("/getannouncement",middlewareTeacher(coursecontroller.GetAnnouncement)).Methods("POST")
 	myRouter.Handle("/editannouncement",middlewareTeacher(coursecontroller.EditAnnouncement)).Methods("POST")
+
+	//coursemembercontroller
 	myRouter.Handle("/addstudent",middlewareTeacher(coursemembercontroller.AddStudentToCourse)).Methods("POST") 
 	myRouter.Handle("/addstudentbyfile",coursemembercontroller.AddStudentFromExcelFile).Methods("POST") 
 	myRouter.Handle("/addteacher",middlewareTeacher(coursemembercontroller.AddTeacherToCourse)).Methods("POST") 
@@ -162,7 +170,9 @@ func handleRequests() {
 	myRouter.Handle("/getstudentincourse",coursemembercontroller.GetStudentInCourse).Methods("POST") 
 	myRouter.Handle("/getteacherincourse",coursemembercontroller.GetTeacherInCourse).Methods("POST") 
 	myRouter.Handle("/deleteteacherincourse",middlewareTeacher(coursemembercontroller.DeleteTeacherInCourse)).Methods("POST") 
-	myRouter.Handle("/deletestudentincourse",middlewareTeacher(coursemembercontroller.DeleteStudentInCourse)).Methods("POST") 
+	myRouter.Handle("/deletestudentincourse",middlewareTeacher(coursemembercontroller.DeleteStudentInCourse)).Methods("POST")
+	myRouter.Handle("/teacheraddcourse",middlewareTeacher(coursemembercontroller.TeacherAddCourse)).Methods("POST")
+	
 	myRouter.Handle("/getrole",authentication.GetRole).Methods("POST") 
 	myRouter.Handle("/deletetest",middlewareTeacher(testcontroller.DeleteTest)).Methods("POST")
 	myRouter.Handle("/login", login.Login).Methods("POST") 
@@ -170,7 +180,6 @@ func handleRequests() {
 	
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
-
 
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.TestbankUpdate)).Methods("POST")
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
