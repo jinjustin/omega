@@ -42,7 +42,7 @@ func getStudentInfo(username string) []byte{
 		panic(err)
 	}
 
-	sqlStatement = `SELECT studentid, firstname, surname, email FROM teacher WHERE userid=$1;`
+	sqlStatement = `SELECT studentid, firstname, surname, email FROM student WHERE userid=$1;`
 	rows, err = db.Query(sqlStatement, userID)
 	if err != nil {
 		panic(err)
