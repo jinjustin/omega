@@ -2,6 +2,7 @@ package testcontroller
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jinjustin/omega/test"
 
@@ -40,7 +41,7 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 			Datestart:   datestart,
 			Duration:    duration,
 			Timestart:   timestart,
-			Situation: "wait",
+			Situation:   "wait",
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -64,7 +65,7 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 			Datestart:   datestart,
 			Duration:    duration,
 			Timestart:   timestart,
-			Situation: "wait",
+			Situation:   "wait",
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -116,7 +117,7 @@ func getDetailTest(testID string, courseCode string) ([]byte, error) {
 		Duration:    "",
 		Timestart:   "",
 		Status:      "",
-		Situation: "",
+		Situation:   "",
 	}
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -487,6 +488,107 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 	}
 
 	return testdata, nil
+}
+
+func UpdateTestSituation() error {
+
+	var t test.Test
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT testid, datestart, duration, timestart, situation FROM test WHERE situation != 'finish';`
+	rows, err := db.Query(sqlStatement)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status, &t.Situation)
+		if err != nil {
+			return err
+		}
+
+		currentTime := time.Now()
+		year := strconv.Itoa(time.Now().Year())
+
+		var month string
+		var day string
+
+		if time.Now().Day() < 10 {
+			day = "0" + strconv.Itoa(time.Now().Day())
+		} else {
+			day = strconv.Itoa(time.Now().Day())
+		}
+
+		if int(time.Now().Month()) < 10 {
+			month = "0" + strconv.Itoa(int(time.Now().Month()))
+		} else {
+			month = strconv.Itoa(int(time.Now().Month()))
+		}
+
+		date := day + "-" + month + "-" + year
+		timeStampString := currentTime.Format("2006-01-02 15:04:05")
+		layOut := "2006-01-02 15:04:05"
+		timeStamp, err := time.Parse(layOut, timeStampString)
+		if err != nil {
+			fmt.Println(err)
+		}
+		hr, min, _ := timeStamp.Clock()
+
+		duration, _ := strconv.Atoi(t.Duration)
+
+		hrFinish := (hr + duration)%24
+
+		var strHr string
+		var strHrFinish string
+		var strMin string
+
+		if hr < 10 {
+			strHr = "0" + strconv.Itoa(hr)
+		} else {
+			strHr = strconv.Itoa(hr)
+		}
+
+		if hrFinish < 10 {
+			strHrFinish = "0" + strconv.Itoa(hrFinish)
+		} else {
+			strHrFinish = strconv.Itoa(hrFinish)
+		}
+
+		if min < 10 {
+			strMin = "0" + strconv.Itoa(min)
+		} else {
+			strMin = strconv.Itoa(min)
+		}
+
+		timeNow := strHr + ":" + strMin
+
+		timeFinish := strHrFinish + ":" + strMin
+
+		if date == t.Datestart && timeNow == t.Timestart  && t.Situation == "wait"{
+			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
+			_, err = db.Exec(sqlStatement, "start", t.TestID)
+			if err != nil {
+				return err
+			}
+		}else if date == t.Datestart && timeNow == timeFinish  && t.Situation == "start"{
+			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
+			_, err = db.Exec(sqlStatement, "finish", t.TestID)
+			if err != nil {
+				return err
+			}
+		}
+		fmt.Println(t.TestID, timeFinish)
+	}
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //API

@@ -25,6 +25,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/jasonlvhit/gocron"
 	//"github.com/gin-gonic/gin"
 	//"github.com/gin-gonic/contrib/static"
 
@@ -142,6 +143,11 @@ func middleware(next http.Handler) http.Handler {
 	})
 }
 
+func executeCronJob() {
+	gocron.Every(60).Second().Do(testcontroller.UpdateTestSituation)
+	<-gocron.Start()
+}
+
 func handleRequests() {
 	myRouter := mux.NewRouter()
 
@@ -225,5 +231,6 @@ func handleRequests() {
 }
 
 func main() {
+	go executeCronJob()
 	handleRequests()
 }

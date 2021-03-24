@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/iancoleman/orderedmap v0.2.0
+	github.com/jasonlvhit/gocron v0.0.1 // indirect
 	//github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0
 	github.com/minio/minio-go/v7 v7.0.10
