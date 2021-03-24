@@ -40,6 +40,7 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 			Datestart:   datestart,
 			Duration:    duration,
 			Timestart:   timestart,
+			Situation: "wait",
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -63,6 +64,7 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 			Datestart:   datestart,
 			Duration:    duration,
 			Timestart:   timestart,
+			Situation: "wait",
 		}
 
 		db, err := sql.Open("postgres", database.PsqlInfo())
@@ -114,6 +116,7 @@ func getDetailTest(testID string, courseCode string) ([]byte, error) {
 		Duration:    "",
 		Timestart:   "",
 		Status:      "",
+		Situation: "",
 	}
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -308,7 +311,7 @@ func studentGetTestList(studentID string) ([]byte, error) {
 	defer db.Close()
 
 	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='false';`
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='false' and situation != 'finish';`
 		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
 			fmt.Println(err.Error())

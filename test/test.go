@@ -15,6 +15,7 @@ type Test struct{
 	Timestart string
 	Datestart string
 	Description string
+	Situation string
 }
 
 // GetTestDetail is function that use to get test Detail in JSON form.
