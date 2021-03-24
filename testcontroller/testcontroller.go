@@ -492,6 +492,8 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 
 func UpdateTestSituation() error {
 
+	fmt.Println("-----")
+
 	var t test.Test
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -511,6 +513,8 @@ func UpdateTestSituation() error {
 		if err != nil {
 			return err
 		}
+
+		fmt.Println(t.TestID, t.Timestart, t.Duration)
 
 		currentTime := time.Now()
 		year := strconv.Itoa(time.Now().Year())
