@@ -490,7 +490,7 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 	return testdata, nil
 }
 
-func UpdateTestSituation() error {
+func UpdateTestSituation() error{
 
 	fmt.Println("-----")
 
@@ -509,7 +509,7 @@ func UpdateTestSituation() error {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Status, &t.Situation)
+		err = rows.Scan(&t.TestID, &t.Datestart, &t.Duration, &t.Timestart, &t.Situation)
 		if err != nil {
 			return err
 		}
