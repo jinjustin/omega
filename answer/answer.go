@@ -19,7 +19,7 @@ type Info struct{
 	QuestionID string `json:"questionID"`
 	QuestionName string `json:"question"`
 	QuestionType string `json:"type"`
-	Answer string `json:"answer"`
+	Answer []string `json:"answer"`
 	Score string `json:"score"`
 }
 
