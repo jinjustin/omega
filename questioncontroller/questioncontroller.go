@@ -6,7 +6,6 @@ import (
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
 
-	//"github.com/jinjustin/omega/choice"
 	"github.com/jinjustin/omega/choice"
 	"github.com/jinjustin/omega/choicecontroller"
 	"github.com/jinjustin/omega/database"
@@ -22,7 +21,6 @@ import (
 	//"github.com/sqs/goreturns/returns"
 
 	//"github.com/iancoleman/orderedmap"
-	//"github.com/jinjustin/omega/choice"
 )
 
 //AddNewQuestion is a function that use to add new question to questiongroup.
@@ -331,10 +329,11 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer rows.Close()
 			
 				for rows.Next() {
-					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink,&questionChoice.Check)
+					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
+					questionChoice.ImageLink.UID = -1
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
@@ -408,10 +407,11 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer rows.Close()
 			
 				for rows.Next() {
-					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink,&questionChoice.Check)
+					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
+					questionChoice.ImageLink.UID = -1
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
@@ -738,7 +738,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 
 		for _, choice := range q.ChoiceDetail{
-			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink, choice.Check)
+			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink.URL, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				fmt.Println(err)
