@@ -351,7 +351,7 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT id, groupname, numquestion, maxquestion, score, grouporder FROM questiongroup WHERE courseid=$1`
+	sqlStatement := `SELECT id, groupname, grouporder FROM questiongroup WHERE courseid=$1`
 	rows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
 		return nil, err
@@ -359,10 +359,12 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.MaxQuestion, &i.Score, &i.Order)
+		err = rows.Scan(&i.ID, &i.GroupName, &i.Order)
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println(i)
 
 		sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
 		rows, err = db.Query(sqlStatement, i.ID)
@@ -376,6 +378,8 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 			if err != nil {
 				return nil, err
 			}
+
+			fmt.Println(a)
 			allQuestionInGroup = append(allQuestionInGroup, a)
 		}
 		err = rows.Err()
@@ -400,6 +404,8 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 			}
 		}
 	}
+
+	fmt.Println(groupItems)
 
 	return groupItems, nil
 }

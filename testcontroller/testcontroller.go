@@ -514,8 +514,6 @@ func UpdateTestSituation() error{
 			return err
 		}
 
-		fmt.Println(t.TestID, t.Timestart, t.Duration)
-
 		currentTime := time.Now()
 		year := strconv.Itoa(time.Now().Year())
 
