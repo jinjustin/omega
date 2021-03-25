@@ -351,7 +351,7 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT id, groupname, grouporder FROM questiongroup WHERE courseid=$1`
+	sqlStatement := `SELECT id, groupname, grouporder FROM questiongroup WHERE courseid=$1 and testid=''`
 	rows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
 		return nil, err
