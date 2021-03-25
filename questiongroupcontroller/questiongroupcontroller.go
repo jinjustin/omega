@@ -337,13 +337,13 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 
 func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 
-	var allQuestionInGroup []question.AllQuestionInGroup
+	//var allQuestionInGroup []question.AllQuestionInGroup
 
 	var groupItems []questiongroup.GroupItem
 	var i questiongroup.GroupItem
 	var groupTemp questiongroup.GroupItem
 
-	var a question.AllQuestionInGroup
+	//var a question.AllQuestionInGroup
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -367,7 +367,7 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 
 		fmt.Println(i)
 
-		sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
+		/*sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
 		rows, err = db.Query(sqlStatement, i.ID)
 		if err != nil {
 			return nil, err
@@ -387,7 +387,7 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 		if err != nil {
 			return nil, err
 		}
-		i.QuestionList = allQuestionInGroup
+		i.QuestionList = allQuestionInGroup*/
 
 		groupItems = append(groupItems, i)
 	}
