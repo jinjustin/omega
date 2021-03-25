@@ -337,7 +337,12 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
-				qwc.ChoiceDetail = questionChoices
+				if questionChoices == nil{
+					qwc.ChoiceDetail = make([]choice.Choice,0)
+				}else{
+					qwc.ChoiceDetail = questionChoices
+				}
+				
 				questionChoices = nil
 	
 				questionWithChoices = append(questionWithChoices, qwc)
@@ -416,7 +421,12 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
-				qwc.ChoiceDetail = questionChoices
+				if questionChoices == nil{
+					qwc.ChoiceDetail = make([]choice.Choice,0)
+				}else{
+					qwc.ChoiceDetail = questionChoices
+				}
+				
 				questionChoices = nil
 	
 				questionWithChoices = append(questionWithChoices, qwc)
