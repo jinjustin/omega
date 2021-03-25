@@ -205,41 +205,41 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 
 	if testID == ""{
 		sqlStatement := `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
-		rows, err := db.Query(sqlStatement, groupID)
+		questionRows, err := db.Query(sqlStatement, groupID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questionRows.Close()
 	
-		for rows.Next() {
-			err = rows.Scan(&a.QuestionID, &a.QuestionName)
+		for questionRows.Next() {
+			err = questionRows.Scan(&a.QuestionID, &a.QuestionName)
 			if err != nil {
 				return nil, err
 			}
 
 			allQuestionInGroup = append(allQuestionInGroup, a)
 		}
-		err = rows.Err()
+		err = questionRows.Err()
 		if err != nil {
 			return nil, err
 		}
 	}else{
 		sqlStatement := `SELECT questionid, questionname FROM question WHERE testid=$1 and groupid=$2`
-		rows, err := db.Query(sqlStatement, testID, groupID)
+		questionRows, err := db.Query(sqlStatement, testID, groupID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questionRows.Close()
 	
-		for rows.Next() {
-			err = rows.Scan(&a.QuestionID, &a.QuestionName)
+		for questionRows.Next() {
+			err = questionRows.Scan(&a.QuestionID, &a.QuestionName)
 			if err != nil {
 				return nil, err
 			}
 
 			allQuestionInGroup = append(allQuestionInGroup, a)
 		}
-		err = rows.Err()
+		err = questionRows.Err()
 		if err != nil {
 			return nil, err
 		}
@@ -272,35 +272,35 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 	if testID == ""{
 
 		sqlStatement := `SELECT id FROM questiongroup WHERE testid='' and courseid=$1`
-		rows, err := db.Query(sqlStatement, courseID)
+		questiongroupRows, err := db.Query(sqlStatement, courseID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questiongroupRows.Close()
 	
-		for rows.Next() {
-			err = rows.Scan(&groupID)
+		for questiongroupRows.Next() {
+			err = questiongroupRows.Scan(&groupID)
 			if err != nil {
 				return nil, err
 			}
 
 			groupIDs = append(groupIDs, groupID)
 		}
-		err = rows.Err()
+		err = questiongroupRows.Err()
 		if err != nil {
 			return nil, err
 		}
 
 		for _, id := range groupIDs{
 			sqlStatement := `SELECT questionid, questionname, questiontype FROM question WHERE testid='' and groupid=$1`
-			rows, err := db.Query(sqlStatement, id)
+			questionRows, err := db.Query(sqlStatement, id)
 			if err != nil {
 				return nil, err
 			}
-			defer rows.Close()
+			defer questionRows.Close()
 		
-			for rows.Next() {
-				err = rows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
+			for questionRows.Next() {
+				err = questionRows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
 				if err != nil {
 					return nil, err
 				}
@@ -308,28 +308,28 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				qwc.TestID = ""
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
-				rows, err = db.Query(sqlStatement, id, qwc.QuestionID)
+				questionDataRows, err := db.Query(sqlStatement, id, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
-				defer rows.Close()
+				defer questionDataRows.Close()
 			
-				for rows.Next() {
-					err = rows.Scan(&qwc.Data)
+				for questionDataRows.Next() {
+					err = questionDataRows.Scan(&qwc.Data)
 					if err != nil {
 						return nil, err
 					}
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, qwc.QuestionID)
+				choiceRows, err := db.Query(sqlStatement, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
-				defer rows.Close()
+				defer choiceRows.Close()
 			
-				for rows.Next() {
-					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
+				for choiceRows.Next() {
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
@@ -341,7 +341,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 	
 				questionWithChoices = append(questionWithChoices, qwc)
 			}
-			err = rows.Err()
+			err = questionRows.Err()
 			if err != nil {
 				return nil, err
 			}
@@ -350,35 +350,35 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 	}else{
 
 		sqlStatement := `SELECT id FROM questiongroup WHERE testid=$1 and courseid=$2`
-		rows, err := db.Query(sqlStatement, testID, courseID)
+		questionGroupRows, err := db.Query(sqlStatement, testID, courseID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questionGroupRows.Close()
 	
-		for rows.Next() {
-			err = rows.Scan(&groupID)
+		for questionGroupRows.Next() {
+			err = questionGroupRows.Scan(&groupID)
 			if err != nil {
 				return nil, err
 			}
 
 			groupIDs = append(groupIDs, groupID)
 		}
-		err = rows.Err()
+		err = questionGroupRows.Err()
 		if err != nil {
 			return nil, err
 		}
 
 		for _, id := range groupIDs{
 			sqlStatement := `SELECT questionid, questionname, questiontype FROM question WHERE testid=$1 and groupid=$2`
-			rows, err := db.Query(sqlStatement,testID, id)
+			questionRows, err := db.Query(sqlStatement,testID, id)
 			if err != nil {
 				return nil, err
 			}
-			defer rows.Close()
+			defer questionRows.Close()
 		
-			for rows.Next() {
-				err = rows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
+			for questionRows.Next() {
+				err = questionRows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
 				if err != nil {
 					return nil, err
 				}
@@ -386,28 +386,28 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				qwc.TestID = testID
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
-				rows, err = db.Query(sqlStatement, id, qwc.QuestionID)
+				questionDataRows, err := db.Query(sqlStatement, id, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
-				defer rows.Close()
+				defer questionDataRows.Close()
 			
-				for rows.Next() {
-					err = rows.Scan(&qwc.Data)
+				for questionDataRows.Next() {
+					err = questionDataRows.Scan(&qwc.Data)
 					if err != nil {
 						return nil, err
 					}
 				}
 
 				sqlStatement = `SELECT choiceid, data, imagelink, correctcheck FROM choice WHERE questionid=$1`
-				rows, err = db.Query(sqlStatement, qwc.QuestionID)
+				choiceRows, err := db.Query(sqlStatement, qwc.QuestionID)
 				if err != nil {
 					return nil, err
 				}
-				defer rows.Close()
+				defer choiceRows.Close()
 			
-				for rows.Next() {
-					err = rows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
+				for choiceRows.Next() {
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
@@ -419,7 +419,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 	
 				questionWithChoices = append(questionWithChoices, qwc)
 			}
-			err = rows.Err()
+			err = questionRows.Err()
 			if err != nil {
 				return nil, err
 			}

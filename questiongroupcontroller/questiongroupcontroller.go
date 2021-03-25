@@ -200,14 +200,14 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 	defer db.Close()
 
 	sqlStatement := `SELECT uuid, headerorder FROM questiongroup WHERE courseid=$1 and testid=$2`
-	rows, err := db.Query(sqlStatement, courseID, testID)
+	questionGroupRows, err := db.Query(sqlStatement, courseID, testID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer questionGroupRows.Close()
 
-	for rows.Next() {
-		err = rows.Scan(&uuid.UUID, &uuid.Order)
+	for questionGroupRows.Next() {
+		err = questionGroupRows.Scan(&uuid.UUID, &uuid.Order)
 		if err != nil {
 			return nil ,err
 		}
@@ -224,7 +224,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 			UUIDs = append(UUIDs, uuid)
 		}
 	}
-	err = rows.Err()
+	err = questionGroupRows.Err()
 	if err != nil {
 		return nil, err
 	}
@@ -254,51 +254,51 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 		var a question.AllQuestionInGroup
 
 		sqlStatement := `SELECT name FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err := db.Query(sqlStatement, uuid.UUID, testID)
+		questionGroupRows, err := db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questionGroupRows.Close()
 
-		for rows.Next() {
-			err = rows.Scan(&g.Name)
+		for questionGroupRows.Next() {
+			err = questionGroupRows.Scan(&g.Name)
 			if err != nil {
 				return nil, err
 			}
 		}
-		err = rows.Err()
+		err = questionGroupRows.Err()
 		if err != nil {
 			return nil, err
 		}
 
 		sqlStatement = `SELECT id, groupname, numquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=$2`
-		rows, err = db.Query(sqlStatement, uuid.UUID, testID)
+		questionGroupRows, err = db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer questionGroupRows.Close()
 
-		for rows.Next() {
-			err = rows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
+		for questionGroupRows.Next() {
+			err = questionGroupRows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
 			if err != nil {
 				return nil, err
 			}
 
 			sqlStatement = `SELECT questionid, questionname FROM question WHERE testid=$1 and groupid=$2`
-			rows, err = db.Query(sqlStatement, testID, i.ID)
+			questionRows, err := db.Query(sqlStatement, testID, i.ID)
 			if err != nil {
 				return nil, err
 			}
-			defer rows.Close()
+			defer questionRows.Close()
 
-			for rows.Next() {
-				err = rows.Scan(&a.QuestionID, &a.QuestionName)
+			for questionRows.Next() {
+				err = questionRows.Scan(&a.QuestionID, &a.QuestionName)
 				if err != nil {
 					return nil, err
 				}
 				allQuestionInGroup = append(allQuestionInGroup, a)
 			}
-			err = rows.Err()
+			err = questionRows.Err()
 			if err != nil {
 				return nil, err
 			}
@@ -306,7 +306,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 
 			GroupItems = append(GroupItems, i)
 		}
-		err = rows.Err()
+		err = questionGroupRows.Err()
 		if err != nil {
 			return nil, err
 		}
