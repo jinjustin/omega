@@ -337,13 +337,13 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 
 func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 
-	//var allQuestionInGroup []question.AllQuestionInGroup
+	var allQuestionInGroup []question.AllQuestionInGroup
 
 	var groupItems []questiongroup.GroupItem
 	var i questiongroup.GroupItem
 	var groupTemp questiongroup.GroupItem
 
-	//var a question.AllQuestionInGroup
+	var a question.AllQuestionInGroup
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -365,29 +365,29 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 			return nil, err
 		}
 
-		fmt.Println(i)
-
 		sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
-		rows, err = db.Query(sqlStatement, i.ID)
+		rows2, err := db.Query(sqlStatement, i.ID)
+		fmt.Println(err)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer rows2.Close()
 
-		for rows.Next() {
-			/*err = rows.Scan(&a.QuestionID, &a.QuestionName)
+		for rows2.Next() {
+			err = rows2.Scan(&a.QuestionID, &a.QuestionName)
 			if err != nil {
 				return nil, err
 			}
 
 			fmt.Println(a)
-			allQuestionInGroup = append(allQuestionInGroup, a)*/
+			allQuestionInGroup = append(allQuestionInGroup, a)
 		}
-		err = rows.Err()
+		err = rows2.Err()
+		fmt.Println(err)
 		if err != nil {
 			return nil, err
 		}
-		//i.QuestionList = allQuestionInGroup
+		i.QuestionList = allQuestionInGroup
 
 		groupItems = append(groupItems, i)
 	}
