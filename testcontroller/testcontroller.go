@@ -492,7 +492,7 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 
 func UpdateTestSituation() error{
 
-	//fmt.Println("-----")
+	fmt.Println("-----")
 
 	var t test.Test
 
@@ -543,10 +543,13 @@ func UpdateTestSituation() error{
 
 		duration, _ := strconv.Atoi(t.Duration)
 
-		hrFinish := (hr + duration)%24
+		timeStartInt, _ := strconv.Atoi(t.Timestart[0:2])
+
+		hrFinish := (timeStartInt + duration)%24
+
+		strHrFinish := strconv.Itoa(hrFinish)
 
 		var strHr string
-		var strHrFinish string
 		var strMin string
 
 		if hr < 10 {
@@ -554,13 +557,6 @@ func UpdateTestSituation() error{
 		} else {
 			strHr = strconv.Itoa(hr)
 		}
-
-		if hrFinish < 10 {
-			strHrFinish = "0" + strconv.Itoa(hrFinish)
-		} else {
-			strHrFinish = strconv.Itoa(hrFinish)
-		}
-
 		if min < 10 {
 			strMin = "0" + strconv.Itoa(min)
 		} else {
@@ -569,7 +565,7 @@ func UpdateTestSituation() error{
 
 		timeNow := strHr + ":" + strMin
 
-		timeFinish := strHrFinish + ":" + strMin
+		timeFinish := strHrFinish + ":" + t.Timestart[3:5]
 
 		if date == t.Datestart && timeNow == t.Timestart  && t.Situation == "wait"{
 			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
@@ -584,7 +580,8 @@ func UpdateTestSituation() error{
 				return err
 			}
 		}
-		//fmt.Println(t.TestID, timeFinish)
+		fmt.Println(timeNow)
+		fmt.Println(t.TestID, timeFinish)
 	}
 	err = rows.Err()
 	if err != nil {
