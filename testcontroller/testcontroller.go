@@ -50,8 +50,8 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 		}
 		defer db.Close()
 
-		sqlStatement := `INSERT INTO test (testid, coursecode, topic, description, datestart, duration, timestart, status)VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err = db.Exec(sqlStatement, t.TestID, t.CourseCode, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, "Unset")
+		sqlStatement := `INSERT INTO test (testid, coursecode, topic, description, datestart, duration, timestart, status, situation)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		_, err = db.Exec(sqlStatement, t.TestID, t.CourseCode, t.Topic, t.Description, t.Datestart, t.Duration, t.Timestart, "Unset", t.Situation)
 		if err != nil {
 			return err
 		}
