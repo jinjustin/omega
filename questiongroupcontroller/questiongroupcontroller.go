@@ -383,14 +383,14 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 			}
 
 			fmt.Println(a)
-			allQuestionInGroup = append(allQuestionInGroup, a)
+			//allQuestionInGroup = append(allQuestionInGroup, a)
 		}
 		err = rows.Err()
 		fmt.Println(err)
 		if err != nil {
 			return nil, err
 		}
-		i.QuestionList = allQuestionInGroup
+		//i.QuestionList = allQuestionInGroup
 
 		groupItems = append(groupItems, i)
 	}
