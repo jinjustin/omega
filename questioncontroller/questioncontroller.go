@@ -257,6 +257,8 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 
 	var questionWithChoices []question.WithChoice
 
+	var questionChoices []choice.Choice
+
 	var groupIDs []string
 
 	var groupID string
@@ -298,7 +300,6 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 			defer questionRows.Close()
 		
 			for questionRows.Next() {
-				var questionChoices []choice.Choice
 				err = questionRows.Scan(&qwc.QuestionID, &qwc.QuestionName, &qwc.QuestionType)
 				if err != nil {
 					return nil, err
@@ -416,6 +417,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				}
 
 				qwc.ChoiceDetail = questionChoices
+				questionChoices = nil
 	
 				questionWithChoices = append(questionWithChoices, qwc)
 			}
