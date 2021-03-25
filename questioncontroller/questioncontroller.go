@@ -338,6 +338,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				}
 
 				qwc.ChoiceDetail = questionChoices
+				questionChoices = nil
 	
 				questionWithChoices = append(questionWithChoices, qwc)
 			}
