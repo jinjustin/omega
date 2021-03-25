@@ -337,7 +337,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 
 func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 
-	var allQuestionInGroup []question.AllQuestionInGroup
+	//var allQuestionInGroup []question.AllQuestionInGroup
 
 	var groupItems []questiongroup.GroupItem
 	var i questiongroup.GroupItem
