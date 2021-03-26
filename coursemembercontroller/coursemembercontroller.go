@@ -492,13 +492,13 @@ func getTeacherInCourse(courseCode string) []byte {
 		defer db.Close()
 
 		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
-		rows, err := db.Query(sqlStatement, a)
+		teacherRows, err := db.Query(sqlStatement, a)
 		if err != nil {
 			panic(err)
 		}
-		defer rows.Close()
+		defer teacherRows.Close()
 
-		for rows.Next() {
+		for teacherRows.Next() {
 			var firstname string
 			var surname string
 
@@ -510,12 +510,12 @@ func getTeacherInCourse(courseCode string) []byte {
 			var username string
 
 			sqlStatement := `SELECT username FROM users WHERE userid=$1;`
-			rows, err := db.Query(sqlStatement, a)
+			usersRows, err := db.Query(sqlStatement, a)
 			if err != nil {
 				panic(err)
 			}
-			defer rows.Close()
-			for rows.Next() {
+			defer usersRows.Close()
+			for usersRows.Next() {
 				err = rows.Scan(&username)
 				if err != nil {
 					panic(err)
@@ -535,7 +535,7 @@ func getTeacherInCourse(courseCode string) []byte {
 
 			teacherInCourses = append(teacherInCourses, t)
 		}
-		err = rows.Err()
+		err = teacherRows.Err()
 		if err != nil {
 			panic(err)
 		}
@@ -572,17 +572,17 @@ func getTeacherInCourse(courseCode string) []byte {
 		defer db.Close()
 
 		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
-		rows, err := db.Query(sqlStatement, a)
+		teacherRows, err := db.Query(sqlStatement, a)
 		if err != nil {
 			panic(err)
 		}
-		defer rows.Close()
+		defer teacherRows.Close()
 
-		for rows.Next() {
+		for teacherRows.Next() {
 			var firstname string
 			var surname string
 
-			err = rows.Scan(&firstname, &surname)
+			err = teacherRows.Scan(&firstname, &surname)
 			if err != nil {
 				panic(err)
 			}
@@ -590,18 +590,18 @@ func getTeacherInCourse(courseCode string) []byte {
 			var username string
 
 			sqlStatement := `SELECT username FROM users WHERE userid=$1;`
-			rows, err := db.Query(sqlStatement, a)
+			usersRows, err := db.Query(sqlStatement, a)
 			if err != nil {
 				panic(err)
 			}
-			defer rows.Close()
-			for rows.Next() {
+			defer usersRows.Close()
+			for usersRows.Next() {
 				err = rows.Scan(&username)
 				if err != nil {
 					panic(err)
 				}
 			}
-			err = rows.Err()
+			err = usersRows.Err()
 			if err != nil {
 				panic(err)
 			}
@@ -616,7 +616,7 @@ func getTeacherInCourse(courseCode string) []byte {
 			teacherInCourses = append(teacherInCourses, t)
 		}
 
-		err = rows.Err()
+		err = teacherRows.Err()
 		if err != nil {
 			panic(err)
 		}

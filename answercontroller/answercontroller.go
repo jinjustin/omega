@@ -92,55 +92,55 @@ func autoScoring (studentAnswer []answer.Info, testID string) error{
 
 		if a.QuestionType == "choice"{
 			sqlStatement := `SELECT correctcheck FROM choice WHERE choiceid=$1 and questionid=$2`
-			rows, err := db.Query(sqlStatement, a.Answer, a.QuestionID)
+			choiceRows, err := db.Query(sqlStatement, a.Answer, a.QuestionID)
 			if err != nil {
 				return nil
 			}
-			defer rows.Close()
+			defer choiceRows.Close()
 
-			for rows.Next() {
-				err = rows.Scan(&correctcheck)
+			for choiceRows.Next() {
+				err = choiceRows.Scan(&correctcheck)
 				if err != nil {
 					return nil
 				}
 			}
-			err = rows.Err()
+			err = choiceRows.Err()
 			if err != nil {
 				return nil
 			}
 
 			sqlStatement = `SELECT groupid FROM question WHERE testid=$1 and questionid=$2`
-			rows, err = db.Query(sqlStatement, testID, a.QuestionID)
+			questionRows, err := db.Query(sqlStatement, testID, a.QuestionID)
 			if err != nil {
 				return nil
 			}
-			defer rows.Close()
+			defer questionRows.Close()
 
-			for rows.Next() {
-				err = rows.Scan(&groupID)
+			for questionRows.Next() {
+				err = questionRows.Scan(&groupID)
 				if err != nil {
 					return nil
 				}
 			}
-			err = rows.Err()
+			err = questionRows.Err()
 			if err != nil {
 				return nil
 			}
 
 			sqlStatement = `SELECT score FROM questiongroup WHERE id=$1`
-			rows, err = db.Query(sqlStatement, groupID)
+			questionGroupRows, err := db.Query(sqlStatement, groupID)
 			if err != nil {
 				return nil
 			}
-			defer rows.Close()
+			defer questionGroupRows.Close()
 
-			for rows.Next() {
-				err = rows.Scan(&score)
+			for questionGroupRows.Next() {
+				err = questionGroupRows.Scan(&score)
 				if err != nil {
 					return nil
 				}
 			}
-			err = rows.Err()
+			err = questionGroupRows.Err()
 			if err != nil {
 				return nil
 			}
