@@ -172,7 +172,7 @@ func getAllStudentAnswerInformation(testID string) ([]answer.StudentAnswerInform
 	defer answerRows.Close()
 
 	for answerRows.Next() {
-		err = answerRows.Scan(&studentAnswerInfo.StudentID, studentAnswerInfo.CompletePercent)
+		err = answerRows.Scan(&studentAnswerInfo.StudentID, &studentAnswerInfo.CompletePercent)
 		if err != nil {
 			return nil ,err
 		}
@@ -184,7 +184,7 @@ func getAllStudentAnswerInformation(testID string) ([]answer.StudentAnswerInform
 		}
 		defer studentRows.Close()
 		for studentRows.Next() {
-			err = studentRows.Scan(&studentAnswerInfo.Firstname, studentAnswerInfo.Surname)
+			err = studentRows.Scan(&studentAnswerInfo.Firstname, &studentAnswerInfo.Surname)
 			if err != nil {
 				return nil ,err
 			}

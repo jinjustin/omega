@@ -646,6 +646,7 @@ func getAllHeaderInTest(testid string) ([]questiongroup.Header, error){
 		if err != nil {
 			return headers, err
 		}
+		fmt.Println(h)
 
 		headers = append(headers, h)
 	}
@@ -653,6 +654,8 @@ func getAllHeaderInTest(testid string) ([]questiongroup.Header, error){
 	if err != nil {
 		return headers, err
 	}
+
+	fmt.Println(headers)
 
 	for num1, i := range headers{
 		for num2, j := range headers{
