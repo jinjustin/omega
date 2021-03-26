@@ -24,6 +24,8 @@ import (
 func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) error {
 
 	var data string
+	var groupID string
+	var score string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -31,9 +33,9 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 	}
 	defer db.Close()
 
-	for num, _ := range studentAnswer{
+	for num, a := range studentAnswer{
 		sqlStatement := `SELECT data FROM questiondata WHERE questionid=$1`
-		rows, err := db.Query(sqlStatement, testID, studentID)
+		rows, err := db.Query(sqlStatement, a.QuestionID)
 		if err != nil {
 			return err
 		}
@@ -51,6 +53,44 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 		}
 
 		studentAnswer[num].Data = data
+
+		sqlStatement = `SELECT groupid FROM question WHERE questionid=$1 and testid=$2`
+		questionRows, err := db.Query(sqlStatement, a.QuestionID, testID)
+		if err != nil {
+			return err
+		}
+		defer questionRows.Close()
+	
+		for questionRows.Next() {
+			err = questionRows.Scan(&groupID)
+			if err != nil {
+				return err
+			}
+		}
+		err = questionRows.Err()
+		if err != nil {
+			return err
+		}
+
+		sqlStatement = `SELECT score FROM questiongroup WHERE groupid=$1 and testid=$2`
+		questionGroupRows, err := db.Query(sqlStatement, groupID, testID)
+		if err != nil {
+			return err
+		}
+		defer questionGroupRows.Close()
+	
+		for questionGroupRows.Next() {
+			err = questionGroupRows.Scan(&score)
+			if err != nil {
+				return err
+			}
+		}
+		err = questionGroupRows.Err()
+		if err != nil {
+			return err
+		}
+
+		studentAnswer[num].MaxScore = score
 	}
 
 	b, err := json.Marshal(studentAnswer)
