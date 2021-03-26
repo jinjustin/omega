@@ -45,7 +45,6 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 	if testID ==""{
 
 		checkExist := checkQuestionExist(questionID)
-		fmt.Println(checkExist)
 
 		if checkExist == sql.ErrNoRows{
 			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
@@ -484,6 +483,12 @@ func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, grou
 			if err != nil {
 				return err
 			}
+
+			sqlStatement = `DELETE from questiondata WHERE questionid=$1;`
+			_, err = db.Exec(sqlStatement, questionID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	err = rows.Err()
@@ -706,14 +711,11 @@ var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	testID := r.Header.Get("TestId")
 	groupID := r.Header.Get("GroupId")
 
-	fmt.Println("Get header API /getallquestioningroup: ", testID, groupID)
-
 	allQuestionInGroup, err := getAllQuestionInGroup(testID,groupID)
 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
-		fmt.Println(err)
 	}else{
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(allQuestionInGroup)
@@ -743,10 +745,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 	testID := r.Header.Get("TestId")
 
-	fmt.Println("Get header API /updateallquestionintest POST: ", testID)
-
 	for _, q := range questionWithChoices {
-		fmt.Println("Update all question in test question: ",q)
 		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -755,7 +754,6 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 
 		for _, choice := range q.ChoiceDetail{
-			fmt.Println("Update all question in test choice: ", choice)
 			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink.URL, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -781,8 +779,6 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
-
-	fmt.Println("Get header API /updateallquestionintest GET: ", courseID, testID)
 
 	allQuestionInTest, err := getAllQuestionInTest(courseID,testID)
 

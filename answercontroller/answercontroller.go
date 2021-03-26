@@ -23,34 +23,49 @@ import (
 
 func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) error {
 
+	var data string
+
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	a := answer.Answer{
-		TestID: testID,
-		StudentID: studentID,
-		StudentAnswer: studentAnswer,
-		TotalScore: "0",
-		CheckedAnswer: "0",
-		CompletePercent: "0",
+	for num, _ := range studentAnswer{
+		sqlStatement := `SELECT data FROM questiondata WHERE questionid=$1`
+		rows, err := db.Query(sqlStatement, testID, studentID)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+	
+		for rows.Next() {
+			err = rows.Scan(&data)
+			if err != nil {
+				return err
+			}
+		}
+		err = rows.Err()
+		if err != nil {
+			return err
+		}
+
+		studentAnswer[num].Data = data
 	}
 
-	b, err := json.Marshal(a.StudentAnswer)
+	b, err := json.Marshal(studentAnswer)
 	if err != nil {
 		panic(err)
 	}
 
-	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, completepercent)VALUES ($1, $2, $3, $4, $5)`
+	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err = db.Exec(sqlStatement, a.TestID, a.StudentID, b, a.CheckedAnswer, a.CompletePercent)
+	_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
 	if err != nil {
 		return err
 	}
 
-	err = autoScoring(a.StudentAnswer,testID,studentID)
+	err = autoScoring(studentAnswer,testID,studentID)
 	if err != nil{
 		return err
 	}
