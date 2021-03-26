@@ -191,6 +191,7 @@ func handleRequests() {
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
 
 	myRouter.Handle("/allgrouptestlist",middlewareTeacher(questiongroupcontroller.AllGroupTestList)).Methods("GET")
+	myRouter.Handle("/getallheaderintest",middlewareTeacher(questiongroupcontroller.AllGroupTestList)).Methods("GET")
 
 	myRouter.Handle("/updatedetailtest", middlewareTeacher(testcontroller.PostDetailTest)).Methods("POST")
 	myRouter.Handle("/updatedetailtest", middlewareTeacher(testcontroller.GetDetailTest)).Methods("GET")
@@ -218,7 +219,11 @@ func handleRequests() {
 	myRouter.Handle("/changestudentpassword",middlewareStudent(coursemembercontroller.ChangeStudentPassword)).Methods("POST")
 
 	myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
-	myRouter.Handle("/getanswer", answercontroller.GetAnswer).Methods("GET")
+	myRouter.Handle("/getstudentAnswer", answercontroller.GetAnswer).Methods("GET")
+	myRouter.Handle("/scoreAnswer", answercontroller.ScoringAnswer).Methods("POST")
+	myRouter.Handle("/getallstudentanswerinformation", answercontroller.GetAllStudentAnswerInformation).Methods("GET")
+	
+	//myRouter.Handle("/testautoscoring", answercontroller.TestAutoScoring).Methods("POST")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

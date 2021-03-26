@@ -39,6 +39,12 @@ type GroupItem struct {
 	QuestionList []question.AllQuestionInGroup `json:"questionList"`
 }
 
+type Header struct{
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+	Order int `json:"order"`
+}
+
 // GetQuestionGroupDetail is a function that use to get question group Detail in JSON form.
 func (g QuestionGroup) GetQuestionGroupDetail() []byte{
 	b,err := json.Marshal(g)

@@ -623,6 +623,48 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 	return grouptestList, nil
 }
 
+func getAllHeaderInTest(testid string) ([]questiongroup.Header, error){
+
+	var headers []questiongroup.Header
+
+	var h questiongroup.Header
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return headers, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT uuid, name, headerorder FROM questiongroup WHERE testid=$1;`
+	rows, err := db.Query(sqlStatement, testid)
+	if err != nil {
+		return headers, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&h.UUID, &h.Name, &h.Order)
+		if err != nil {
+			return headers, err
+		}
+
+		headers = append(headers, h)
+	}
+	err = rows.Err()
+	if err != nil {
+		return headers, err
+	}
+
+	for num1, i := range headers{
+		for num2, j := range headers{
+			if i.Order < j.Order{
+				headers[num1], headers[num2] = headers[num2], headers[num1]
+			}
+		}
+	}
+
+	return headers, nil
+}
+
 //API
 
 //GroupTestListUpdate is a API that use to get add or update group test list.
@@ -839,4 +881,19 @@ var GetGroupInTestbank = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(allQuestionGroup)
+})
+
+//GetAllHeaderInTest is a API that use to get all header in the test.
+var GetAllHeaderInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	testID := r.Header.Get("TestId")
+
+	allHeaderInTest, err := getAllHeaderInTest(testID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(allHeaderInTest)
 })

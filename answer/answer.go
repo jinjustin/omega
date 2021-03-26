@@ -11,6 +11,7 @@ type Answer struct{
 	StudentID string `json:"studentID"`
 	StudentAnswer []Info `json:"studentAnswer"`
 	TotalScore string `json:"totalScore"`
+	CheckedAnswer string `json:"checkedAnswer"`
 	CompletePercent string `json:"completePercent"`
 }
 
@@ -21,6 +22,13 @@ type Info struct{
 	QuestionType string `json:"type"`
 	Answer []string `json:"answer"`
 	Score string `json:"score"`
+}
+
+type StudentAnswerInformation struct{
+	Firstname string `json:"firstname"`
+	Surname string `json:"surname"`
+	StudentID string `json:"studentID"`
+	CompletePercent []string `json:"completePercent"`
 }
 
 
