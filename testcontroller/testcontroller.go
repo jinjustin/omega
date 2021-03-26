@@ -274,7 +274,6 @@ func getAllFinishTestInCourse(courseCode string) ([]test.FinishTest, error) {
 
 	for _, i := range infos{
 		var finishTest test.FinishTest
-		finishTest.CourseCode = courseCode
 		finishTest.TestID = i.testID
 		finishTest.Topic = i.testID
 		finishTest.Paticipant = "10:10"

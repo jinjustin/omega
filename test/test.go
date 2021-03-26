@@ -20,7 +20,6 @@ type Test struct{
 
 type FinishTest struct{
 	TestID string `json:"testID"`
-	CourseCode string `json:"courseCode"`
 	Topic string `json:"topic"`
 	Paticipant string `json:"paticipant"`
 	Process string `json:"process"`
