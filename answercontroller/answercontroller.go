@@ -72,7 +72,7 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 			return err
 		}
 
-		sqlStatement = `SELECT score FROM questiongroup WHERE groupid=$1 and testid=$2`
+		sqlStatement = `SELECT score FROM questiongroup WHERE id=$1 and testid=$2`
 		questionGroupRows, err := db.Query(sqlStatement, groupID, testID)
 		if err != nil {
 			return err
