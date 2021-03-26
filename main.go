@@ -200,7 +200,7 @@ func handleRequests() {
 	myRouter.Handle("/changedraftstatus", middlewareTeacher(testcontroller.GetDraftStatus)).Methods("GET")
 	myRouter.Handle("/getalltestincourse", middlewareTeacher(testcontroller.GetAllTestInCourse)).Methods("GET")
 	myRouter.Handle("/studentgettestlist", middlewareStudent(testcontroller.StudentGetTestListByDay)).Methods("GET")
-	myRouter.Handle("/getallfinishedtest", middlewareStudent(testcontroller.GetAllFinishTestInCourse)).Methods("GET")
+	myRouter.Handle("/getallfinishedtest", middlewareTeacher(testcontroller.GetAllFinishTestInCourse)).Methods("GET")
 
 	myRouter.Handle("/addnewquestion", middlewareTeacher(questioncontroller.UpdateQuestion)).Methods("POST")
 	myRouter.Handle("/getquestion", middlewareTeacher(questioncontroller.GetQuestion)).Methods("GET")
