@@ -642,13 +642,21 @@ func getAllHeaderInTest(testID string) ([]questiongroup.Header, error){
 	}
 	defer rows.Close()
 	for rows.Next() {
+		check := true
 		err = rows.Scan(&h.UUID, &h.Name, &h.Order)
 		if err != nil {
 			return headers, err
 		}
-		fmt.Println(h)
+		
+		for _, head := range headers{
+			if head.UUID == h.UUID{
+				check = false
+			}
+		}
 
-		headers = append(headers, h)
+		if check{
+			headers = append(headers, h)
+		}
 	}
 	err = rows.Err()
 	if err != nil {
