@@ -19,11 +19,11 @@ type Test struct{
 }
 
 type FinishTest struct{
-	TestID string
-	CourseCode string
-	Topic string
-	Paticipant string
-	Process string
+	TestID string `json:"testID"`
+	CourseCode string `json:"courseCode"`
+	Topic string `json:"topic"`
+	Paticipant string `json:"paticipant"`
+	Process string `json:"process"`
 }
 
 // GetTestDetail is function that use to get test Detail in JSON form.
