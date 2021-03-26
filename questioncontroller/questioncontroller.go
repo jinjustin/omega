@@ -426,7 +426,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				}else{
 					qwc.ChoiceDetail = questionChoices
 				}
-				
+
 				questionChoices = nil
 	
 				questionWithChoices = append(questionWithChoices, qwc)
@@ -642,7 +642,7 @@ var UpdateQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	}
 
 	groupID := r.Header.Get("GroupId")
-	testID := r.Header.Get("TestID")
+	testID := r.Header.Get("TestId")
 	questionName := r.Header.Get("Question")
 	questionID := r.Header.Get("QuestionID")
 	questionType := r.Header.Get("Type")
@@ -667,7 +667,7 @@ var UpdateQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	groupID := r.Header.Get("GroupId")
-	testID := r.Header.Get("TestID")
+	testID := r.Header.Get("TestId")
 	questionID := r.Header.Get("QuestionID")
 
 	q, err := getQuestion(groupID,testID,questionID)
@@ -703,7 +703,7 @@ var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 //GetAllQuestionInGroup is a API that use to get id and name of all question in question group.
 var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	testID := r.Header.Get("TestID")
+	testID := r.Header.Get("TestId")
 	groupID := r.Header.Get("GroupId")
 
 	allQuestionInGroup, err := getAllQuestionInGroup(testID,groupID)
@@ -742,6 +742,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	testID := r.Header.Get("TestId")
 
 	for _, q := range questionWithChoices {
+		fmt.Println("Update all question in test question: ",q)
 		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -750,6 +751,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 
 		for _, choice := range q.ChoiceDetail{
+			fmt.Println("Update all question in test choice: ", choice)
 			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink.URL, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -774,7 +776,9 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	courseID := r.Header.Get("CourseID")
-	testID := r.Header.Get("TestID")
+	testID := r.Header.Get("TestId")
+
+	fmt.Println("Get header API /updateallquestionintest: ", courseID, testID)
 
 	allQuestionInTest, err := getAllQuestionInTest(courseID,testID)
 

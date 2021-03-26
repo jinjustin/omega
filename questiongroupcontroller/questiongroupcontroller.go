@@ -664,6 +664,8 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
             return
 	}
 
+	fmt.Println("GroupTestListUpdate Objmap:", objmap)
+
 	var input Input
 
 	uuids := make([]string, 0, len(o.Keys()))
@@ -691,7 +693,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
-			fmt.Println("Header Name: ", input.Name," Group ID: ", item.ID, " GroupName : ",item.GroupName," NumQuestion: ",item.NumQuestion," MaxQuestion: ",item.MaxQuestion, " Score: ",item.Score, " CourseID: ", courseID, " TestID: ", testID, " UUID: ", uuid)
+			fmt.Println("GroupTestListUpdate group:", item)
 			err = groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -700,7 +702,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			}
 			questionInTest = append(questionInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
-				fmt.Println(questionItem.QuestionName)
+				fmt.Println("GroupTestListUpdate question:", questionItem)
 				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
