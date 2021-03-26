@@ -492,7 +492,7 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 
 func UpdateTestSituation() error{
 
-	fmt.Println("-----")
+	//fmt.Println("-----")
 
 	var t test.Test
 
@@ -580,8 +580,8 @@ func UpdateTestSituation() error{
 				return err
 			}
 		}
-		fmt.Println(timeNow)
-		fmt.Println(t.TestID, timeFinish)
+		/*fmt.Println(timeNow)
+		fmt.Println(t.TestID, timeFinish)*/
 	}
 	err = rows.Err()
 	if err != nil {
