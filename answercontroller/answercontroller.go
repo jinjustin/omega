@@ -287,7 +287,7 @@ func scoringAnswer (testID string, studentID string, questionID string, score st
 	completePercentString := fmt.Sprintf("%.2f", completePercent)
 	checkedAnswerString := fmt.Sprintf("%.0f", checkedAnswerf)
 	
-	sqlStatement = `UPDATE answer SET studentanswer=$1, totalscore=$2, checkedanswer=$3, completepercent=$4 WHERE testid=$4 and studentid=$5`
+	sqlStatement = `UPDATE answer SET studentanswer=$1, totalscore=$2, checkedanswer=$3, completepercent=$4 WHERE testid=$5 and studentid=$6`
 	
 	_, err = db.Exec(sqlStatement, b, totalscoreString,checkedAnswerString, completePercentString, testID, studentID)
 	if err != nil {
