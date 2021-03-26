@@ -18,6 +18,14 @@ type Test struct{
 	Situation string
 }
 
+type FinishTest struct{
+	TestID string
+	CourseCode string
+	Topic string
+	Paticipant string
+	Process string
+}
+
 // GetTestDetail is function that use to get test Detail in JSON form.
 func (t Test) GetTestDetail() []byte{
 	b,err := json.Marshal(t)

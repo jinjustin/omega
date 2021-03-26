@@ -214,6 +214,77 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error) {
 	return allTest, nil
 }
 
+func getAllFinishTestInCourse(courseCode string) ([]test.FinishTest, error) {
+
+	var allFinishTest []test.FinishTest
+
+	type testInfo struct{
+		testID string
+		topic string
+	}
+
+	var info testInfo
+	var infos []testInfo
+
+	/*membercount := 0
+	participantCount := 0
+	finshScoring := 0*/
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT testid, topic FROM test WHERE coursecode=$1;`
+	rows, err := db.Query(sqlStatement, courseCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&info.testID,&info.topic)
+		if err != nil {
+			return nil, err
+		}
+		infos = append(infos, info)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	/*sqlStatement := `SELECT testid FROM test WHERE coursecode=$1;`
+	rows, err := db.Query(sqlStatement, courseCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&testID)
+		if err != nil {
+			return nil, err
+		}
+		testIDs = append(testIDs, testID)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}*/
+
+	for _, i := range infos{
+		var finishTest test.FinishTest
+		finishTest.CourseCode = courseCode
+		finishTest.TestID = i.testID
+		finishTest.Topic = i.testID
+		finishTest.Paticipant = "10:10"
+		finishTest.Process = "100.00"
+		allFinishTest = append(allFinishTest, finishTest)
+	}
+
+	return allFinishTest, nil
+}
+
 func changeDraftStatus(testID string, status string) error {
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -773,4 +844,19 @@ var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(testlist))
+})
+
+
+var GetAllFinishTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseCode := r.Header.Get("CourseCode")
+
+	finishTests, err := getAllFinishTestInCourse(courseCode)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(finishTests)
 })
