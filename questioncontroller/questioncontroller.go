@@ -706,6 +706,8 @@ var GetAllQuestionInGroup = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	testID := r.Header.Get("TestId")
 	groupID := r.Header.Get("GroupId")
 
+	fmt.Println("Get header API /getallquestioningroup: ", testID, groupID)
+
 	allQuestionInGroup, err := getAllQuestionInGroup(testID,groupID)
 
 	if err != nil{
@@ -740,6 +742,8 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	}
 
 	testID := r.Header.Get("TestId")
+
+	fmt.Println("Get header API /updateallquestionintest POST: ", testID)
 
 	for _, q := range questionWithChoices {
 		fmt.Println("Update all question in test question: ",q)
@@ -778,7 +782,7 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
 
-	fmt.Println("Get header API /updateallquestionintest: ", courseID, testID)
+	fmt.Println("Get header API /updateallquestionintest GET: ", courseID, testID)
 
 	allQuestionInTest, err := getAllQuestionInTest(courseID,testID)
 
