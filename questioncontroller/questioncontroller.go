@@ -483,12 +483,6 @@ func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, grou
 			if err != nil {
 				return err
 			}
-
-			sqlStatement = `DELETE from questiondata WHERE questionid=$1;`
-			_, err = db.Exec(sqlStatement, questionID)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	err = rows.Err()
