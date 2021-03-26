@@ -623,7 +623,7 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 	return grouptestList, nil
 }
 
-func getAllHeaderInTest(testid string) ([]questiongroup.Header, error){
+func getAllHeaderInTest(testID string) ([]questiongroup.Header, error){
 
 	var headers []questiongroup.Header
 
@@ -636,7 +636,7 @@ func getAllHeaderInTest(testid string) ([]questiongroup.Header, error){
 	defer db.Close()
 
 	sqlStatement := `SELECT uuid, name, headerorder FROM questiongroup WHERE testid=$1;`
-	rows, err := db.Query(sqlStatement, testid)
+	rows, err := db.Query(sqlStatement, testID)
 	if err != nil {
 		return headers, err
 	}

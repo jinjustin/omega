@@ -28,7 +28,7 @@ type StudentAnswerInformation struct{
 	Firstname string `json:"firstname"`
 	Surname string `json:"surname"`
 	StudentID string `json:"studentID"`
-	CompletePercent []string `json:"completePercent"`
+	CompletePercent string `json:"completePercent"`
 }
 
 
