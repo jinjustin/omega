@@ -33,7 +33,7 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 	}
 	defer db.Close()
 
-	checkExist := checkChoiceExist(choiceID)
+	checkExist := checkChoiceExist(choiceID, questionID)
 
 	if checkExist == sql.ErrNoRows{
 		sqlStatement := `INSERT INTO choice (choiceid, questionid, data, imagelink, correctcheck)VALUES ($1, $2, $3, $4, $5)`
@@ -55,17 +55,17 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 	return nil
 }
 
-func checkChoiceExist(choiceID string) error {
-	var questionID string
+func checkChoiceExist(choiceID string, questionID string) error {
+	var correctCheck string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	sqlStatement := `SELECT choiceid FROM choice WHERE questionid=$1;`
-	row := db.QueryRow(sqlStatement, questionID)
-	err = row.Scan(&questionID)
+	sqlStatement := `SELECT correctcheck FROM choice WHERE choiceid=$1 and questionid=$2;`
+	row := db.QueryRow(sqlStatement, choiceID, questionID)
+	err = row.Scan(&correctCheck)
 	return err
 }
 
