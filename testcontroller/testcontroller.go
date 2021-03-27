@@ -602,7 +602,7 @@ func UpdateTestSituation() error{
 			month = strconv.Itoa(int(time.Now().Month()))
 		}
 
-		date := day + "-" + month + "-" + year
+		date := year + "-" + month + "-" + day
 		timeStampString := currentTime.Format("2006-01-02 15:04:05")
 		layOut := "2006-01-02 15:04:05"
 		timeStamp, err := time.Parse(layOut, timeStampString)
@@ -652,7 +652,7 @@ func UpdateTestSituation() error{
 		}
 
 		fmt.Println(timeNow, date)
-		fmt.Println(t.TestID, t.Timestart, t.Datestart)
+		fmt.Println(t.TestID, t.Timestart, timeFinish, t.Datestart)
 	}
 	err = rows.Err()
 	if err != nil {
