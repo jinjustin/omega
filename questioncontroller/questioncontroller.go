@@ -437,6 +437,10 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 		} 
 	}
 
+	if questionWithChoices == nil{
+		questionWithChoices = make([]question.WithChoice,0)
+	}
+
 	b,err := json.Marshal(questionWithChoices)
 	if err != nil{
 		return nil, err

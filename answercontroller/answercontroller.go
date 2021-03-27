@@ -98,11 +98,18 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 		panic(err)
 	}
 
-	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
-
-	_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
-	if err != nil {
-		return err
+	if checkAnswerExist(testID,studentID){
+		sqlStatement := `UPDATE answer SET studentanswer=$1 WHERE testid=$2 and studentid=$3`
+		_, err = db.Exec(sqlStatement, b, testID, studentID)
+		if err != nil {
+			return err
+		}
+	}else{
+		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
+		_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
+		if err != nil {
+			return err
+		}
 	}
 
 	err = autoScoring(studentAnswer,testID,studentID)
@@ -361,6 +368,7 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 	defer db.Close()
 
 	var correctcheck string
+	var data string
 	var groupID string
 	var score string
 	
@@ -369,7 +377,7 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 
 	for num, a := range studentAnswer{
 
-		if a.QuestionType == "choice"{
+		if a.QuestionType == "Choice"{
 
 			sqlStatement := `SELECT groupid FROM question WHERE testid=$1 and questionid=$2`
 			questionRows, err := db.Query(sqlStatement, testID, a.QuestionID)
@@ -439,7 +447,7 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 				totalScore += s
 			}
 			checkedAnswer += 1.0
-		}else if a.QuestionType == "pair"{
+		}else if a.QuestionType == "Pair"{
 			sqlStatement := `SELECT groupid FROM question WHERE testid=$1 and questionid=$2`
 			questionRows, err := db.Query(sqlStatement, testID, a.QuestionID)
 			if err != nil {
@@ -511,6 +519,76 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 				totalScore += s
 			}
 			checkedAnswer += 1.0
+		}else if a.QuestionType == "Short Answer"{
+			sqlStatement := `SELECT groupid FROM question WHERE testid=$1 and questionid=$2`
+			questionRows, err := db.Query(sqlStatement, testID, a.QuestionID)
+			if err != nil {
+				return nil
+			}
+			defer questionRows.Close()
+
+			for questionRows.Next() {
+				err = questionRows.Scan(&groupID)
+				if err != nil {
+					return nil
+				}
+			}
+			err = questionRows.Err()
+			if err != nil {
+				return nil
+			}
+
+			sqlStatement = `SELECT score FROM questiongroup WHERE id=$1`
+			questionGroupRows, err := db.Query(sqlStatement, groupID)
+			if err != nil {
+				return nil
+			}
+			defer questionGroupRows.Close()
+
+			for questionGroupRows.Next() {
+				err = questionGroupRows.Scan(&score)
+				if err != nil {
+					return nil
+				}
+			}
+			err = questionGroupRows.Err()
+			if err != nil {
+				return nil
+			}
+
+			check := true
+
+			for _, ans := range a.Answer{
+
+				sqlStatement = `SELECT data FROM choice WHERE questionid=$1`
+				choiceRows, err := db.Query(sqlStatement, a.QuestionID)
+				if err != nil {
+					return nil
+				}
+				defer choiceRows.Close()
+	
+				for choiceRows.Next() {
+					err = choiceRows.Scan(&data)
+					if err != nil {
+						return nil
+					}
+				}
+				err = choiceRows.Err()
+				if err != nil {
+					return nil
+				}
+
+				if data != ans{
+					check = false
+				}
+			}
+
+			if check{
+				studentAnswer[num].Score = score
+				s, _ := strconv.Atoi(score)
+				totalScore += s
+			}
+			checkedAnswer += 1.0
 		}
 	}
 
@@ -535,6 +613,29 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 	}
 
 	return nil
+}
+
+func checkAnswerExist(testID string, studentID string) bool {
+
+	var completepercent string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT completepercent FROM answer WHERE testid=$1 and studentid=$2;`
+	row := db.QueryRow(sqlStatement, testID, studentID)
+	err = row.Scan(&completepercent)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
 }
 
 //API

@@ -217,18 +217,10 @@ func getAllTestInCourse(courseCode string, role string) ([]test.Test, error) {
 func getAllFinishTestInCourse(courseCode string) ([]test.FinishTest, error) {
 
 	var allFinishTest []test.FinishTest
+	var finishTest test.FinishTest
+	var dummy string
 
-	type testInfo struct{
-		testID string
-		topic string
-	}
-
-	var info testInfo
-	var infos []testInfo
-
-	/*membercount := 0
-	participantCount := 0
-	finshScoring := 0*/
+	membercount := 0
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -243,42 +235,99 @@ func getAllFinishTestInCourse(courseCode string) ([]test.FinishTest, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&info.testID,&info.topic)
+		err = rows.Scan(&finishTest.TestID,&finishTest.Topic)
 		if err != nil {
 			return nil, err
 		}
-		infos = append(infos, info)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	/*sqlStatement := `SELECT testid FROM test WHERE coursecode=$1;`
-	rows, err := db.Query(sqlStatement, courseCode)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(&testID)
-		if err != nil {
-			return nil, err
-		}
-		testIDs = append(testIDs, testID)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}*/
-
-	for _, i := range infos{
-		var finishTest test.FinishTest
-		finishTest.TestID = i.testID
-		finishTest.Topic = i.testID
-		finishTest.Paticipant = "10:10"
-		finishTest.Process = "100.00"
 		allFinishTest = append(allFinishTest, finishTest)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlStatement = `SELECT userid FROM coursemember WHERE coursecode=$1 and role='student';`
+	coursememberRows, err := db.Query(sqlStatement, courseCode)
+	if err != nil {
+		return nil, err
+	}
+	defer coursememberRows.Close()
+	for coursememberRows.Next() {
+		err = coursememberRows.Scan(&dummy)
+		if err != nil {
+			return nil, err
+		}
+		membercount += 1
+	}
+	err = coursememberRows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	for num, f := range allFinishTest{
+		participantCount := 0
+		finshScoring := 0
+
+		sqlStatement = `SELECT studentid FROM answer WHERE testid=$1;`
+		answerRows, err := db.Query(sqlStatement, f.TestID)
+		if err != nil {
+			return nil, err
+		}
+		defer answerRows.Close()
+		for answerRows.Next() {
+			err = answerRows.Scan(&dummy)
+			if err != nil {
+				return nil, err
+			}
+			participantCount += 1
+		}
+		err = answerRows.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		sqlStatement = `SELECT studentid FROM answer WHERE testid=$1 and completepercent='100.00';`
+		answerRows2, err := db.Query(sqlStatement, f.TestID)
+		if err != nil {
+			return nil, err
+		}
+		defer answerRows2.Close()
+		for answerRows2.Next() {
+			err = answerRows2.Scan(&dummy)
+			if err != nil {
+				return nil, err
+			}
+			finshScoring += 1
+		}
+		err = answerRows2.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		if membercount == 0{
+			allFinishTest[num].Paticipant = "0:0"
+			allFinishTest[num].Process = "0.00"
+		}else if participantCount == 0 {
+			member := strconv.Itoa(membercount)
+			allFinishTest[num].Paticipant = "0:" + member
+			allFinishTest[num].Process = "0.00"
+		}else if finshScoring == 0{
+			member := strconv.Itoa(membercount)
+			participant := strconv.Itoa(participantCount)
+			allFinishTest[num].Paticipant = participant + ":" + member
+			allFinishTest[num].Process = "0.00"
+		}else if finshScoring != 0{
+			member := strconv.Itoa(membercount)
+			participant := strconv.Itoa(participantCount)
+			process := (float64(finshScoring)/float64(participantCount))*100
+			processString := fmt.Sprintf("%.2f", process)
+			allFinishTest[num].Paticipant = participant + ":" + member
+			allFinishTest[num].Process = processString
+		}
+	}
+
+	if allFinishTest == nil{
+		allFinishTest = make([]test.FinishTest,0)
 	}
 
 	return allFinishTest, nil
