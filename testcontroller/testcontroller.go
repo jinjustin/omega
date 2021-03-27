@@ -660,7 +660,7 @@ func UpdateTestSituation() error{
 			}
 		}
 
-		monthFinish := int(time.Now().Month()) + durationDay
+		monthFinish := int(time.Now().Month()) + durationMonth
 		if monthFinish >= 12 {
 			monthFinish = monthFinish%12
 			durationYear += 1
@@ -672,13 +672,13 @@ func UpdateTestSituation() error{
 		var dayFinishString string
 
 
-		if time.Now().Day() + durationDay < 10 {
+		if dayFinish < 10 {
 			dayFinishString = "0" + strconv.Itoa(dayFinish)
 		} else {
 			dayFinishString = strconv.Itoa(dayFinish)
 		}
 
-		if int(time.Now().Month()) + durationMonth < 10 {
+		if monthFinish < 10 {
 			monthFinishString = "0" + strconv.Itoa(monthFinish)
 		} else {
 			monthFinishString = strconv.Itoa(monthFinish)
