@@ -952,6 +952,33 @@ func addStudentToSystem(studentID string, name string, surname string){
 	}
 }
 
+func addTeacherToSystem(username string, password string, email string) error{
+
+	userID := generateUserID()
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
+
+	_, err = db.Exec(sqlStatement, userID, username, password, "teacher")
+	if err != nil {
+		return err
+	}
+
+	sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+
+	_, err = db.Exec(sqlStatement, userID, "Annonymous", "Teacher", email)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func editStudentPassword(username string, oldPassword string, newPassword string) error{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -1186,6 +1213,28 @@ var TeacherAddCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), http.StatusInternalServerError)
         return
 	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
+
+
+var AddTeacherToSystem = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	
+	type Input struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email string `json:"email"`
+	}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var input Input
+	json.Unmarshal(reqBody, &input)
+
+	err := addTeacherToSystem(input.Username, input.Password, input.Email)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
 })

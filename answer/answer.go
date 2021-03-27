@@ -32,6 +32,13 @@ type StudentAnswerInformation struct{
 	CompletePercent string `json:"completePercent"`
 }
 
+type StatisticValue struct{
+	Max string `json:"max"`
+	Min string `json:"min"`
+	Mean string `json:"mean"`
+	SD string `json:"sd"`
+}
+
 
 // GetAnswerDetail is a function that use to get choice detail in JSON form.
 func (a Answer) GetAnswerDetail() []byte{

@@ -114,6 +114,41 @@ func middlewareStudent(next http.Handler) http.Handler {
 	})
 }
 
+func middlewareAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		role := authentication.GetUserRole(r)
+		if len(authHeader) != 2 {
+			fmt.Println("Malformed token")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Malformed Token"))
+		} else {
+			jwtToken := authHeader[1]
+			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				}
+				return []byte("secret"), nil
+			})
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				if role == "admin"{
+					ctx := context.WithValue(r.Context(), "props", claims)
+					// Access context values in handlers like this
+					// props, _ := r.Context().Value("props").(jwt.MapClaims)
+					next.ServeHTTP(w, r.WithContext(ctx))
+				}else {
+					w.WriteHeader(http.StatusUnauthorized)
+					w.Write([]byte("You don't have permission to access this"))
+				}
+			} else {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized"))
+			}
+		}
+	})
+}
+
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -223,6 +258,9 @@ func handleRequests() {
 	myRouter.Handle("/getstudentAnswer", answercontroller.GetAnswer).Methods("GET")
 	myRouter.Handle("/scoreAnswer", answercontroller.ScoringAnswer).Methods("POST")
 	myRouter.Handle("/getallstudentanswerinformation", answercontroller.GetAllStudentAnswerInformation).Methods("GET")
+	myRouter.Handle("/getstatisticvalue", answercontroller.GetStatisticValue).Methods("GET")
+
+	myRouter.Handle("/addteachertosystem", coursemembercontroller.AddTeacherToSystem).Methods("POST")
 	
 	//myRouter.Handle("/testautoscoring", answercontroller.TestAutoScoring).Methods("POST")
 
