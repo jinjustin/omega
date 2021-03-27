@@ -98,12 +98,23 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 		panic(err)
 	}
 
-	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
-	if err != nil {
-		return err
+	checkExist := checkAnswerExist(testID, studentID)
+
+	if checkExist == sql.ErrNoRows{
+		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
+		_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
+		if err != nil {
+			return err
+		}
+	}else if checkExist == nil{
+		sqlStatement := `UPDATE answer SET studentanswer=$1 WHERE testid=$2 and studentid=$3`
+		_, err = db.Exec(sqlStatement, b, testID, studentID)
+		if err != nil {
+			return err
+		}
+	}else{
+		return checkExist
 	}
-	
 
 	err = autoScoring(studentAnswer,testID,studentID)
 	if err != nil{
@@ -608,27 +619,19 @@ func autoScoring (studentAnswer []answer.Info, testID string, studentID string) 
 	return nil
 }
 
-func checkAnswerExist(testID string, studentID string) bool {
+func checkAnswerExist(testID string, studentID string) error {
 
-	var completepercent string
+	var dummy string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
-
-	sqlStatement := `SELECT completepercent FROM answer WHERE testid=$1 and studentid=$2;`
-	row := db.QueryRow(sqlStatement, testID, studentID)
-	err = row.Scan(&completepercent)
-	switch err {
-	case sql.ErrNoRows:
-		return true
-	case nil:
-		return false
-	default:
-		panic(err)
-	}
+	sqlStatement := `SELECT checkedanswer FROM answer WHERE testid=$1 and studentid=$2;`
+	row := db.QueryRow(sqlStatement, testID,studentID)
+	err = row.Scan(&dummy)
+	return err
 }
 
 //API
