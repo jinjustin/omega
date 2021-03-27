@@ -620,10 +620,10 @@ func UpdateTestSituation() error{
 		for duration > 24 {
 			duration -= 24
 			durationDay += 1
-			if durationDay >= 30 {
+			if durationDay > 30 {
 				durationDay = 0
 				durationMonth += 1
-				if durationMonth >= 12 {
+				if durationMonth > 12 {
 					durationMonth = 0
 					durationYear += 1
 				}
@@ -636,34 +636,51 @@ func UpdateTestSituation() error{
 		if finishHour > 24{
 			finishHour = finishHour%24
 			durationDay += 1
-			if durationDay >= 30 {
+			if durationDay > 30 {
 				durationDay = 0
 				durationMonth += 1
-				if durationMonth >= 12 {
+				if durationMonth > 12 {
 					durationMonth = 0
 					durationYear += 1
 				}
 			}
 		}
 
-		yearFinish := strconv.Itoa(time.Now().Year() + durationYear)
+		dayFinish := time.Now().Day() + durationDay
+		if dayFinish > 30{
+			dayFinish = dayFinish%30
+			durationMonth += 1
+			if durationMonth > 12 {
+				durationMonth = 0
+				durationYear += 1
+			}
+		}
 
-		var monthFinish string
-		var dayFinish string
+		monthFinish := int(time.Now().Month()) + durationDay
+		if monthFinish >= 12 {
+			monthFinish = monthFinish%12
+			durationYear += 1
+		}
+
+		yearFinishString := strconv.Itoa(time.Now().Year() + durationYear)
+
+		var monthFinishString string
+		var dayFinishString string
+
 
 		if time.Now().Day() + durationDay < 10 {
-			dayFinish = "0" + strconv.Itoa(time.Now().Day() + durationDay)
+			dayFinishString = "0" + strconv.Itoa(dayFinish)
 		} else {
-			dayFinish = strconv.Itoa(time.Now().Day() + durationDay)
+			dayFinishString = strconv.Itoa(dayFinish)
 		}
 
 		if int(time.Now().Month()) + durationMonth < 10 {
-			monthFinish = "0" + strconv.Itoa(int(time.Now().Month()) + durationMonth)
+			monthFinishString = "0" + strconv.Itoa(monthFinish)
 		} else {
-			monthFinish = strconv.Itoa(int(time.Now().Month()) + durationMonth)
+			monthFinishString = strconv.Itoa(monthFinish)
 		}
 
-		dateFinish := yearFinish + monthFinish + dayFinish
+		dateFinish := yearFinishString + ":" + monthFinishString + ":" + dayFinishString
 
 		var finishHourString string
 
