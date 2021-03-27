@@ -602,7 +602,7 @@ func UpdateTestSituation() error{
 			month = strconv.Itoa(int(time.Now().Month()))
 		}
 
-		date := year + "-" + month + "-" + day
+		dateNow := year + "-" + month + "-" + day
 		timeStampString := currentTime.Format("2006-01-02 15:04:05")
 		layOut := "2006-01-02 15:04:05"
 		timeStamp, err := time.Parse(layOut, timeStampString)
@@ -613,11 +613,59 @@ func UpdateTestSituation() error{
 
 		duration, _ := strconv.Atoi(t.Duration)
 
-		timeStartInt, _ := strconv.Atoi(t.Timestart[0:2])
+		durationDay :=0
+		durationMonth := 0
+		durationYear := 0
+	
+		for duration > 24 {
+			duration -= 24
+			durationDay += 1
+			if durationDay >= 30 {
+				durationDay = 0
+				durationMonth += 1
+				if durationMonth >= 12 {
+					durationMonth = 0
+					durationYear += 1
+				}
+			}
+		}
+	
+		startHour, _ := strconv.Atoi(t.Timestart[0:2])
+	
+		finishHour := startHour + duration
+		if finishHour > 24{
+			finishHour = finishHour%24
+			durationDay += 1
+			if durationDay >= 30 {
+				durationDay = 0
+				durationMonth += 1
+				if durationMonth >= 12 {
+					durationMonth = 0
+					durationYear += 1
+				}
+			}
+		}
 
-		hrFinish := (timeStartInt + duration)%24
+		yearFinish := strconv.Itoa(time.Now().Year() + durationYear)
 
-		strHrFinish := strconv.Itoa(hrFinish)
+		var monthFinish string
+		var dayFinish string
+
+		if time.Now().Day() + durationDay < 10 {
+			dayFinish = "0" + strconv.Itoa(time.Now().Day() + durationDay)
+		} else {
+			dayFinish = strconv.Itoa(time.Now().Day() + durationDay)
+		}
+
+		if int(time.Now().Month()) + durationMonth < 10 {
+			monthFinish = "0" + strconv.Itoa(int(time.Now().Month()) + durationMonth)
+		} else {
+			monthFinish = strconv.Itoa(int(time.Now().Month()) + durationMonth)
+		}
+
+		dateFinish := yearFinish + monthFinish + dayFinish
+
+		var finishHourString string
 
 		var strHr string
 		var strMin string
@@ -633,17 +681,23 @@ func UpdateTestSituation() error{
 			strMin = strconv.Itoa(min)
 		}
 
+		if finishHour < 10 {
+			finishHourString = "0" + strconv.Itoa(finishHour)
+		}else{
+			finishHourString = strconv.Itoa(finishHour)
+		}
+
 		timeNow := strHr + ":" + strMin
 
-		timeFinish := strHrFinish + ":" + t.Timestart[3:5]
+		timeFinish := finishHourString + ":" + t.Timestart[3:5]
 
-		if date == t.Datestart && timeNow == t.Timestart  && t.Situation == "wait"{
+		if dateNow == t.Datestart && timeNow == t.Timestart  && t.Situation == "wait"{
 			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
 			_, err = db.Exec(sqlStatement, "start", t.TestID)
 			if err != nil {
 				return err
 			}
-		}else if date == t.Datestart && timeNow == timeFinish  && t.Situation == "start"{
+		}else if dateNow == dateFinish && timeNow == timeFinish  && t.Situation == "start"{
 			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
 			_, err = db.Exec(sqlStatement, "finish", t.TestID)
 			if err != nil {
@@ -651,8 +705,8 @@ func UpdateTestSituation() error{
 			}
 		}
 
-		fmt.Println(timeNow, date)
-		fmt.Println(t.TestID, t.Timestart, timeFinish, t.Datestart)
+		fmt.Println(timeNow, dateNow)
+		fmt.Println(t.TestID, t.Timestart, t.Datestart, timeFinish, dateFinish)
 	}
 	err = rows.Err()
 	if err != nil {
