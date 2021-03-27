@@ -351,7 +351,6 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 	}
 	defer db.Close()
 
-	fmt.Println(courseID)
 	sqlStatement := `SELECT id, groupname, grouporder FROM questiongroup WHERE courseid=$1 and testid=''`
 	rows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
@@ -367,7 +366,6 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 
 		sqlStatement = `SELECT questionid, questionname FROM question WHERE testid='' and groupid=$1`
 		rows2, err := db.Query(sqlStatement, i.ID)
-		fmt.Println(err)
 		if err != nil {
 			return nil, err
 		}
@@ -379,11 +377,9 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 				return nil, err
 			}
 
-			fmt.Println(a)
 			allQuestionInGroup = append(allQuestionInGroup, a)
 		}
 		err = rows2.Err()
-		fmt.Println(err)
 		if err != nil {
 			return nil, err
 		}
@@ -707,8 +703,6 @@ func getAllHeaderInTest(testID string) ([]questiongroup.Header, error){
 		return headers, err
 	}
 
-	fmt.Println(headers)
-
 	for num1, i := range headers{
 		for num2, j := range headers{
 			if i.Order < j.Order{
@@ -761,7 +755,6 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
             return
 	}
 
-	fmt.Println("GroupTestListUpdate Objmap:", objmap)
 
 	var input Input
 
@@ -785,12 +778,10 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		check = true
 	}
 
-	fmt.Println("Recieve: ", objmap)
 
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
 		for grouporder, item := range input.Items{
-			fmt.Println("GroupTestListUpdate group:", item)
 			err = groupTestListUpdate(input.Name, item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, testID, uuid,headerorder,grouporder)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -799,7 +790,6 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			}
 			questionInTest = append(questionInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
-				fmt.Println("GroupTestListUpdate question:", questionItem)
 				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -899,7 +889,6 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 			}
 			questionGroupInTest = append(questionGroupInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
-				fmt.Println(questionItem.QuestionName)
 				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)

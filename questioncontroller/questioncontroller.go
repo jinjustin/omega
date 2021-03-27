@@ -439,7 +439,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 
 	b,err := json.Marshal(questionWithChoices)
 	if err != nil{
-		fmt.Println(err)
+		return nil, err
 	}
 
 	return b, nil
@@ -667,7 +667,7 @@ var UpdateQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
-		fmt.Println(err)
+		return 
 	}else{
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("200 - OK"))
@@ -686,7 +686,7 @@ var GetQuestion = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error Contact JJ immediately!"))
-		fmt.Println(err)
+		return
 	}else{
 		w.WriteHeader(http.StatusOK)
 		w.Write(q.GetQuestionDetail())
@@ -755,7 +755,6 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Println(err)
 				return
 		}
 
@@ -763,7 +762,6 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink.URL, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
-				fmt.Println(err)
             		return
 			}
 
@@ -790,7 +788,6 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
 			return
 		}
 	w.WriteHeader(http.StatusOK)
