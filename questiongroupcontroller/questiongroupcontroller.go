@@ -302,6 +302,11 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 			if err != nil {
 				return nil, err
 			}
+
+			if allQuestionInGroup == nil{
+				allQuestionInGroup = make([]question.AllQuestionInGroup,0)
+			}
+
 			i.QuestionList = allQuestionInGroup
 
 			GroupItems = append(GroupItems, i)
@@ -319,6 +324,10 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 					GroupItems[j] = groupTemp
 				}
 			}
+		}
+
+		if GroupItems == nil{
+			GroupItems = make([]GroupItem,0)
 		}
 
 		g.Items = GroupItems

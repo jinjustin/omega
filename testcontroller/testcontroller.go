@@ -611,8 +611,6 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 
 func UpdateTestSituation() error{
 
-	fmt.Println("-----")
-
 	var t test.Test
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -776,9 +774,6 @@ func UpdateTestSituation() error{
 				return err
 			}
 		}
-
-		fmt.Println(timeNow, dateNow)
-		fmt.Println(t.TestID, t.Timestart, t.Datestart, timeFinish, dateFinish)
 	}
 	err = rows.Err()
 	if err != nil {
