@@ -629,6 +629,8 @@ func UpdateTestSituation() error{
 				}
 			}
 		}
+
+		fmt.Println(durationDay, durationMonth, durationYear)
 	
 		startHour, _ := strconv.Atoi(t.Timestart[0:2])
 	
@@ -645,6 +647,8 @@ func UpdateTestSituation() error{
 				}
 			}
 		}
+
+		fmt.Println(durationDay, durationMonth, durationYear)
 
 		dayFinish := time.Now().Day() + durationDay
 		if dayFinish > 30{
@@ -680,7 +684,7 @@ func UpdateTestSituation() error{
 			monthFinishString = strconv.Itoa(monthFinish)
 		}
 
-		dateFinish := yearFinishString + ":" + monthFinishString + ":" + dayFinishString
+		dateFinish := yearFinishString + "-" + monthFinishString + "-" + dayFinishString
 
 		var finishHourString string
 
