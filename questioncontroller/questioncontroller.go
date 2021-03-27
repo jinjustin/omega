@@ -585,6 +585,12 @@ func DeleteQuestionFromTestbank(questionInGroup []string, groupID string) error{
 			if err != nil {
 				return err
 			}
+
+			sqlStatement = `DELETE from choice WHERE questionid=$1;`
+			_, err = db.Exec(sqlStatement, questionID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	err = rows.Err()

@@ -511,6 +511,12 @@ func deleteQuestionGroupFromTest(groupInTest []string, testID string, courseID s
 			if err != nil {
 				panic(err)
 			}
+
+			sqlStatement = `DELETE from question WHERE groupid=$1 and testid=$2;`
+			_, err = db.Exec(sqlStatement, groupID, testID)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 	err = rows.Err()
@@ -520,8 +526,9 @@ func deleteQuestionGroupFromTest(groupInTest []string, testID string, courseID s
 	
 }
 
-func deleteQuestionGroupFromTestbank(questionInTest []string, courseID string){
+func deleteQuestionGroupFromTestbank(questionGroupInTest []string, courseID string){
 
+	var groupID string
 	var questionID string
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -531,35 +538,72 @@ func deleteQuestionGroupFromTestbank(questionInTest []string, courseID string){
 	defer db.Close()
 
 	sqlStatement := `SELECT id FROM questiongroup WHERE courseid=$1;`
-	rows, err := db.Query(sqlStatement, courseID)
+	questionGroupRows, err := db.Query(sqlStatement, courseID)
 	if err != nil {
 		panic(err)
 	}
-	defer rows.Close()
+	defer questionGroupRows.Close()
 
-	for rows.Next() {
-		err = rows.Scan(&questionID)
+	for questionGroupRows.Next() {
+		err = questionGroupRows.Scan(&groupID)
 		if err != nil {
 			panic(err)
 		}
 
 		check := true
 
-		for _, id := range questionInTest{
-			if questionID == id{
+		for _, id := range questionGroupInTest{
+			if groupID == id{
 				check = false
 			}
 		}
 
 		if check {
 			sqlStatement := `DELETE from questiongroup WHERE id=$1;`
-			_, err = db.Exec(sqlStatement, questionID)
+			_, err = db.Exec(sqlStatement, groupID)
+			if err != nil {
+				panic(err)
+			}
+
+			sqlStatement = `SELECT id FROM question WHERE groupid=$1;`
+			questionRows, err := db.Query(sqlStatement, groupID)
+			if err != nil {
+				panic(err)
+			}
+			defer questionRows.Close()
+
+			for questionRows.Next() {
+				err = questionRows.Scan(&questionID)
+				if err != nil {
+					panic(err)
+				}
+
+				sqlStatement = `DELETE from choice WHERE questionid=$1;`
+				_, err = db.Exec(sqlStatement, questionID)
+				if err != nil {
+					panic(err)
+				}
+				
+			}
+			err = questionRows.Err()
+			if err != nil {
+				panic(err)
+			}
+
+			sqlStatement = `DELETE from question WHERE groupid=$1;`
+			_, err = db.Exec(sqlStatement, groupID)
+			if err != nil {
+				panic(err)
+			}
+
+			sqlStatement = `DELETE from questiondata WHERE groupid=$1;`
+			_, err = db.Exec(sqlStatement, groupID)
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
-	err = rows.Err()
+	err = questionGroupRows.Err()
 	if err != nil {
 		panic(err)
 	}
@@ -840,7 +884,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
             return
 	}
 
-	var questionInTest []string
+	var questionGroupInTest []string
 
 	var questionInGroup []string
 
@@ -853,7 +897,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 				fmt.Println(err)
             		return
 			}
-			questionInTest = append(questionInTest, item.ID)
+			questionGroupInTest = append(questionGroupInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
 				fmt.Println(questionItem.QuestionName)
 				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
@@ -873,7 +917,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		}
 	
 
-	deleteQuestionGroupFromTestbank(questionInTest, courseID)
+	deleteQuestionGroupFromTestbank(questionGroupInTest, courseID)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
