@@ -1,7 +1,7 @@
 package questioncontroller
 
 import (
-	"fmt"
+	//"fmt"
 	//"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
