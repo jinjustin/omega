@@ -98,19 +98,12 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 		panic(err)
 	}
 
-	if checkAnswerExist(testID,studentID){
-		sqlStatement := `UPDATE answer SET studentanswer=$1 WHERE testid=$2 and studentid=$3`
-		_, err = db.Exec(sqlStatement, b, testID, studentID)
-		if err != nil {
-			return err
-		}
-	}else{
-		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
-		_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
-		if err != nil {
-			return err
-		}
+	sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
+	if err != nil {
+		return err
 	}
+	
 
 	err = autoScoring(studentAnswer,testID,studentID)
 	if err != nil{
