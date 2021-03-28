@@ -21,7 +21,7 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 
 	var ios []choice.ImageObject
 
-	ios[0] = io
+	ios = append(ios, io)
 
 	c = choice.Choice{
 		ChoiceID: choiceID,
