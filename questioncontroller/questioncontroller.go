@@ -765,7 +765,11 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 
 		for _, choice := range q.ChoiceDetail{
-			imageLink := choice.ImageLink[0].URL
+
+			imageLink := ""
+			for _, i := range choice.ImageLink{
+				imageLink = i.URL
+			}
 			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, imageLink, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
