@@ -7,10 +7,11 @@ import (
 	//"github.com/golang/protobuf/descriptor"
 	//"github.com/jinjustin/omega/question"
 
-	"github.com/jinjustin/omega/questiongroup"
 	"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/questioncontroller"
+	"github.com/jinjustin/omega/questiongroup"
 	"github.com/jinjustin/omega/testcontroller"
+
 	//"github.com/jinjustin/omega/test"
 
 	//"encoding/json"
@@ -411,6 +412,10 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 		}
 	}
 
+	if groupItems == nil{
+		groupItems = make([]questiongroup.GroupItem, 0)
+	}
+
 	return groupItems, nil
 }
 
@@ -659,6 +664,11 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 		if err != nil {
 			return grouptestList, err
 		}
+
+		if allQuestionInGroup == nil{
+			allQuestionInGroup = make([]question.AllQuestionInGroup, 0)
+		}
+
 		grouptest.QuestionList = allQuestionInGroup
 		allQuestionInGroup = nil
 
@@ -667,6 +677,10 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 	err = rows.Err()
 	if err != nil {
 		return grouptestList, err
+	}
+
+	if grouptestList == nil{
+		grouptestList = make([]questiongroup.GrouptestList, 0)
 	}
 
 	return grouptestList, nil
