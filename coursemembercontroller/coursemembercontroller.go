@@ -485,12 +485,6 @@ func getTeacherInCourse(courseCode string) []byte {
 	}
 
 	for _, a := range userIDs {
-		db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
-
 		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
 		teacherRows, err := db.Query(sqlStatement, a)
 		if err != nil {
@@ -502,7 +496,7 @@ func getTeacherInCourse(courseCode string) []byte {
 			var firstname string
 			var surname string
 
-			err = rows.Scan(&firstname, &surname)
+			err = teacherRows.Scan(&firstname, &surname)
 			if err != nil {
 				panic(err)
 			}
@@ -516,12 +510,12 @@ func getTeacherInCourse(courseCode string) []byte {
 			}
 			defer usersRows.Close()
 			for usersRows.Next() {
-				err = rows.Scan(&username)
+				err = usersRows.Scan(&username)
 				if err != nil {
 					panic(err)
 				}
 			}
-			err = rows.Err()
+			err = usersRows.Err()
 			if err != nil {
 				panic(err)
 			}
@@ -565,11 +559,6 @@ func getTeacherInCourse(courseCode string) []byte {
 	}
 
 	for _, a := range userIDs {
-		db, err := sql.Open("postgres", database.PsqlInfo())
-		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
 
 		sqlStatement := `SELECT firstname,surname FROM teacher WHERE userid=$1;`
 		teacherRows, err := db.Query(sqlStatement, a)
@@ -596,7 +585,7 @@ func getTeacherInCourse(courseCode string) []byte {
 			}
 			defer usersRows.Close()
 			for usersRows.Next() {
-				err = rows.Scan(&username)
+				err = usersRows.Scan(&username)
 				if err != nil {
 					panic(err)
 				}
