@@ -19,11 +19,15 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 		URL: imageLink,
 	}
 
+	var ios []choice.ImageObject
+
+	ios[0] = io
+
 	c = choice.Choice{
 		ChoiceID: choiceID,
 		QuestionID: questionID,
 		Data: data,
-		ImageLink: io,
+		ImageLink: ios,
 		Check: check,
 	}
 
@@ -37,14 +41,14 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 
 	if checkExist == sql.ErrNoRows{
 		sqlStatement := `INSERT INTO choice (choiceid, questionid, data, imagelink, correctcheck)VALUES ($1, $2, $3, $4, $5)`
-		_, err = db.Exec(sqlStatement, c.ChoiceID, c.QuestionID, c.Data, c.ImageLink.URL, c.Check)
+		_, err = db.Exec(sqlStatement, c.ChoiceID, c.QuestionID, c.Data, c.ImageLink[0].URL, c.Check)
 		if err != nil {
 			return err
 		}
 
 	}else if checkExist == nil{
 		sqlStatement := `UPDATE choice SET data=$1, imagelink=$2, correctcheck=$3 WHERE choiceid=$4`
-		_, err = db.Exec(sqlStatement, c.Data, c.ImageLink.URL, c.Check, c.ChoiceID)
+		_, err = db.Exec(sqlStatement, c.Data, c.ImageLink[0].URL, c.Check, c.ChoiceID)
 		if err != nil {
 			return err
 		}

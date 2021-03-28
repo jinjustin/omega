@@ -25,7 +25,7 @@ type AllQuestionInGroup struct{
 //WithChoice is struct that use to get and return question and choice in test.
 type WithChoice struct{
 	QuestionID string `json:"questionID"`
-	TestID string `json:"testID"`
+	//TestID string `json:"testID"`
 	GroupID string `json:"groupID"`
 	QuestionName string `json:"question"`
 	QuestionType string `json:"type"`

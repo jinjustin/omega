@@ -304,7 +304,6 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					return nil, err
 				}
 				qwc.GroupID = id
-				qwc.TestID = ""
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
 				questionDataRows, err := db.Query(sqlStatement, id, qwc.QuestionID)
@@ -328,11 +327,13 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer choiceRows.Close()
 			
 				for choiceRows.Next() {
-					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
+					var io choice.ImageObject
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&io.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
-					questionChoice.ImageLink.UID = -1
+					io.UID = -1
+					questionChoice.ImageLink = append(questionChoice.ImageLink,io)
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
@@ -388,7 +389,6 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					return nil, err
 				}
 				qwc.GroupID = id
-				qwc.TestID = testID
 
 				sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
 				questionDataRows, err := db.Query(sqlStatement, id, qwc.QuestionID)
@@ -412,11 +412,13 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer choiceRows.Close()
 			
 				for choiceRows.Next() {
-					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&questionChoice.ImageLink.URL,&questionChoice.Check)
+					var io choice.ImageObject
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&io.URL,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
-					questionChoice.ImageLink.UID = -1
+					io.UID = -1
+					questionChoice.ImageLink = append(questionChoice.ImageLink,io)
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
@@ -763,7 +765,8 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 
 		for _, choice := range q.ChoiceDetail{
-			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, choice.ImageLink.URL, choice.Check)
+			imageLink := choice.ImageLink[0].URL
+			err = choicecontroller.AddNewChoice(choice.ChoiceID, q.QuestionID, choice.Data, imageLink, choice.Check)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
             		return

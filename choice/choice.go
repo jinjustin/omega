@@ -10,7 +10,7 @@ type Choice struct{
 	ChoiceID string `json:"choiceID"`
 	QuestionID string `json:"questionID"`
 	Data string `json:"data"`
-	ImageLink ImageObject `json:"imageLink"`
+	ImageLink []ImageObject `json:"imageLink"`
 	Check string `json:"check"`
 }
 
