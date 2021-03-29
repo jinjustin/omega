@@ -507,32 +507,32 @@ func sortDate(testdates []string) ([]string, error) {
 		for num2, j := range testdates {
 			check := false
 
-			yearI, err := strconv.Atoi(i[6:10])
+			yearI, err := strconv.Atoi(i[0:4])
 			if err != nil {
 				return testdates, err
 			}
 
-			yearJ, err := strconv.Atoi(j[6:10])
+			yearJ, err := strconv.Atoi(j[0:4])
 			if err != nil {
 				return testdates, err
 			}
 
-			monthI, err := strconv.Atoi(i[3:5])
+			monthI, err := strconv.Atoi(i[5:7])
 			if err != nil {
 				return testdates, err
 			}
 
-			monthJ, err := strconv.Atoi(j[3:5])
+			monthJ, err := strconv.Atoi(j[5:7])
 			if err != nil {
 				return testdates, err
 			}
 
-			dayI, err := strconv.Atoi(i[0:2])
+			dayI, err := strconv.Atoi(i[8:10])
 			if err != nil {
 				return testdates, err
 			}
 
-			dayJ, err := strconv.Atoi(j[0:2])
+			dayJ, err := strconv.Atoi(j[8:10])
 			if err != nil {
 				return testdates, err
 			}
@@ -582,21 +582,9 @@ func sortTime(testdata []test.Test) ([]test.Test, error) {
 				return testdata, err
 			}
 
-			secondI, err := strconv.Atoi(i.Timestart[6:8])
-			if err != nil {
-				return testdata, err
-			}
-
-			secondJ, err := strconv.Atoi(j.Timestart[6:8])
-			if err != nil {
-				return testdata, err
-			}
-
 			if hourI < hourJ {
 				check = true
 			} else if minuteI < minuteJ && hourI == hourJ {
-				check = true
-			} else if secondI < secondJ && minuteI == minuteJ && hourI == hourJ {
 				check = true
 			}
 
