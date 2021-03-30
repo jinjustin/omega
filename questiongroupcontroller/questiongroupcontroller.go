@@ -981,31 +981,24 @@ var AllGroupTestListPost = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 
 	courseID := r.Header.Get("CourseID")
 
-		for grouporder, item := range grouptestList{
-			err = testbankUpdate("", item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, "", 0, grouporder)
+		for grouporder, g := range grouptestList{
+			err = testbankUpdate("", g.ID, g.GroupName, "", "", "", courseID, "", 0, grouporder)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				fmt.Println(err)
             		return
 			}
-			questionGroupInTest = append(questionGroupInTest, item.ID)
-			/*for _, questionItem := range item.QuestionList{
-				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
-				if err != nil{
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					fmt.Println(err)
-            			return
-				}
+			questionGroupInTest = append(questionGroupInTest, g.ID)
+			for _, questionItem := range g.QuestionList{
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
-			}*/
-			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,item.ID)
+			}
+			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,g.ID)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
             		return
 			}
 			questionInGroup = nil
 		}
-	
 
 	deleteQuestionGroupFromTestbank(questionGroupInTest, courseID)
 
