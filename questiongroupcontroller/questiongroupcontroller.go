@@ -64,7 +64,7 @@ func groupTestListUpdate(name string, questiongroupID string, questiongroupName 
 
 		if(checkQuestionGroupExist(questiongroupID)){
 			sqlStatement := `INSERT INTO questiongroup (name, id, groupname, numquestion, maxquestion, score, courseid, testid, uuid, headerorder, grouporder)VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
-			_, err = db.Exec(sqlStatement, g.Name, g.ID, g.GroupName, "", "", "", g.CourseID, "", "", 0, g.GroupOrder)
+			_, err = db.Exec(sqlStatement, "", g.ID, g.GroupName, "", "", "", g.CourseID, "", "", 0, g.GroupOrder)
 			if err != nil {
 				return err
 			}
@@ -393,7 +393,12 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 		if err != nil {
 			return nil, err
 		}
-		i.QuestionList = allQuestionInGroup
+
+		if allQuestionInGroup == nil{
+			i.QuestionList = make([]question.AllQuestionInGroup, 0)
+		}else{
+			i.QuestionList = allQuestionInGroup
+		}
 
 		groupItems = append(groupItems, i)
 	}
@@ -777,7 +782,6 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
             return
 	}
-
 
 	var input Input
 

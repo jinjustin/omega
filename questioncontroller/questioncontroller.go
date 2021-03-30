@@ -1,7 +1,7 @@
 package questioncontroller
 
 import (
-	//"fmt"
+	"fmt"
 	//"crypto/rand"
 	//"github.com/jmoiron/sqlx"
 	"database/sql"
@@ -44,9 +44,11 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 
 	if testID ==""{
 
+		fmt.Println("Update In testbank")
 		checkExist := checkQuestionExist(questionID)
 
 		if checkExist == sql.ErrNoRows{
+			fmt.Println("Add new question to testbank.")
 			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
 			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 			if err != nil {
@@ -60,6 +62,7 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 			}
 
 		}else if checkExist == nil{
+			fmt.Println("Update question to testbank.")
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2 WHERE questionid=$3`
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.QuestionID)
 			if err != nil {
@@ -83,6 +86,7 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 
 		if checkInTest == sql.ErrNoRows{
 			if checkExist == sql.ErrNoRows{
+				fmt.Println("Create new question and Add to test.")
 				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
 				_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID ,q.QuestionType)
 				if err != nil {
@@ -102,8 +106,15 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 				}
 
 			}else if checkExist == nil{
+				fmt.Println("Add question to test.")
 				sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ($1, $2, $3, $4, $5)`
 				_, err = db.Exec(sqlStatement, q.TestID, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
+				if err != nil {
+					return err
+				}
+
+				sqlStatement = `UPDATE questiondata SET data=$1 WHERE questionid=$2 and groupid=$3`
+				_, err = db.Exec(sqlStatement,q.Data, q.QuestionID, q.GroupID)
 				if err != nil {
 					return err
 				}
@@ -111,6 +122,8 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 				return checkExist
 			}
 		}else if checkInTest == nil {
+			fmt.Println("Update question in test.")
+
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2 WHERE questionid=$3`
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.QuestionID)
 			if err != nil {
@@ -328,12 +341,19 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 			
 				for choiceRows.Next() {
 					var io choice.ImageObject
-					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&io.URL,&questionChoice.Check)
+					var url string
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&url,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
-					io.UID = -1
-					questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+					if url == ""{
+						questionChoice.ImageLink = make([]choice.ImageObject, 0)
+					}else{
+						io.URL = url
+						io.UID = -1
+						questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+					}
+					
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
@@ -413,12 +433,18 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 			
 				for choiceRows.Next() {
 					var io choice.ImageObject
-					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&io.URL,&questionChoice.Check)
+					var url string
+					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&url,&questionChoice.Check)
 					if err != nil {
 						return nil, err
 					}
-					io.UID = -1
-					questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+					if url == ""{
+						questionChoice.ImageLink = make([]choice.ImageObject, 0)
+					}else{
+						io.URL = url
+						io.UID = -1
+						questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+					}
 					questionChoices = append(questionChoices, questionChoice)
 				}
 
