@@ -25,7 +25,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/jasonlvhit/gocron"
+	//"github.com/jasonlvhit/gocron"
 	//"github.com/gin-gonic/gin"
 	//"github.com/gin-gonic/contrib/static"
 
