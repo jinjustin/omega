@@ -781,9 +781,12 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
             return
 	}
 
+	fmt.Println(questionWithChoices)
+
 	testID := r.Header.Get("TestId")
 
 	for _, q := range questionWithChoices {
+		fmt.Println(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
