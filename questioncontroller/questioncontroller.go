@@ -822,7 +822,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	testID := r.Header.Get("TestId")
 	check := false
 
-	if testID != ""{
+	if testID == ""{
 		testID = testcontroller.GenerateTestID()
 		check = true
 	}
