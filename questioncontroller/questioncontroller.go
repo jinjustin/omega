@@ -820,9 +820,11 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	}
 
 	testID := r.Header.Get("TestId")
+	fmt.Println(testID)
 	check := false
 
 	if testID == ""{
+		fmt.Println("Enter Case")
 		testID = testcontroller.GenerateTestID()
 		check = true
 	}

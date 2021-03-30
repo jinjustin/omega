@@ -957,3 +957,58 @@ var GetAllHeaderInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(allHeaderInTest)
 })
+
+
+var AllGroupTestListPost = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	var grouptestList []questiongroup.GrouptestList
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		http.Error(w, "can't read body", http.StatusBadRequest)
+            return
+	}
+
+	err = json.Unmarshal(reqBody,&grouptestList)
+	if err != nil{
+		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
+            return
+	}
+
+	var questionGroupInTest []string
+
+	var questionInGroup []string
+
+	courseID := r.Header.Get("CourseID")
+
+		for grouporder, item := range grouptestList{
+			err = testbankUpdate("", item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, "", 0, grouporder)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				fmt.Println(err)
+            		return
+			}
+			questionGroupInTest = append(questionGroupInTest, item.ID)
+			/*for _, questionItem := range item.QuestionList{
+				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
+				if err != nil{
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					fmt.Println(err)
+            			return
+				}
+				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
+			}*/
+			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,item.ID)
+			if err != nil{
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+			}
+			questionInGroup = nil
+		}
+	
+
+	deleteQuestionGroupFromTestbank(questionGroupInTest, courseID)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - OK"))
+})
