@@ -819,9 +819,13 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
             return
 	}
 
-	fmt.Println(questionWithChoices)
+	testID := r.Header.Get("TestId")
+	check := false
 
-	testID := testcontroller.GenerateTestID()
+	if testID != ""{
+		testID = testcontroller.GenerateTestID()
+		check = true
+	}
 
 	for _, q := range questionWithChoices {
 		//fmt.Println(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
@@ -852,7 +856,12 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 	//DeleteQuestionFromTest(questionInTest, testID)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(testID))
+	if check{
+		w.Write([]byte(testID))
+	}else{
+		w.Write([]byte(""))
+	}
+	
 })
 
 
