@@ -792,7 +792,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	var questionInTest []string
 
-	//var questionInGroup []string
+	var questionInGroup []string
 
 	courseID := r.Header.Get("CourseID")
 
@@ -816,13 +816,13 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
             		return
 			}
 			questionInTest = append(questionInTest, item.ID)
-			/*for _, questionItem := range item.QuestionList{
-				err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
+			for _, questionItem := range item.QuestionList{
+				/*err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					fmt.Println(err)
             			return
-				}
+				}*/
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
 			}
 			err = questioncontroller.DeleteQuestionFromGroupInTest(questionInGroup,testID,item.ID)
@@ -830,7 +830,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 				http.Error(w, err.Error(), http.StatusInternalServerError)
             		return
 			}
-			questionInGroup = nil*/
+			questionInGroup = nil
 		}
 	}
 
@@ -915,7 +915,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
             		return
 			}
 			questionGroupInTest = append(questionGroupInTest, item.ID)
-			for _, questionItem := range item.QuestionList{
+			/*for _, questionItem := range item.QuestionList{
 				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -923,7 +923,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
             			return
 				}
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
-			}
+			}*/
 			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,item.ID)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
