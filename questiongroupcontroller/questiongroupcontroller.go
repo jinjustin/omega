@@ -10,7 +10,7 @@ import (
 	"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/questioncontroller"
 	"github.com/jinjustin/omega/questiongroup"
-	"github.com/jinjustin/omega/testcontroller"
+	//"github.com/jinjustin/omega/testcontroller"
 
 	//"github.com/jinjustin/omega/test"
 
@@ -798,13 +798,6 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	testID := r.Header.Get("TestId")
 
-	check := false
-
-	if testID == ""{
-		testID = testcontroller.GenerateTestID()
-		check = true
-	}
-
 
 	for headerorder, uuid := range uuids {
 		input = objmap[uuid]
@@ -817,12 +810,12 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			}
 			questionInTest = append(questionInTest, item.ID)
 			for _, questionItem := range item.QuestionList{
-				/*err = questioncontroller.AddNewQuestion(item.ID, testID, questionItem.QuestionName, questionItem.QuestionID,"","")
+				err = questioncontroller.UpdateQuestionToTest(testID,questionItem.QuestionID,item.ID, questionItem.QuestionName)
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					fmt.Println(err)
             			return
-				}*/
+				}
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
 			}
 			err = questioncontroller.DeleteQuestionFromGroupInTest(questionInGroup,testID,item.ID)
@@ -836,11 +829,7 @@ var GroupTestListUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 	deleteQuestionGroupFromTest(questionInTest, testID, courseID)
 	w.WriteHeader(http.StatusOK)
-	if check{
-		w.Write([]byte(testID))
-	}else{
-		w.Write([]byte(""))
-	}
+		w.Write([]byte("200 - OK"))
 })
 
 //GetGroupInTest is a API that use to get all group test in the test.

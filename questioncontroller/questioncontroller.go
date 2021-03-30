@@ -10,6 +10,7 @@ import (
 	"github.com/jinjustin/omega/choicecontroller"
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
+	"github.com/jinjustin/omega/testcontroller"
 	//"github.com/sqs/goreturns/returns"
 
 	//"omega/authentication"
@@ -573,6 +574,43 @@ func DeleteQuestionFromTest(questionInGroup []string, testID string) error{
 	return nil
 }
 
+func UpdateQuestionToTest(testID string, questionID string, groupID string, questionName string) error{
+
+	var questiontype string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT questiontype FROM question WHERE questionid=$1 and groupid=$2`
+	questionGroupRows, err := db.Query(sqlStatement, questionID, groupID)
+	if err != nil {
+		return err
+	}
+	defer questionGroupRows.Close()
+
+	for questionGroupRows.Next() {
+		err = questionGroupRows.Scan(&questiontype)
+		if err != nil {
+			return err
+		}
+	}
+	err = questionGroupRows.Err()
+	if err != nil {
+		return err
+	}
+
+	sqlStatement = `INSERT INTO question (testid, groupid, questionid, questionname, questiontype)VALUES ($1, $2, $3, $4, $5)`
+	_, err = db.Exec(sqlStatement, testID, groupID, questionID, questionName, questiontype)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //DeleteQuestionFromTestbank is a function that use to auto delete question in questiongroup.
 func DeleteQuestionFromTestbank(questionInGroup []string, groupID string) error{
 	
@@ -765,7 +803,7 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 	var questionWithChoices []question.WithChoice
 
-	var questionInTest []string
+	//var questionInTest []string
 
 	var choiceInQuestion []string
 
@@ -783,11 +821,11 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 	fmt.Println(questionWithChoices)
 
-	testID := r.Header.Get("TestId")
+	testID := testcontroller.GenerateTestID()
 
 	for _, q := range questionWithChoices {
-		fmt.Println(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
-		err = AddNewQuestion(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+		//fmt.Println(q.GroupID, testID, q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
+		err = AddNewQuestion(q.GroupID, "", q.QuestionName, q.QuestionID, q.QuestionType, q.Data)
 		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -809,12 +847,12 @@ var UpdateAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		}
 		choicecontroller.DeleteChoiceFromQuestion(choiceInQuestion, q.QuestionID)
 		choiceInQuestion = nil
-		questionInTest = append(questionInTest, q.QuestionID)
+		//questionInTest = append(questionInTest, q.QuestionID)
 	}
 
-	DeleteQuestionFromTest(questionInTest, testID)
+	//DeleteQuestionFromTest(questionInTest, testID)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("200 - OK"))
+	w.Write([]byte(testID))
 })
 
 
