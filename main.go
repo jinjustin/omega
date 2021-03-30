@@ -178,10 +178,10 @@ func middleware(next http.Handler) http.Handler {
 	})
 }
 
-func executeCronJob() {
+/*func executeCronJob() {
 	gocron.Every(60).Second().Do(testcontroller.UpdateTestSituation)
 	<-gocron.Start()
-}
+}*/
 
 func handleRequests() {
 	myRouter := mux.NewRouter()
@@ -275,6 +275,6 @@ func handleRequests() {
 }
 
 func main() {
-	go executeCronJob()
+	//go executeCronJob()
 	handleRequests()
 }
