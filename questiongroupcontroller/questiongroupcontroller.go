@@ -401,6 +401,8 @@ func getGroupInTestbank(courseID string) ([]questiongroup.GroupItem, error){
 			i.QuestionList = allQuestionInGroup
 		}
 
+		allQuestionInGroup = nil
+
 		groupItems = append(groupItems, i)
 	}
 	err = rows.Err()
