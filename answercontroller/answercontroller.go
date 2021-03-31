@@ -940,6 +940,8 @@ var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
             return
 	}
 
+	fmt.Println(questionAndChoiceWithoutCorrectCheck)
+
 	testID := r.Header.Get("TestId")
 
 	studentID := authentication.GetUsername(r)
