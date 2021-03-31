@@ -576,8 +576,6 @@ func getAllQuestionForTest(courseID string) ([]byte, error) {
 			}
 			
 			choiceWIthoutCorrectChecks = nil
-
-			qac.Answer = make([]string, 0)
 			questionAndChoicesWithoutCorrectChecks = append(questionAndChoicesWithoutCorrectChecks, qac)
 		}
 		err = questionRows.Err()

@@ -19,6 +19,7 @@ type WithoutCorrectCheck struct{
 	ChoiceID string `json:"choiceID"`
 	Data string `json:"data"`
 	ImageLink []ImageObject `json:"imageLink"`
+	Answer string `json:"answer"`
 }
 
 type ImageObject struct{

@@ -41,7 +41,6 @@ type AndChoiceWithoutCorrectCheck struct{
 	QuestionType string `json:"type"`
 	Data string `json:"data"`
 	ChoiceDetail []choice.WithoutCorrectCheck `json:"choice"`
-	Answer []string `json:"answer"`
 }
 
 // GetQuestionDetail is a function that use to get question detail in JSON form.
