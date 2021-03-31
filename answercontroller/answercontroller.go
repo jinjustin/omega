@@ -417,6 +417,12 @@ func getAllStudentAnswerInformation(testID string) ([]answer.StudentAnswerInform
 
 func scoringAnswer(testID string, studentID string, questionID string, score string) error{
 
+	_, errTest := strconv.Atoi(score)
+
+	if errTest != nil{
+		return errTest
+	}
+
 	var b []byte
 	var allStudentAnswer []answer.Info
 	var checkedAnswer string
@@ -448,7 +454,7 @@ func scoringAnswer(testID string, studentID string, questionID string, score str
 
 	err = json.Unmarshal(b,&allStudentAnswer)
 	if err != nil{
-        return err
+		return err
 	}
 
 	checkedAnswerf, err := strconv.ParseFloat(checkedAnswer, 64)
@@ -458,11 +464,10 @@ func scoringAnswer(testID string, studentID string, questionID string, score str
 
 	for num, a := range allStudentAnswer{
 
-		if a.Score == "-"{
-			checkedAnswerf += 1.0
-		}
-
 		if a.QuestionID == questionID{
+			if a.Score == "-"{
+				checkedAnswerf += 1.0
+			}
 			allStudentAnswer[num].Score = score
 		}
 	}
