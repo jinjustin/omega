@@ -11,22 +11,25 @@ import (
 
 	"github.com/jinjustin/omega/answer"
 	"github.com/jinjustin/omega/database"
+	//"github.com/jinjustin/omega/question"
 
 	//"github.com/jinjustin/omega/authentication"
 
 	"net/http"
 	//"encoding/json"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
-	"math"
 )
 
-func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) error {
+/*func submitAnswer(testID string, studentID string, qwc []question.AndChoiceWithoutCorrectCheck) error {
 
 	var data string
 	var groupID string
 	var score string
+	var a answer.Info
+	var studentAnswer []answer.Info
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -123,7 +126,125 @@ func submitAnswer(testID string, studentID string, studentAnswer []answer.Info) 
 	}
 
 	return nil
-}
+}*/
+
+/*func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswer []question.AndChoiceWithoutCorrectCheck) error {
+
+	var groupID string
+	var score string
+	var a answer.Info
+	var studentAnswer []answer.Info
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	for _, qwc := range questionAndChoiceWithoutAnswer{
+		a.QuestionID = qwc.QuestionID
+		a.QuestionType = qwc.QuestionType
+		a.Data = qwc.Data
+
+		sqlStatement := `SELECT groupid FROM question WHERE questionid=$1 and testid=$2;`
+		questionRows, err := db.Query(sqlStatement, a.QuestionID, testID)
+		if err != nil {
+			return err
+		}
+		defer questionRows.Close()
+	
+		for questionRows.Next() {
+			err = questionRows.Scan(&groupID)
+			if err != nil {
+				return err
+			}
+		}
+		err = questionRows.Err()
+		if err != nil {
+			return err
+		}
+
+		sqlStatement = `SELECT score FROM questiongroup WHERE id=$1 and testid=$2;`
+		questionGroupRows, err := db.Query(sqlStatement, groupID, testID)
+		if err != nil {
+			return err
+		}
+		defer questionGroupRows.Close()
+	
+		for questionGroupRows.Next() {
+			err = questionGroupRows.Scan(&score)
+			if err != nil {
+				return err
+			}
+		}
+		err = questionGroupRows.Err()
+		if err != nil {
+			return err
+		}
+
+		a.MaxScore = score
+		if a.QuestionType == "Choice"{
+			for _, ans := range qwc.ChoiceDetail{
+				if ans.Answer == "true"{
+					a.Answer = append(a.Answer, ans.ChoiceID)
+				}
+			}
+		}else if a.QuestionType == "Pair"{
+			for _, ans := range qwc.ChoiceDetail{
+				pairAnswer := ans.ChoiceID + ":" + ans.Answer
+				a.Answer = append(a.Answer, pairAnswer)
+			}
+		}else if a.QuestionType == "Short Answer"{
+			for _, ans := range qwc.ChoiceDetail{
+				shortAnswer := ans.Answer
+				if shortAnswer == ""{
+					a.Answer = append(a.Answer, "")
+				}else{
+					a.Answer = append(a.Answer, ans.Answer)
+				}
+			}
+		}else if a.QuestionType == "Write-up"{
+			for _, ans := range qwc.ChoiceDetail{
+				writeAnswer := ans.Answer
+				if writeAnswer == ""{
+					a.Answer = append(a.Answer, "")
+				}else{
+					a.Answer = append(a.Answer, ans.Answer)
+				}
+			}
+		}else if a.QuestionType == "Upload Answer"
+	}
+
+	b, err := json.Marshal(studentAnswer)
+	if err != nil {
+		panic(err)
+	}
+
+	checkExist := checkAnswerExist(testID, studentID)
+
+	if checkExist == sql.ErrNoRows{
+		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6);`
+		_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
+		if err != nil {
+			return err
+		}
+	}else if checkExist == nil{
+		sqlStatement := `UPDATE answer SET studentanswer=$1 WHERE testid=$2 and studentid=$3;`
+		_, err = db.Exec(sqlStatement, b, testID, studentID)
+		if err != nil {
+			return err
+		}
+	}else{
+		return checkExist
+	}
+
+	err = autoScoring(studentAnswer,testID,studentID)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}*/
 
 func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.Info, error){
 
@@ -793,7 +914,7 @@ func checkAnswerExist(testID string, studentID string) error {
 //API
 
 //SubmitAnswer is a function that use to store student answer to database.
-var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+/*var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	var studentAnswer []answer.Info
 
@@ -821,7 +942,7 @@ var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
-})
+})*/
 
 //GetAnswer is a function that use to get student answer from database.
 var GetAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

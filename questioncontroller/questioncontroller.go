@@ -775,7 +775,7 @@ func DeleteQuestionFromTestbank(questionInGroup []string, groupID string) error{
 			}
 
 			sqlStatement = `DELETE from questiondata WHERE questionid=$1;`
-			_, err = db.Exec(sqlStatement, questionID, groupID)
+			_, err = db.Exec(sqlStatement, questionID)
 			if err != nil {
 				return err
 			}

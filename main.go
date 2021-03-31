@@ -254,7 +254,7 @@ func handleRequests() {
 
 	myRouter.Handle("/changestudentpassword",middlewareStudent(coursemembercontroller.ChangeStudentPassword)).Methods("POST")
 
-	myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
+	//myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
 	myRouter.Handle("/getstudentAnswer", answercontroller.GetAnswer).Methods("GET")
 	myRouter.Handle("/scoreAnswer", answercontroller.ScoringAnswer).Methods("POST")
 	myRouter.Handle("/getallstudentanswerinformation", answercontroller.GetAllStudentAnswerInformation).Methods("GET")
