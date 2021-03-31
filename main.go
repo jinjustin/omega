@@ -220,7 +220,7 @@ func handleRequests() {
 	myRouter.Handle("/getusername", authentication.GetUsers).Methods("POST")
 	
 	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GroupTestListUpdate)).Methods("POST")
-	myRouter.Handle("/grouptestlistupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTest)).Methods("GET")
+	myRouter.Handle("/grouptestlistupdate",middleware(questiongroupcontroller.GetGroupInTest)).Methods("GET")
 
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.TestbankUpdate)).Methods("POST")
 	myRouter.Handle("/testbankupdate",middlewareTeacher(questiongroupcontroller.GetGroupInTestbank)).Methods("GET")
