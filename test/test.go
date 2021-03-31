@@ -18,6 +18,19 @@ type Test struct{
 	Situation string
 }
 
+type ForStudent struct{
+	TestID string
+	CourseCode string
+	CourseID string
+	Status string
+	Topic string
+	Duration string
+	Timestart string
+	Datestart string
+	Description string
+	Situation string
+}
+
 type FinishTest struct{
 	TestID string `json:"testID"`
 	Topic string `json:"topic"`

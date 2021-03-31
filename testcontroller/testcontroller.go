@@ -407,7 +407,7 @@ func checkTestExist(testID string) error {
 	return err
 }
 
-func studentGetTestList(studentID string) ([]byte, error) {
+/*func studentGetTestList(studentID string) ([]byte, error) {
 
 	var testList []test.Test
 
@@ -497,6 +497,96 @@ func studentGetTestList(studentID string) ([]byte, error) {
 	}
 
 	return b, nil
+}*/
+
+func studentGetTestList(studentID string) ([]byte, error) {
+
+	var testList []test.ForStudent
+
+	var testData []test.ForStudent
+
+	var t test.ForStudent
+
+	var testdates []string
+
+	o := orderedmap.New()
+
+	courselist, err := coursecontroller.GetStudentCourseList(studentID)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	for _, c := range courselist {
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='false' and situation != 'finish';`
+		rows, err := db.Query(sqlStatement, c.CourseCode)
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart)
+			if err != nil {
+				return nil, err
+			}
+			t.CourseCode = c.CourseCode
+			t.Status = "false"
+			t.CourseID = c.CourseID
+			testList = append(testList, t)
+
+			check := true
+
+			for _, d := range testdates {
+				if d == t.Datestart {
+					check = false
+				}
+			}
+
+			if check {
+				testdates = append(testdates, t.Datestart)
+			}
+
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sortedDate, err := sortDate(testdates)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range sortedDate {
+		for _, l := range testList {
+			if d == l.Datestart {
+				t = l
+				testData = append(testData, t)
+			}
+		}
+
+		sortedTestData, err := sortTime(testData)
+		if err != nil {
+			return nil, err
+		}
+
+		o.Set(d, sortedTestData)
+		testData = nil
+	}
+
+	b, err := o.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 //sortDate is a function that use to sort date
@@ -555,7 +645,7 @@ func sortDate(testdates []string) ([]string, error) {
 }
 
 //sortTime is a function that use to sort date
-func sortTime(testdata []test.Test) ([]test.Test, error) {
+func sortTime(testdata []test.ForStudent) ([]test.ForStudent, error) {
 	//var date string
 
 	for num1, i := range testdata {
