@@ -11,6 +11,7 @@ import (
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
 	"github.com/jinjustin/omega/testcontroller"
+	"github.com/jinjustin/omega/authentication"
 	//"github.com/sqs/goreturns/returns"
 
 	//"omega/authentication"
@@ -1072,7 +1073,8 @@ var GetAllQuestionForTest = http.HandlerFunc(func(w http.ResponseWriter, r *http
 
 	courseID := r.Header.Get("CourseID")
 	testID := r.Header.Get("TestId")
-	studentID := r.Header.Get("StudentID")
+	studentID := authentication.GetUsername(r)
+	
 
 	exam, err := getExam(testID, studentID)
 	if err == sql.ErrNoRows{
@@ -1093,7 +1095,7 @@ var GetAllQuestionForTest = http.HandlerFunc(func(w http.ResponseWriter, r *http
 var InputExam = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	testID := r.Header.Get("TestId")
-	studentID := r.Header.Get("StudentID")
+	studentID := authentication.GetUsername(r)
 
 	reqBody, _ := ioutil.ReadAll(r.Body)
 
