@@ -44,12 +44,9 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 	defer db.Close()
 
 	if testID ==""{
-
-		fmt.Println("Update In testbank")
 		checkExist := checkQuestionExist(questionID)
 
 		if checkExist == sql.ErrNoRows{
-			fmt.Println("Add new question to testbank.")
 			sqlStatement := `INSERT INTO question (testid, groupid, questionname, questionid, questiontype)VALUES ('', $1, $2, $3, $4)`
 			_, err = db.Exec(sqlStatement, q.GroupID, q.QuestionName, q.QuestionID, q.QuestionType)
 			if err != nil {
@@ -63,7 +60,6 @@ func AddNewQuestion(groupID string, testID string, questionName string, question
 			}
 
 		}else if checkExist == nil{
-			fmt.Println("Update question to testbank.")
 			sqlStatement := `UPDATE question SET questionname=$1, questiontype=$2 WHERE questionid=$3`
 			_, err = db.Exec(sqlStatement, q.QuestionName, q.QuestionType, q.QuestionID)
 			if err != nil {
@@ -478,6 +474,128 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 	return b, nil
 }
 
+func getAllQuestionForTest(courseID string) ([]byte, error) {
+
+	var choiceWIthoutCorrectCheck choice.WithoutCorrectCheck
+
+	var qac question.AndChoiceWithoutCorrectCheck
+
+	var questionAndChoicesWithoutCorrectChecks []question.AndChoiceWithoutCorrectCheck
+
+	var choiceWIthoutCorrectChecks []choice.WithoutCorrectCheck
+
+	var groupIDs []string
+
+	var groupID string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT id FROM questiongroup WHERE testid='' and courseid=$1`
+	questiongroupRows, err := db.Query(sqlStatement, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer questiongroupRows.Close()
+
+	for questiongroupRows.Next() {
+		err = questiongroupRows.Scan(&groupID)
+		if err != nil {
+			return nil, err
+		}
+
+		groupIDs = append(groupIDs, groupID)
+	}
+	err = questiongroupRows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range groupIDs{
+		sqlStatement := `SELECT questionid, questionname, questiontype FROM question WHERE testid='' and groupid=$1`
+		questionRows, err := db.Query(sqlStatement, id)
+		if err != nil {
+			return nil, err
+		}
+		defer questionRows.Close()
+	
+		for questionRows.Next() {
+			err = questionRows.Scan(&qac.QuestionID, &qac.QuestionName, &qac.QuestionType)
+			if err != nil {
+				return nil, err
+			}
+			qac.GroupID = id
+
+			sqlStatement = `SELECT data FROM questiondata WHERE groupid=$1 and questionid=$2`
+			questionDataRows, err := db.Query(sqlStatement, id, qac.QuestionID)
+			if err != nil {
+				return nil, err
+			}
+			defer questionDataRows.Close()
+		
+			for questionDataRows.Next() {
+				err = questionDataRows.Scan(&qac.Data)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			sqlStatement = `SELECT choiceid, data, imagelink FROM choice WHERE questionid=$1`
+			choiceRows, err := db.Query(sqlStatement, qac.QuestionID)
+			if err != nil {
+				return nil, err
+			}
+			defer choiceRows.Close()
+		
+			for choiceRows.Next() {
+				var io choice.ImageObject
+				var url string
+				err = choiceRows.Scan(&choiceWIthoutCorrectCheck.ChoiceID,&choiceWIthoutCorrectCheck.Data,&url)
+				if err != nil {
+					return nil, err
+				}
+				if url == ""{
+					choiceWIthoutCorrectCheck.ImageLink = make([]choice.ImageObject, 0)
+				}else{
+					io.URL = url
+					io.UID = -1
+					choiceWIthoutCorrectCheck.ImageLink = append(choiceWIthoutCorrectCheck.ImageLink,io)
+				}
+				
+				choiceWIthoutCorrectChecks = append(choiceWIthoutCorrectChecks, choiceWIthoutCorrectCheck)
+			}
+
+			if choiceWIthoutCorrectChecks == nil{
+				qac.ChoiceDetail = make([]choice.WithoutCorrectCheck,0)
+			}else{
+				qac.ChoiceDetail = choiceWIthoutCorrectChecks
+			}
+			
+			choiceWIthoutCorrectChecks = nil
+
+			questionAndChoicesWithoutCorrectChecks = append(questionAndChoicesWithoutCorrectChecks, qac)
+		}
+		err = questionRows.Err()
+		if err != nil {
+			return nil, err
+		}
+	} 
+
+	if questionAndChoicesWithoutCorrectChecks == nil{
+		questionAndChoicesWithoutCorrectChecks = make([]question.AndChoiceWithoutCorrectCheck,0)
+	}
+
+	b,err := json.Marshal(questionAndChoicesWithoutCorrectChecks)
+	if err != nil{
+		return nil, err
+	}
+
+	return b, nil
+}
+
 //DeleteQuestionFromGroupInTest is a function that use to auto delete question in questiongroup from that testID.
 func DeleteQuestionFromGroupInTest(questionInGroup []string, testID string, groupID string) error{
 	
@@ -602,9 +720,15 @@ func UpdateQuestionToTest(testID string, questionID string, groupID string, ques
 		return err
 	}
 
-	sqlStatement = `INSERT INTO question (testid, groupid, questionid, questionname, questiontype)VALUES ($1, $2, $3, $4, $5)`
-	_, err = db.Exec(sqlStatement, testID, groupID, questionID, questionName, questiontype)
-	if err != nil {
+	checkInTest := checkQuestionInTest(questionID, testID)
+
+	if checkInTest == sql.ErrNoRows{
+		sqlStatement = `INSERT INTO question (testid, groupid, questionid, questionname, questiontype)VALUES ($1, $2, $3, $4, $5)`
+		_, err = db.Exec(sqlStatement, testID, groupID, questionID, questionName, questiontype)
+		if err != nil {
+			return err
+		}
+	}else if err != nil{
 		return err
 	}
 
@@ -881,4 +1005,19 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 		}
 	w.WriteHeader(http.StatusOK)
 	w.Write(allQuestionInTest)
+})
+
+//GetAllQuestionForTest is a API that use to get information of all question in course without answer.
+var GetAllQuestionForTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	courseID := r.Header.Get("CourseID")
+
+	allQuestionAndChoiceWithoutCorrectcheck, err := getAllQuestionForTest(courseID)
+
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	w.WriteHeader(http.StatusOK)
+	w.Write(allQuestionAndChoiceWithoutCorrectcheck)
 })

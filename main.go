@@ -245,6 +245,7 @@ func handleRequests() {
 
 	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.UpdateAllQuestionInTest)).Methods("POST")
 	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.GetAllQuestionInTest)).Methods("GET")
+	myRouter.Handle("/getallquestionfortest", middlewareTeacher(questioncontroller.GetAllQuestionForTest)).Methods("GET")
 
 	myRouter.Handle("/getstudentcourselist", middlewareTeacher(coursecontroller.GetStudentCourse)).Methods("GET")
 

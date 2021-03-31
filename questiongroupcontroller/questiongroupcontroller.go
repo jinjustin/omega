@@ -897,7 +897,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	courseID := r.Header.Get("CourseID")
 
 		for grouporder, item := range items{
-			err = testbankUpdate("", item.ID, item.GroupName, item.NumQuestion, item.MaxQuestion, item.Score, courseID, "", 0, grouporder)
+			err = testbankUpdate("", item.ID, item.GroupName, "", "", "", courseID, "", 0, grouporder)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				fmt.Println(err)

@@ -14,6 +14,13 @@ type Choice struct{
 	Check string `json:"check"`
 }
 
+//ChoiceWithoutCorrectCheck is struct that use to represent choice in question.
+type WithoutCorrectCheck struct{
+	ChoiceID string `json:"choiceID"`
+	Data string `json:"data"`
+	ImageLink []ImageObject `json:"imageLink"`
+}
+
 type ImageObject struct{
 	UID int `json:"uid"`
 	URL string `json:"url"`

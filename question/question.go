@@ -33,6 +33,16 @@ type WithChoice struct{
 	ChoiceDetail []choice.Choice `json:"choice"`
 }
 
+type AndChoiceWithoutCorrectCheck struct{
+	QuestionID string `json:"questionID"`
+	//TestID string `json:"testID"`
+	GroupID string `json:"groupID"`
+	QuestionName string `json:"question"`
+	QuestionType string `json:"type"`
+	Data string `json:"data"`
+	ChoiceDetail []choice.WithoutCorrectCheck `json:"choice"`
+}
+
 // GetQuestionDetail is a function that use to get question detail in JSON form.
 func (q Question) GetQuestionDetail() []byte{
 	b,err := json.Marshal(q)
