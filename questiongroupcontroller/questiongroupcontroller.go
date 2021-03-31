@@ -311,6 +311,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 			i.QuestionList = allQuestionInGroup
 
 			GroupItems = append(GroupItems, i)
+			allQuestionInGroup = nil
 		}
 		err = questionGroupRows.Err()
 		if err != nil {
@@ -644,7 +645,6 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var allQuestionInGroup []question.AllQuestionInGroup
 		err = rows.Scan(&grouptest.ID, &grouptest.GroupName)
 		if err != nil {
 			return grouptestList, err
@@ -656,6 +656,8 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 			return grouptestList, err
 		}
 		defer rows.Close()
+
+		var allQuestionInGroup []question.AllQuestionInGroup
 		for rows.Next() {
 			err = rows.Scan(&questionInGroup.QuestionID, &questionInGroup.QuestionName)
 			if err != nil {
