@@ -997,39 +997,6 @@ var TestSortDate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	w.Write([]byte("200 - OK"))
 })
 
-//TestSortTime is a API that use to change draft status of the test
-var TestSortTime = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-	var t test.Test
-
-	time1 := "01:01:00"
-	time2 := "13:30:00"
-	time3 := "13:00:00"
-	time4 := "09:30:00"
-
-	var testdata []test.Test
-
-	t.Timestart = time1
-	testdata = append(testdata, t)
-	t.Timestart = time2
-	testdata = append(testdata, t)
-	t.Timestart = time3
-	testdata = append(testdata, t)
-	t.Timestart = time4
-	testdata = append(testdata, t)
-
-	data, err := sortTime(testdata)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Println(data)
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("200 - OK"))
-})
-
 //StudentGetTestListByDay is a API that student use to get information of all the tests in course.
 var StudentGetTestListByDay = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
