@@ -343,7 +343,7 @@ func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.In
 
 	for _, id := range questionIDs{
 		for _, a := range allStudentAnswer{
-			if id == a.QuestionID && (a.QuestionType != "choice" && a.QuestionType != "pair" && a.QuestionType != "Short Answer"){
+			if id == a.QuestionID && (a.QuestionType != "Choice" && a.QuestionType != "Pair" && a.QuestionType != "Short Answer"){
 				selectedStudentAnswer = append(selectedStudentAnswer, a)
 			} 
 		}
