@@ -12,6 +12,7 @@ import (
 	"github.com/jinjustin/omega/answer"
 	"github.com/jinjustin/omega/database"
 	"github.com/jinjustin/omega/question"
+	"github.com/jinjustin/omega/authentication"
 
 	//"github.com/jinjustin/omega/authentication"
 
@@ -941,7 +942,7 @@ var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 	testID := r.Header.Get("TestId")
 
-	studentID := r.Header.Get("StudentID")
+	studentID := authentication.GetUsername(r)
 
 	err = submitAnswer(testID, studentID, questionAndChoiceWithoutCorrectCheck)
 	if err != nil{
