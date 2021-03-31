@@ -710,7 +710,69 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 		statisticValue.SD = fmt.Sprintf("%.2f", sd)
 	}
 
-	return statisticValue,nil
+	return statisticValue, nil
+}
+
+func studentGetScore (studentID string) ([]answer.StudentScore, error){
+
+	var studentScore []answer.StudentScore
+	var ss answer.StudentScore
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT testid, totalscore FROM answer WHERE studentid=$1 and completepercent='100.00';`
+	answerRows, err := db.Query(sqlStatement, studentID)
+	if err != nil {
+		return nil, err
+	}
+	defer answerRows.Close()
+
+	for answerRows.Next() {
+		err = answerRows.Scan(&ss.TestID,&ss.TotalScore)
+		if err != nil {
+			return nil, err
+		}
+		studentScore = append(studentScore, ss)
+	}
+	err = answerRows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	for num, s := range studentScore{
+		sqlStatement := `SELECT topic FROM test WHERE testid=$1;`
+		testRows, err := db.Query(sqlStatement, s.TestID)
+		if err != nil {
+			return nil, err
+		}
+		defer testRows.Close()
+	
+		for testRows.Next() {
+			err = testRows.Scan(&s.Topic)
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = testRows.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		statisticValue, err := CalculateStatistic(s.TestID)
+		if err != nil{
+			return nil, err
+		}
+		studentScore[num].Max = statisticValue.Max
+		studentScore[num].Min = statisticValue.Min
+		studentScore[num].Mean = statisticValue.Mean
+		studentScore[num].SD = statisticValue.SD
+	}
+
+	return studentScore, nil
 }
 
 func checkAnswerExist(testID string, studentID string) error {
@@ -842,4 +904,18 @@ var GetStatisticValue = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(statisticValue)
+})
+
+var StudentGetScore = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	studentID := r.Header.Get("StudentID")
+
+	studentScores, err := studentGetScore(studentID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(studentScores)
 })

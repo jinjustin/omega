@@ -245,7 +245,7 @@ func handleRequests() {
 
 	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.UpdateAllQuestionInTest)).Methods("POST")
 	myRouter.Handle("/updateallquestionintest", middlewareTeacher(questioncontroller.GetAllQuestionInTest)).Methods("GET")
-	myRouter.Handle("/getallquestionfortest", middlewareTeacher(questioncontroller.GetAllQuestionForTest)).Methods("GET")
+	myRouter.Handle("/getallquestionfortest", middlewareStudent(questioncontroller.GetAllQuestionForTest)).Methods("GET")
 
 	myRouter.Handle("/getstudentcourselist", middlewareTeacher(coursecontroller.GetStudentCourse)).Methods("GET")
 
@@ -258,6 +258,7 @@ func handleRequests() {
 	myRouter.Handle("/scoreAnswer", answercontroller.ScoringAnswer).Methods("POST")
 	myRouter.Handle("/getallstudentanswerinformation", answercontroller.GetAllStudentAnswerInformation).Methods("GET")
 	myRouter.Handle("/getstatisticvalue", answercontroller.GetStatisticValue).Methods("GET")
+	myRouter.Handle("/studentgetscore",middlewareStudent(answercontroller.StudentGetScore)).Methods("POST")
 
 	myRouter.Handle("/addteachertosystem", coursemembercontroller.AddTeacherToSystem).Methods("POST")
 	
