@@ -224,6 +224,7 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 			}
 		}
 		a.Score = "-"
+		studentAnswer = append(studentAnswer, a)
 	}
 
 	b, err := json.Marshal(studentAnswer)
