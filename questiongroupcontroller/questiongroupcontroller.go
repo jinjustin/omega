@@ -583,7 +583,7 @@ func deleteQuestionGroupFromTestbank(questionGroupInTest []string, courseID stri
 				panic(err)
 			}
 
-			sqlStatement = `SELECT id FROM question WHERE groupid=$1;`
+			sqlStatement = `SELECT questionid FROM question WHERE groupid=$1;`
 			questionRows, err := db.Query(sqlStatement, groupID)
 			if err != nil {
 				panic(err)

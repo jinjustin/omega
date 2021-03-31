@@ -11,7 +11,7 @@ import (
 
 	"github.com/jinjustin/omega/answer"
 	"github.com/jinjustin/omega/database"
-	//"github.com/jinjustin/omega/question"
+	"github.com/jinjustin/omega/question"
 
 	//"github.com/jinjustin/omega/authentication"
 
@@ -128,7 +128,7 @@ import (
 	return nil
 }*/
 
-/*func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswer []question.AndChoiceWithoutCorrectCheck) error {
+func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswer []question.AndChoiceWithoutCorrectCheck) error {
 
 	var groupID string
 	var score string
@@ -212,7 +212,16 @@ import (
 					a.Answer = append(a.Answer, ans.Answer)
 				}
 			}
-		}else if a.QuestionType == "Upload Answer"
+		}else if a.QuestionType == "Upload Answer"{
+			for _, ans := range qwc.ChoiceDetail{
+				writeAnswer := ans.Answer
+				if writeAnswer == ""{
+					a.Answer = append(a.Answer, "")
+				}else{
+					a.Answer = append(a.Answer, ans.Answer)
+				}
+			}
+		}
 	}
 
 	b, err := json.Marshal(studentAnswer)
@@ -244,7 +253,7 @@ import (
 	}
 
 	return nil
-}*/
+}
 
 func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.Info, error){
 
@@ -914,9 +923,9 @@ func checkAnswerExist(testID string, studentID string) error {
 //API
 
 //SubmitAnswer is a function that use to store student answer to database.
-/*var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+var SubmitAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	var studentAnswer []answer.Info
+	var questionAndChoiceWithoutCorrectCheck []question.AndChoiceWithoutCorrectCheck
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil{
@@ -924,7 +933,7 @@ func checkAnswerExist(testID string, studentID string) error {
             return
 	}
 
-	err = json.Unmarshal(reqBody,&studentAnswer)
+	err = json.Unmarshal(reqBody,&questionAndChoiceWithoutCorrectCheck)
 	if err != nil{
 		http.Error(w, "Can't convert JSON into map", http.StatusBadRequest)
             return
@@ -934,7 +943,7 @@ func checkAnswerExist(testID string, studentID string) error {
 
 	studentID := r.Header.Get("StudentID")
 
-	err = submitAnswer(testID, studentID, studentAnswer)
+	err = submitAnswer(testID, studentID, questionAndChoiceWithoutCorrectCheck)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -942,7 +951,7 @@ func checkAnswerExist(testID string, studentID string) error {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("200 - OK"))
-})*/
+})
 
 //GetAnswer is a function that use to get student answer from database.
 var GetAnswer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
