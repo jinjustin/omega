@@ -251,9 +251,6 @@ func handleRequests() {
 
 	myRouter.Handle("/uploadpic", storage.UploadPic).Methods("POST")
 
-	myRouter.Handle("/testsortdate", testcontroller.TestSortDate).Methods("GET")
-	myRouter.Handle("/testsorttime", testcontroller.TestSortTime).Methods("GET")
-
 	myRouter.Handle("/changestudentpassword",middlewareStudent(coursemembercontroller.ChangeStudentPassword)).Methods("POST")
 
 	myRouter.Handle("/submitanswer", answercontroller.SubmitAnswer).Methods("POST")
