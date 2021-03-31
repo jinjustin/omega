@@ -222,6 +222,7 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 				}
 			}
 		}
+		a.Score = "-"
 	}
 
 	b, err := json.Marshal(studentAnswer)
@@ -340,12 +341,11 @@ func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.In
 
 	for _, id := range questionIDs{
 		for _, a := range allStudentAnswer{
-			if id == a.QuestionID && (a.QuestionType != "choice" && a.QuestionType != "pair"){
+			if id == a.QuestionID && (a.QuestionType != "choice" && a.QuestionType != "pair" && a.QuestionType != "Short Answer"){
 				selectedStudentAnswer = append(selectedStudentAnswer, a)
 			} 
 		}
 	}
-
 	return selectedStudentAnswer, err
 }
 
@@ -411,7 +411,7 @@ func getAllStudentAnswerInformation(testID string) ([]answer.StudentAnswerInform
 	return studentanswerInfos, err
 }
 
-func scoringAnswer (testID string, studentID string, questionID string, score string) error{
+func scoringAnswer(testID string, studentID string, questionID string, score string) error{
 
 	var b []byte
 	var allStudentAnswer []answer.Info
@@ -454,7 +454,7 @@ func scoringAnswer (testID string, studentID string, questionID string, score st
 
 	for num, a := range allStudentAnswer{
 
-		if a.Score == "0"{
+		if a.Score == "-"{
 			checkedAnswerf += 1.0
 		}
 
@@ -497,7 +497,7 @@ func scoringAnswer (testID string, studentID string, questionID string, score st
 	return nil
 }
 
-func autoScoring (studentAnswer []answer.Info, testID string, studentID string) error{
+func autoScoring(studentAnswer []answer.Info, testID string, studentID string) error{
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
@@ -843,7 +843,7 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 	return statisticValue, nil
 }
 
-func studentGetScore (studentID string) ([]answer.StudentScore, error){
+func studentGetScore(studentID string) ([]answer.StudentScore, error){
 
 	var studentScore []answer.StudentScore
 	var ss answer.StudentScore

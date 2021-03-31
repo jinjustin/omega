@@ -893,6 +893,8 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
             return
 	}
 
+	fmt.Println(items)
+
 	var questionGroupInTest []string
 
 	var questionInGroup []string
