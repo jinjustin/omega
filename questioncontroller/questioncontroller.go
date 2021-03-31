@@ -837,6 +837,66 @@ func checkQuestionExist(questionID string) error {
 	return err
 }
 
+func getExam(testID string, studentID string) ([]byte, error) {
+	var exam []byte
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	sqlStatement := `SELECT exam FROM exam WHERE testid=$1 and studentid=$2;`
+	row := db.QueryRow(sqlStatement, testID, studentID)
+	err = row.Scan(&exam)
+	if err != nil{
+		return nil, err
+	}
+	return exam, nil
+}
+
+func checkExamExist(testID string, studentID string)(error) {
+	var exam []byte
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	sqlStatement := `SELECT exam FROM exam WHERE testid=$1 and studentid=$2;`
+	row := db.QueryRow(sqlStatement, testID, studentID)
+	err = row.Scan(&exam)
+	return err
+}
+
+func inputExam(exam []byte, testID string, studentID string) (error) {
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	checkExist := checkExamExist(testID, studentID)
+
+	if checkExist == sql.ErrNoRows{
+		sqlStatement := `INSERT INTO exam (exam, testid, studentid)VALUES ($1, $2, $3)`
+		_, err = db.Exec(sqlStatement, exam, testID, studentID)
+		if err != nil {
+			return err
+		}
+	}else if checkExist == nil{
+		sqlStatement := `UPDATE exam SET exam=$1 WHERE testid=$2 and studentid=$3`
+
+		_, err = db.Exec(sqlStatement, exam, testID, studentID)
+		if err != nil {
+			return err
+		}
+	}else if checkExist != nil{
+		return err
+	}
+	return nil
+}
+
 
 //API
 
@@ -1011,13 +1071,38 @@ var GetAllQuestionInTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.
 var GetAllQuestionForTest = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	courseID := r.Header.Get("CourseID")
+	testID := r.Header.Get("TestId")
+	studentID := r.Header.Get("StudentID")
 
-	allQuestionAndChoiceWithoutCorrectcheck, err := getAllQuestionForTest(courseID)
+	exam, err := getExam(testID, studentID)
+	if err == sql.ErrNoRows{
+		allQuestionAndChoiceWithoutCorrectcheck, err := getAllQuestionForTest(courseID)
+		if err != nil{
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		w.WriteHeader(http.StatusOK)
+		w.Write(allQuestionAndChoiceWithoutCorrectcheck)
+	}else{
+		w.WriteHeader(http.StatusOK)
+		w.Write(exam)
+	}
+})
 
+//GetAllQuestionForTest is a API that use to get information of all question in course without answer.
+var InputExam = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	testID := r.Header.Get("TestId")
+	studentID := r.Header.Get("StudentID")
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+
+	err := inputExam(reqBody, testID, studentID)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write(allQuestionAndChoiceWithoutCorrectcheck)
+	w.Write([]byte("200 - Ok"))
 })
