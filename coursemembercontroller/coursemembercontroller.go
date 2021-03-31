@@ -926,18 +926,20 @@ func addStudentToSystem(studentID string, name string, surname string){
 	}
 	defer db.Close()
 
-	sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
+	if checkUserExist(studentID){
+		sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
 
-	_, err = db.Exec(sqlStatement, userID, studentID, password, "student")
-	if err != nil {
-		panic(err)
-	}
-
-	sqlStatement = `INSERT INTO student (userid , studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
-
-	_, err = db.Exec(sqlStatement, userID, studentID, name, surname, studentID + "@kmitl.ac.th")
-	if err != nil {
-		panic(err)
+		_, err = db.Exec(sqlStatement, userID, studentID, password, "student")
+		if err != nil {
+			panic(err)
+		}
+	
+		sqlStatement = `INSERT INTO student (userid , studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	
+		_, err = db.Exec(sqlStatement, userID, studentID, name, surname, studentID + "@kmitl.ac.th")
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -951,21 +953,23 @@ func addTeacherToSystem(username string, password string, email string) error{
 	}
 	defer db.Close()
 
-	sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
+	if checkUserExist(username){
+		sqlStatement := `INSERT INTO users (userid , username, password, role)VALUES ($1, $2, $3, $4)`
 
-	_, err = db.Exec(sqlStatement, userID, username, password, "teacher")
-	if err != nil {
-		return err
+		_, err = db.Exec(sqlStatement, userID, username, password, "teacher")
+		if err != nil {
+			return err
+		}
+	
+		sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+	
+		_, err = db.Exec(sqlStatement, userID, "Annonymous", "Teacher", email)
+		if err != nil {
+			return err
+		}
 	}
 
-	sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
-
-	_, err = db.Exec(sqlStatement, userID, "Annonymous", "Teacher", email)
-	if err != nil {
-		return err
-	}
-
-	return err
+	return nil
 }
 
 func editStudentPassword(username string, oldPassword string, newPassword string) error{
@@ -1004,6 +1008,29 @@ func generatePassword() string{
 	}
 	s := fmt.Sprintf("%X", b)
 	return s
+}
+
+func checkUserExist(username string) bool {
+
+	var userid string
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT userid FROM users WHERE username=$1;`
+	row := db.QueryRow(sqlStatement, username)
+	err = row.Scan(&userid)
+	switch err {
+	case sql.ErrNoRows:
+		return true
+	case nil:
+		return false
+	default:
+		panic(err)
+	}
 }
 
 //API
