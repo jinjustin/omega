@@ -133,7 +133,6 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 
 	var groupID string
 	var score string
-	var a answer.Info
 	var studentAnswer []answer.Info
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -143,6 +142,7 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 	defer db.Close()
 
 	for _, qwc := range questionAndChoiceWithoutAnswer{
+		var a answer.Info
 		a.QuestionID = qwc.QuestionID
 		a.QuestionType = qwc.QuestionType
 		a.Data = qwc.Data
@@ -257,6 +257,8 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 
 	return nil
 }
+
+
 
 func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.Info, error){
 
