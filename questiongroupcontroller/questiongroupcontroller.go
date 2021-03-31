@@ -629,8 +629,6 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 
 	var grouptest questiongroup.GrouptestList
 
-	var allQuestionInGroup []question.AllQuestionInGroup
-
 	var questionInGroup question.AllQuestionInGroup
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
@@ -646,6 +644,7 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 	}
 	defer rows.Close()
 	for rows.Next() {
+		var allQuestionInGroup []question.AllQuestionInGroup
 		err = rows.Scan(&grouptest.ID, &grouptest.GroupName)
 		if err != nil {
 			return grouptestList, err
@@ -675,7 +674,7 @@ func allgrouptestlist(courseid string) ([]questiongroup.GrouptestList, error){
 		}
 
 		grouptest.QuestionList = allQuestionInGroup
-		allQuestionInGroup = nil
+		//allQuestionInGroup = nil
 
 		grouptestList = append(grouptestList, grouptest)
 	}
