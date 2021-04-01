@@ -854,6 +854,8 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 
 func studentGetScore(studentID string) ([]answer.StudentScore, error){
 
+	fmt.Println(studentID)
+
 	var studentScore []answer.StudentScore
 	var ss answer.StudentScore
 
@@ -881,6 +883,8 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(studentScore)
 
 	for num, s := range studentScore{
 		sqlStatement := `SELECT topic FROM test WHERE testid=$1;`
@@ -1049,7 +1053,7 @@ var GetStatisticValue = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 var StudentGetScore = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	studentID := r.Header.Get("StudentID")
+	studentID := authentication.GetUsername(r)
 
 	studentScores, err := studentGetScore(studentID)
 	if err != nil{

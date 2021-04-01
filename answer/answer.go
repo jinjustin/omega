@@ -47,7 +47,6 @@ type StudentScore struct{
 	Min string `json:"min"`
 	Mean string `json:"mean"`
 	SD string `json:"sd"`
-
 }
 
 // GetAnswerDetail is a function that use to get choice detail in JSON form.
