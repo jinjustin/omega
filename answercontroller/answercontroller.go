@@ -886,6 +886,7 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 
 	fmt.Println(studentScore)
 
+	var topic string
 	for num, s := range studentScore{
 		sqlStatement := `SELECT topic FROM test WHERE testid=$1;`
 		testRows, err := db.Query(sqlStatement, s.TestID)
@@ -895,7 +896,7 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 		defer testRows.Close()
 	
 		for testRows.Next() {
-			err = testRows.Scan(&s.Topic)
+			err = testRows.Scan(&topic)
 			if err != nil {
 				return nil, err
 			}
@@ -905,10 +906,15 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 			return nil, err
 		}
 
+		fmt.Println(topic)
+		studentScore[num].Topic = topic
+		fmt.Println(s.Topic)
+
 		statisticValue, err := CalculateStatistic(s.TestID)
 		if err != nil{
 			return nil, err
 		}
+		fmt.Println(statisticValue)
 		studentScore[num].Max = statisticValue.Max
 		studentScore[num].Min = statisticValue.Min
 		studentScore[num].Mean = statisticValue.Mean
