@@ -23,7 +23,7 @@ type WithoutCorrectCheck struct{
 }
 
 type ImageObject struct{
-	UID int `json:"uid"`
+	UID string `json:"uid"`
 	URL string `json:"url"`
 }
 

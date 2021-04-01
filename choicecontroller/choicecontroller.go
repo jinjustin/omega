@@ -15,7 +15,7 @@ func AddNewChoice(choiceID string, questionID string, data string, imageLink str
 	var c choice.Choice
 
 	io := choice.ImageObject{
-		UID: -1,
+		UID: "-1",
 		URL: imageLink,
 	}
 

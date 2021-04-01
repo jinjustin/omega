@@ -32,6 +32,10 @@ func postDetailTest(testID string, courseCode string, topic string, description 
 
 	checkExist := checkTestExist(testID)
 
+	if len(timestart) == 4{
+		timestart = "0" + timestart
+	}
+
 	if checkExist == sql.ErrNoRows {
 		t = test.Test{
 			TestID:      testID,

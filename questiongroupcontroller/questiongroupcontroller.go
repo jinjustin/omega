@@ -157,9 +157,9 @@ func testbankUpdate(name string, questiongroupID string, questiongroupName strin
 			GroupOrder: groupOrder,
 		}
 	
-		sqlStatement := `UPDATE questiongroup SET name=$1, groupname=$2, numquestion=$3, maxquestion=$4, score=$5, uuid=$6, headerorder=$7, grouporder=$8 WHERE id=$9`
+		sqlStatement := `UPDATE questiongroup SET maxquestion=$1, grouporder=$2 WHERE id=$3 and testid=''`
 	
-		_, err = db.Exec(sqlStatement, g.Name, g.GroupName, g.NumQuestion, g.MaxQuestion, g.Score, g.UUID, g.HeaderOrder, g.GroupOrder, g.ID)
+		_, err = db.Exec(sqlStatement, g.MaxQuestion, g.GroupOrder, g.ID)
 		if err != nil {
 			return err
 		}
@@ -903,7 +903,7 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	courseID := r.Header.Get("CourseID")
 
 		for grouporder, item := range items{
-			err = testbankUpdate("", item.ID, item.GroupName, "", "", "", courseID, "", 0, grouporder)
+			err = testbankUpdate("", item.ID, item.GroupName, "", item.MaxQuestion, "", courseID, "", 0, grouporder)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				fmt.Println(err)
