@@ -38,6 +38,11 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 		Email:     "",
 	}
 
+	err := addStudentToSystem(studentID)
+	if err != nil{
+		panic(err)
+	}
+
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		panic(err)
@@ -99,7 +104,7 @@ func addStudentToCourse(studentID string, courseCode string) []byte {
 			panic(err)
 		}
 
-		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
+		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseID + " - " + courseName + " <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + studentID + "&coursecode=" + courseCode + "<br>"
 		mail.Send(email,"Course Invitation",message)
 	}
 
@@ -116,6 +121,12 @@ func addMultipleStudentsToCourse(studentIDs []string, courseCode string) []stude
 	defer db.Close()
 
 	for _, studentID := range studentIDs {
+
+		err := addStudentToSystem(studentID)
+		if err != nil{
+			panic(err)
+		}
+
 		sqlStatement := `SELECT userid,firstname,surname,email FROM student WHERE studentid=$1;`
 		rows, err := db.Query(sqlStatement, studentID)
 		if err != nil {
@@ -174,7 +185,7 @@ func addMultipleStudentsToCourse(studentIDs []string, courseCode string) []stude
 				panic(err)
 			}
 	
-			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseName + " (" + courseID + ") <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
+			message := "<br>คุณได้รับคำเชิญให้เข้าร่วมการสอบในวิชา " + courseID + " - " + courseName + " <br> <br>กดที่ลิงค์ต่อไปนี้เพื่อเข้าร่วมการสอบ http://142.93.177.152:3000/Accept?studentid=" + s.StudentID + "&coursecode=" + courseCode + "<br>"
 			mail.Send(s.Email,"Course Invitation",message)
 		}
 	}
@@ -915,14 +926,14 @@ func deleteFile(name string){
 	}
 }
 
-func addStudentToSystem(studentID string, name string, surname string){
+func addStudentToSystem(studentID string) error{
 
 	userID := generateUserID()
 	password := generatePassword()
 
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
-		panic(err)
+		 return err
 	}
 	defer db.Close()
 
@@ -931,16 +942,17 @@ func addStudentToSystem(studentID string, name string, surname string){
 
 		_, err = db.Exec(sqlStatement, userID, studentID, password, "student")
 		if err != nil {
-			panic(err)
+			return err
 		}
 	
 		sqlStatement = `INSERT INTO student (userid , studentid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
 	
-		_, err = db.Exec(sqlStatement, userID, studentID, name, surname, studentID + "@kmitl.ac.th")
+		_, err = db.Exec(sqlStatement, userID, studentID, "Annonymous", "Student", studentID + "@kmitl.ac.th")
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }
 
 func addTeacherToSystem(username string, password string, email string) error{
@@ -1186,19 +1198,6 @@ var TestUploadExcelFile = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	}
 
 	json.NewEncoder(w).Encode(readStudentIDFromExcel(handler.Filename))
-})
-
-//AddStudentToSystem is a api that use to add student to system
-var AddStudentToSystem = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	type Input struct {
-		StudentID string
-		Name string
-		Surname string
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
-	addStudentToSystem(input.StudentID, input.Name, input.Surname)
 })
 
 //ChangeStudentPassword is a api that use to allow student to change password.
