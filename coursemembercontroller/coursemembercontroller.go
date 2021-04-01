@@ -454,7 +454,7 @@ func getStudentInCourse(courseCode string) []byte {
 		for num2, j := range studentInCourses{
 			idI, _ := strconv.Atoi(i.StudentID)
 			idJ, _ := strconv.Atoi(j.StudentID)
-			if idI > idJ{
+			if idI < idJ{
 				studentInCourses[num1], studentInCourses[num2] = studentInCourses[num2], studentInCourses[num1]
 			}
 		}
