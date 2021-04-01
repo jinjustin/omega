@@ -415,7 +415,7 @@ func editAnnouncement(courseCode string, announcement string) string{
 
 	_, err = db.Exec(sqlStatement, announcement, courseCode)
 	if err != nil {
-	panic(err)
+		panic(err)
 	}
 
 	return "success"

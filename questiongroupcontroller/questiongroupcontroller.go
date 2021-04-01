@@ -173,6 +173,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 		ID string `json:"id"`
 		GroupName string `json:"groupName"`
 		NumQuestion string `json:"numQuestion"`
+		MaxQuestion string `json:"maxQuestion"`
 		Score string `json:"score"`
 		Order int `json:"order"`
 		QuestionList []question.AllQuestionInGroup `json:"questionList"`
@@ -272,7 +273,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 			return nil, err
 		}
 
-		sqlStatement = `SELECT id, groupname, numquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=$2`
+		sqlStatement = `SELECT id, groupname, numquestion, maxquestion, score, grouporder FROM questiongroup WHERE uuid=$1 and testid=$2`
 		questionGroupRows, err = db.Query(sqlStatement, uuid.UUID, testID)
 		if err != nil {
 			return nil, err
@@ -280,7 +281,7 @@ func getGroupInTest(courseID string, testID string) ([]byte, error){
 		defer questionGroupRows.Close()
 
 		for questionGroupRows.Next() {
-			err = questionGroupRows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.Score, &i.Order)
+			err = questionGroupRows.Scan(&i.ID, &i.GroupName, &i.NumQuestion, &i.MaxQuestion ,&i.Score, &i.Order)
 			if err != nil {
 				return nil, err
 			}
