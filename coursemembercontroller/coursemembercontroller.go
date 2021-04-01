@@ -20,6 +20,8 @@ import (
 	"os"
 	"io"
 
+	"strconv"
+
 	"errors"
 )
 
@@ -445,6 +447,16 @@ func getStudentInCourse(courseCode string) []byte {
 		err = rows.Err()
 		if err != nil {
 			panic(err)
+		}
+	}
+
+	for num1, i := range studentInCourses{
+		for num2, j := range studentInCourses{
+			idI, _ := strconv.Atoi(i.StudentID)
+			idJ, _ := strconv.Atoi(j.StudentID)
+			if idI > idJ{
+				studentInCourses[num1], studentInCourses[num2] = studentInCourses[num2], studentInCourses[num1]
+			}
 		}
 	}
 
