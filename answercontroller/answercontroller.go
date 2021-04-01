@@ -794,7 +794,6 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 		if err != nil {
 			return statisticValue, nil
 		}
-		fmt.Println("score: ", score)
 		scores = append(scores, score)
 	}
 	err = answerRows.Err()
@@ -802,7 +801,6 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 		return statisticValue, nil
 	}
 
-	fmt.Println("scores: ",scores)
 
 	if scores != nil{
 		max, err = strconv.Atoi(scores[0])
@@ -829,11 +827,9 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 			totalScore += iScore
 		}
 
-		fmt.Println("totalscore: ", totalScore)
 
 		mean = float64(totalScore)/float64(len(scores))
 
-		fmt.Println("mean: ",mean)
 
 		for _, s := range scores{
 			iScore, err := strconv.Atoi(s)

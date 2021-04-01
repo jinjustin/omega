@@ -909,15 +909,15 @@ var TestbankUpdate = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
             		return
 			}
 			questionGroupInTest = append(questionGroupInTest, item.ID)
-			/*for _, questionItem := range item.QuestionList{
-				err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
+			for _, questionItem := range item.QuestionList{
+				/*err = questioncontroller.AddNewQuestion(item.ID, "", questionItem.QuestionName, questionItem.QuestionID,"","")
 				if err != nil{
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					fmt.Println(err)
             			return
-				}
+				}*/
 				questionInGroup = append(questionInGroup, questionItem.QuestionID) 
-			}*/
+			}
 			err = questioncontroller.DeleteQuestionFromTestbank(questionInGroup,item.ID)
 			if err != nil{
 				http.Error(w, err.Error(), http.StatusInternalServerError)
