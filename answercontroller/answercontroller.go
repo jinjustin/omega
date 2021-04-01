@@ -794,12 +794,15 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 		if err != nil {
 			return statisticValue, nil
 		}
+		fmt.Println("score: ", score)
 		scores = append(scores, score)
 	}
 	err = answerRows.Err()
 	if err != nil {
 		return statisticValue, nil
 	}
+
+	fmt.Println("scores: ",scores)
 
 	if scores == nil{
 		max, err = strconv.Atoi(scores[0])
@@ -826,7 +829,11 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 			totalScore += iScore
 		}
 
+		fmt.Println("totalscore: ", totalScore)
+
 		mean = float64(totalScore)/float64(len(scores))
+
+		fmt.Println("mean: ",mean)
 
 		for _, s := range scores{
 			iScore, err := strconv.Atoi(s)
@@ -853,8 +860,6 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 }
 
 func studentGetScore(studentID string) ([]answer.StudentScore, error){
-
-	fmt.Println(studentID)
 
 	var studentScore []answer.StudentScore
 	var ss answer.StudentScore
@@ -884,8 +889,6 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 		return nil, err
 	}
 
-	fmt.Println(studentScore)
-
 	var topic string
 	for num, s := range studentScore{
 		sqlStatement := `SELECT topic FROM test WHERE testid=$1;`
@@ -906,15 +909,12 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 			return nil, err
 		}
 
-		fmt.Println(topic)
 		studentScore[num].Topic = topic
-		fmt.Println(s.Topic)
 
 		statisticValue, err := CalculateStatistic(s.TestID)
 		if err != nil{
 			return nil, err
 		}
-		fmt.Println(statisticValue)
 		studentScore[num].Max = statisticValue.Max
 		studentScore[num].Min = statisticValue.Min
 		studentScore[num].Mean = statisticValue.Mean
