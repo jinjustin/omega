@@ -261,7 +261,7 @@ func getAllQuestionInGroup(testID string, groupID string) ([]question.AllQuestio
 
 func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 
-	var questionChoice choice.Choice
+	//var questionChoice choice.Choice
 
 	var qwc question.WithChoice
 
@@ -338,6 +338,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer choiceRows.Close()
 			
 				for choiceRows.Next() {
+					var questionChoice choice.Choice
 					var io choice.ImageObject
 					var url string
 					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&url,&questionChoice.Check)
@@ -430,6 +431,7 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 				defer choiceRows.Close()
 			
 				for choiceRows.Next() {
+					var questionChoice choice.Choice
 					var io choice.ImageObject
 					var url string
 					err = choiceRows.Scan(&questionChoice.ChoiceID,&questionChoice.Data,&url,&questionChoice.Check)

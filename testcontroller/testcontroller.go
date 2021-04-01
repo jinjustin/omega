@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jinjustin/omega/test"
+	"github.com/jinjustin/omega/answercontroller"
 
 	//"github.com/jinjustin/omega/course"
 	"github.com/jinjustin/omega/coursecontroller"
@@ -539,23 +540,29 @@ func studentGetTestList(studentID string) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			t.CourseCode = c.CourseCode
-			t.Status = "false"
-			t.CourseID = c.CourseID
-			testList = append(testList, t)
 
-			check := true
+			checkAnswerExist := answercontroller.CheckAnswerExist(t.TestID,studentID)
 
-			for _, d := range testdates {
-				if d == t.Datestart {
-					check = false
+			if checkAnswerExist == sql.ErrNoRows{
+				t.CourseCode = c.CourseCode
+				t.Status = "false"
+				t.CourseID = c.CourseID
+				testList = append(testList, t)
+	
+				check := true
+	
+				for _, d := range testdates {
+					if d == t.Datestart {
+						check = false
+					}
 				}
+	
+				if check {
+					testdates = append(testdates, t.Datestart)
+				}
+			}else if checkAnswerExist != nil{
+				return nil, checkAnswerExist
 			}
-
-			if check {
-				testdates = append(testdates, t.Datestart)
-			}
-
 		}
 		err = rows.Err()
 		if err != nil {

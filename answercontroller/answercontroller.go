@@ -232,7 +232,7 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 		panic(err)
 	}
 
-	checkExist := checkAnswerExist(testID, studentID)
+	checkExist := CheckAnswerExist(testID, studentID)
 
 	if checkExist == sql.ErrNoRows{
 		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6);`
@@ -920,7 +920,7 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 	return studentScore, nil
 }
 
-func checkAnswerExist(testID string, studentID string) error {
+func CheckAnswerExist(testID string, studentID string) error {
 
 	var dummy string
 
