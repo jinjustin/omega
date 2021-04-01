@@ -804,7 +804,7 @@ func CalculateStatistic(testID string) (answer.StatisticValue ,error) {
 
 	fmt.Println("scores: ",scores)
 
-	if scores == nil{
+	if scores != nil{
 		max, err = strconv.Atoi(scores[0])
 		if err != nil{
 			return statisticValue, nil
