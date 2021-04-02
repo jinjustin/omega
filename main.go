@@ -196,7 +196,7 @@ func handleRequests() {
 	myRouter.Handle("/editteacherinfo",middlewareTeacher(teachercontroller.EditTeacherInfo)).Methods("POST")
 	
 	myRouter.Handle("/getstudentinfo",middlewareStudent(studentcontroller.GetStudentInfo)).Methods("GET")
-	myRouter.Handle("/editstudentinfo",middlewareStudent(studentcontroller.EditTeacherInfo)).Methods("POST")
+	myRouter.Handle("/getstudentinfo",middlewareStudent(studentcontroller.EditTeacherInfo)).Methods("POST")
 
 	myRouter.Handle("/getdescription",middlewareTeacher(coursecontroller.GetDescription)).Methods("POST") 
 	myRouter.Handle("/editdescription",middlewareTeacher(coursecontroller.EditDescription)).Methods("POST") 
