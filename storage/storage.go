@@ -11,6 +11,7 @@ import (
 	"crypto/rand"
 	"context"
 	"encoding/json"
+	"strings"
 )
 
 //StorageInfo is struct that use to store information of storage.
@@ -56,19 +57,33 @@ var UploadPic = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseMultipartForm(10 << 20)
 
-	file, _, err := r.FormFile("myFile")
+	file, handler, err := r.FormFile("myFile")
 	if err != nil {
 		fmt.Println("Error Retrieving the File")
 		fmt.Println(err)
+		w.Write([]byte("Unsuccessfully uploaded\n"))
 		return
 	}
 
-	filename := generateFilename() + ".jpg"
-
-	defer deleteFile(filename)
 	defer file.Close()
 
-	dst, err := os.Create(filename)
+	filetype := handler.Header.Get("Content-type")
+	filename := handler.Filename
+
+	fileSplit := strings.Split(filename,".")
+
+	var newFileName string
+
+	if len(fileSplit) == 2{
+		newFileName = generateFilename() + "." + fileSplit[1]
+	}else{
+		newFileName = filename
+	}
+
+	defer deleteFile(newFileName)
+	defer file.Close()
+
+	dst, err := os.Create(newFileName)
 	defer dst.Close()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,11 +106,10 @@ var UploadPic = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	filePath := "./" + filename
-	contentType := "image/jpg"
+	filePath := "./" + newFileName
 
     // Upload the zip file with FPutObject
-    _, err = minioClient.FPutObject(ctx, Storage.BucketName, filename, filePath, minio.PutObjectOptions{ContentType: contentType})
+    _, err = minioClient.FPutObject(ctx, Storage.BucketName, newFileName, filePath, minio.PutObjectOptions{ContentType: filetype})
     if err != nil {
     	panic(err)
     }
@@ -106,7 +120,7 @@ var UploadPic = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	var imageLink ImageLink
 
-	imageLink.URL = Storage.URL + filename
+	imageLink.URL = Storage.URL + newFileName
 
 	json.NewEncoder(w).Encode(imageLink)
 })

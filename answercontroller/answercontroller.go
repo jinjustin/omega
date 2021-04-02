@@ -24,111 +24,6 @@ import (
 	"strings"
 )
 
-/*func submitAnswer(testID string, studentID string, qwc []question.AndChoiceWithoutCorrectCheck) error {
-
-	var data string
-	var groupID string
-	var score string
-	var a answer.Info
-	var studentAnswer []answer.Info
-
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	for num, a := range studentAnswer{
-		sqlStatement := `SELECT data FROM questiondata WHERE questionid=$1;`
-		rows, err := db.Query(sqlStatement, a.QuestionID)
-		if err != nil {
-			return err
-		}
-		defer rows.Close()
-	
-		for rows.Next() {
-			err = rows.Scan(&data)
-			if err != nil {
-				return err
-			}
-		}
-		err = rows.Err()
-		if err != nil {
-			return err
-		}
-
-		studentAnswer[num].Data = data
-
-		sqlStatement = `SELECT groupid FROM question WHERE questionid=$1 and testid=$2;`
-		questionRows, err := db.Query(sqlStatement, a.QuestionID, testID)
-		if err != nil {
-			return err
-		}
-		defer questionRows.Close()
-	
-		for questionRows.Next() {
-			err = questionRows.Scan(&groupID)
-			if err != nil {
-				return err
-			}
-		}
-		err = questionRows.Err()
-		if err != nil {
-			return err
-		}
-
-		sqlStatement = `SELECT score FROM questiongroup WHERE id=$1 and testid=$2;`
-		questionGroupRows, err := db.Query(sqlStatement, groupID, testID)
-		if err != nil {
-			return err
-		}
-		defer questionGroupRows.Close()
-	
-		for questionGroupRows.Next() {
-			err = questionGroupRows.Scan(&score)
-			if err != nil {
-				return err
-			}
-		}
-		err = questionGroupRows.Err()
-		if err != nil {
-			return err
-		}
-
-		studentAnswer[num].MaxScore = score
-	}
-
-	b, err := json.Marshal(studentAnswer)
-	if err != nil {
-		panic(err)
-	}
-
-	checkExist := checkAnswerExist(testID, studentID)
-
-	if checkExist == sql.ErrNoRows{
-		sqlStatement := `INSERT INTO answer (testid, studentid, studentanswer, totalscore, checkedanswer, completepercent)VALUES ($1, $2, $3, $4, $5, $6);`
-		_, err = db.Exec(sqlStatement, testID, studentID, b, "0", "0", "0.00")
-		if err != nil {
-			return err
-		}
-	}else if checkExist == nil{
-		sqlStatement := `UPDATE answer SET studentanswer=$1 WHERE testid=$2 and studentid=$3;`
-		_, err = db.Exec(sqlStatement, b, testID, studentID)
-		if err != nil {
-			return err
-		}
-	}else{
-		return checkExist
-	}
-
-	err = autoScoring(studentAnswer,testID,studentID)
-	if err != nil{
-		return err
-	}
-
-	return nil
-}*/
-
 func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswer []question.AndChoiceWithoutCorrectCheck) error {
 
 	var groupID string
@@ -263,14 +158,10 @@ func submitAnswer(testID string, studentID string, questionAndChoiceWithoutAnswe
 func getStudentAnswer(testID string, studentID string, uuid string) ([]answer.Info, error){
 
 	var b []byte
-
 	var allStudentAnswer []answer.Info
-
 	var selectedStudentAnswer []answer.Info
-
 	var groupID string
 	var groupIDs []string
-
 	var questionID string
 	var questionIDs []string
 
@@ -493,7 +384,13 @@ func scoringAnswer(testID string, studentID string, questionID string, score str
 
 	totalscoreString := strconv.Itoa(totalScoreInt)
 
-	completePercentString := fmt.Sprintf("%.2f", completePercent)
+	var completePercentString string
+
+	if completePercent > 100.0{
+		completePercentString = "100.00"
+	}
+
+	completePercentString = fmt.Sprintf("%.2f", completePercent)
 	checkedAnswerString := fmt.Sprintf("%.0f", checkedAnswerf)
 	
 	sqlStatement = `UPDATE answer SET studentanswer=$1, totalscore=$2, checkedanswer=$3, completepercent=$4 WHERE testid=$5 and studentid=$6;`

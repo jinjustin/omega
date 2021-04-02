@@ -171,7 +171,7 @@ func getCourseList(username string) []course.Course {
 	}
 
 	sqlStatement = `SELECT coursecode FROM coursemember WHERE userid=$1 and status=$2;`
-	rows, err = db.Query(sqlStatement, userID,"join")
+	rows, err = db.Query(sqlStatement, userID, "join")
 	if err != nil {
 		panic(err)
 	}
