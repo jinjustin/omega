@@ -784,7 +784,10 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 
 	var topic string
 	for num, s := range studentScore{
-		sqlStatement := `SELECT topic FROM test WHERE testid=$1;`
+		var courseCode string
+		var courseID string
+		var courseName string
+		sqlStatement := `SELECT topic, coursecode FROM test WHERE testid=$1;`
 		testRows, err := db.Query(sqlStatement, s.TestID)
 		if err != nil {
 			return nil, err
@@ -792,7 +795,7 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 		defer testRows.Close()
 	
 		for testRows.Next() {
-			err = testRows.Scan(&topic)
+			err = testRows.Scan(&topic, &courseCode)
 			if err != nil {
 				return nil, err
 			}
@@ -802,7 +805,27 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 			return nil, err
 		}
 
+		sqlStatement = `SELECT courseid, coursename FROM course WHERE coursecode=$1;`
+		courseRows, err := db.Query(sqlStatement, courseCode)
+		if err != nil {
+			return nil, err
+		}
+		defer courseRows.Close()
+	
+		for courseRows.Next() {
+			err = courseRows.Scan(&courseID, &courseName)
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = courseRows.Err()
+		if err != nil {
+			return nil, err
+		}
+
 		studentScore[num].Topic = topic
+		studentScore[num].CourseID = courseID
+		studentScore[num].CourseName = courseName
 
 		statisticValue, err := CalculateStatistic(s.TestID)
 		if err != nil{
