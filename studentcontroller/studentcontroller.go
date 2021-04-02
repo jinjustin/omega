@@ -97,7 +97,7 @@ func editStudentInfo(firstname string, surname string, username string) error{
 		return err
 	}
 
-	sqlStatement = `UPDATE student SET firstname = $1, surname = $2 WHERE userid = $4`
+	sqlStatement = `UPDATE student SET firstname = $1, surname = $2 WHERE userid = $3`
 
 	_, err = db.Exec(sqlStatement, firstname, surname, userID)
 	if err != nil {
