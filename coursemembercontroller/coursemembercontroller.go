@@ -985,7 +985,7 @@ func addTeacherToSystem(username string, password string, email string) error{
 			return err
 		}
 	
-		sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4, $5)`
+		sqlStatement = `INSERT INTO teacher (userid, firstname, surname, email)VALUES ($1, $2, $3, $4)`
 	
 		_, err = db.Exec(sqlStatement, userID, "Annonymous", "Teacher", email)
 		if err != nil {
