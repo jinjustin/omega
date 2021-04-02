@@ -814,6 +814,10 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 		studentScore[num].SD = statisticValue.SD
 	}
 
+	if studentScore == nil{
+		studentScore = make([]answer.StudentScore, 0)
+	}
+
 	return studentScore, nil
 }
 
