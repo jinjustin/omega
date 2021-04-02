@@ -528,7 +528,7 @@ func studentGetTestList(studentID string) ([]byte, error) {
 	defer db.Close()
 
 	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='false' and situation != 'finish';`
+		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart, situation FROM test WHERE coursecode=$1 and status='false' and situation != 'finish';`
 		rows, err := db.Query(sqlStatement, c.CourseCode)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -536,7 +536,7 @@ func studentGetTestList(studentID string) ([]byte, error) {
 		}
 		defer rows.Close()
 		for rows.Next() {
-			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart)
+			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart, &t.Situation)
 			if err != nil {
 				return nil, err
 			}
