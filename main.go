@@ -280,6 +280,7 @@ func handleRequests() {
 }
 
 func main() {
-	go executeCronJob()
+	s := gocron.NewScheduler(time.UTC)
+	go s.Every(1).Minute().Do(testcontroller.UpdateTestSituation())
 	handleRequests()
 }
