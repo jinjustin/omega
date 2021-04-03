@@ -281,6 +281,7 @@ func handleRequests() {
 
 func main() {
 	s := gocron.NewScheduler(time.UTC)
-	go s.Every(1).Minute().Do(testcontroller.UpdateTestSituation())
+	s.Every(60).Second().Do(testcontroller.UpdateTestSituation())
+	s.StartAsync()
 	handleRequests()
 }
