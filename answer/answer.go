@@ -32,6 +32,13 @@ type StudentAnswerInformation struct{
 	CompletePercent string `json:"completePercent"`
 }
 
+type StudentScoreInformation struct{
+	Firstname string `json:"firstname"`
+	Surname string `json:"surname"`
+	StudentID string `json:"studentID"`
+	TotalScore string `json:"totalScore"`
+}
+
 type StatisticValue struct{
 	Max string `json:"max"`
 	Min string `json:"min"`

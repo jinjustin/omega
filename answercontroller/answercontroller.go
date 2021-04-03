@@ -303,7 +303,98 @@ func getAllStudentAnswerInformation(testID string) ([]answer.StudentAnswerInform
 		}
 	}
 
+	if studentanswerInfos == nil{
+		studentanswerInfos = make([]answer.StudentAnswerInformation, 0)
+	}
+
 	return studentanswerInfos, err
+}
+
+func getAllStudentScore(testID string) ([]answer.StudentScoreInformation, error){
+
+	var studentScoreInfo answer.StudentScoreInformation
+
+	var studentScoreInfos []answer.StudentScoreInformation
+
+	var b []byte
+
+	db, err := sql.Open("postgres", database.PsqlInfo())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStatement := `SELECT studentid, studentanswer, totalScore FROM answer WHERE testid=$1;`
+	answerRows, err := db.Query(sqlStatement, testID)
+	if err != nil {
+		return nil, err
+	}
+	defer answerRows.Close()
+
+	for answerRows.Next() {
+		err = answerRows.Scan(&studentScoreInfo.StudentID, b, &studentScoreInfo.TotalScore)
+		if err != nil {
+			return nil ,err
+		}
+
+		var allStudentAnswer []answer.Info
+		maxscore := 0
+
+		err = json.Unmarshal(b,&allStudentAnswer)
+		if err != nil{
+			return nil, err
+		}
+
+		for _, sa := range allStudentAnswer{
+			scoreint, err := strconv.Atoi(sa.MaxScore)
+			if err != nil{
+				return nil, err
+			}
+			maxscore += scoreint
+		}
+
+		maxscoreString := strconv.Itoa(maxscore)
+		studentScoreInfo.TotalScore = studentScoreInfo.TotalScore + "/" + maxscoreString
+
+		sqlStatement = `SELECT firstname, surname FROM student WHERE studentid=$1;`
+		studentRows, err := db.Query(sqlStatement, studentScoreInfo.StudentID)
+		if err != nil {
+			return nil, err
+		}
+		defer studentRows.Close()
+		for studentRows.Next() {
+			err = studentRows.Scan(&studentScoreInfo.Firstname, &studentScoreInfo.Surname)
+			if err != nil {
+				return nil ,err
+			}
+		}
+		err = studentRows.Err()
+		if err != nil {
+			return nil, err
+		}
+		studentScoreInfos = append(studentScoreInfos, studentScoreInfo)
+	}
+	err = answerRows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	for num1, i := range studentScoreInfos{
+		for num2, j := range studentScoreInfos{
+			iStudentIDint, _ := strconv.Atoi(i.StudentID)
+			jStudentIDint, _ := strconv.Atoi(j.StudentID)
+
+			if iStudentIDint < jStudentIDint{
+				studentScoreInfos[num1], studentScoreInfos[num2] = studentScoreInfos[num2], studentScoreInfos[num1]
+			}
+		}
+	}
+
+	if studentScoreInfos == nil{
+		studentScoreInfos = make([]answer.StudentScoreInformation, 0)
+	}
+
+	return studentScoreInfos, err
 }
 
 func scoringAnswer(testID string, studentID string, questionID string, score string) error{
@@ -764,13 +855,15 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 	var studentScore []answer.StudentScore
 	var ss answer.StudentScore
 
+	var b []byte
+
 	db, err := sql.Open("postgres", database.PsqlInfo())
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	sqlStatement := `SELECT testid, totalscore FROM answer WHERE studentid=$1 and completepercent='100.00';`
+	sqlStatement := `SELECT testid, studentanswer, totalscore FROM answer WHERE studentid=$1 and completepercent='100.00';`
 	answerRows, err := db.Query(sqlStatement, studentID)
 	if err != nil {
 		return nil, err
@@ -778,10 +871,31 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 	defer answerRows.Close()
 
 	for answerRows.Next() {
-		err = answerRows.Scan(&ss.TestID,&ss.TotalScore)
+		err = answerRows.Scan(&ss.TestID, &b, &ss.TotalScore)
 		if err != nil {
 			return nil, err
 		}
+
+		var allStudentAnswer []answer.Info
+		maxscore := 0
+
+		err = json.Unmarshal(b,&allStudentAnswer)
+		if err != nil{
+			return nil, err
+		}
+
+		for _, sa := range allStudentAnswer{
+			scoreint, err := strconv.Atoi(sa.MaxScore)
+			if err != nil{
+				return nil, err
+			}
+			maxscore += scoreint
+		}
+
+		maxscoreString := strconv.Itoa(maxscore)
+		ss.TotalScore = ss.TotalScore + "/" + maxscoreString
+
+
 		studentScore = append(studentScore, ss)
 	}
 	err = answerRows.Err()
@@ -850,6 +964,7 @@ func studentGetScore(studentID string) ([]answer.StudentScore, error){
 
 	return studentScore, nil
 }
+
 
 func CheckAnswerExist(testID string, studentID string) error {
 
@@ -996,4 +1111,18 @@ var StudentGetScore = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(studentScores)
+})
+
+var GetAllStudentScore = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	testID := r.Header.Get("TestId")
+
+	allStudentScores, err := studentGetScore(testID)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(allStudentScores)
 })

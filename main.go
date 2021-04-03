@@ -260,6 +260,7 @@ func handleRequests() {
 	myRouter.Handle("/getallstudentanswerinformation", answercontroller.GetAllStudentAnswerInformation).Methods("GET")
 	myRouter.Handle("/getstatisticvalue", answercontroller.GetStatisticValue).Methods("GET")
 	myRouter.Handle("/studentgetscore",middlewareStudent(answercontroller.StudentGetScore)).Methods("GET")
+	myRouter.Handle("/getallstudentscore", answercontroller.GetAllStudentScore).Methods("GET")
 
 	myRouter.Handle("/addteachertosystem", coursemembercontroller.AddTeacherToSystem).Methods("POST")
 

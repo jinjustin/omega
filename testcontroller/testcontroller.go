@@ -669,7 +669,7 @@ func UpdateTestSituation() error{
 		for duration > 60{
 			duration -= 60
 			durationHour += 1
-			for duration > 24 {
+			if duration > 24 {
 				duration -= 24
 				durationDay += 1
 				if durationDay > 30 {
@@ -682,6 +682,8 @@ func UpdateTestSituation() error{
 				}
 			}
 		}
+
+		fmt.Println("duration: ", duration, durationHour, durationDay, durationMonth, durationYear)
 	
 		startHour, _ := strconv.Atoi(t.Timestart[0:2])
 
