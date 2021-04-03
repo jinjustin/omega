@@ -21,5 +21,8 @@ RUN go build -o main .
 # Expose port 8080 to the outside world
 EXPOSE 10000
 
+# timezone env with default
+ENV TZ Asia/Bangkok
+
 # Command to run the executable
 CMD ["./main"]
