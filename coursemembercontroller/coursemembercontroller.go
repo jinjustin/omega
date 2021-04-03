@@ -963,6 +963,9 @@ func addStudentToSystem(studentID string) error{
 		if err != nil {
 			return err
 		}
+
+		message := "<br>คุณได้รับคำเชิญให้เข้าร่วมใช้งาน Omega: Online Exam Platform <br> <br>คุณสามารถใช้ Username และ Password นี้ในการ Login เข้าสู่ระบบ<br><br>Username: " + studentID + "<br><br>Password: " + password + " <br><br>คุณสามารถเข้าใช้งานระบบได้ที่ http://142.93.177.152:3000<br>"
+		mail.Send(studentID + "@kmitl.ac.th","Course Invitation",message)
 	}
 	return nil
 }

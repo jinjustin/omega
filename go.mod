@@ -8,6 +8,7 @@ require (
 	github.com/elliotchance/orderedmap v1.4.0
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19 // indirect
 	github.com/gin-gonic/gin v1.6.3 // indirect
+	github.com/go-co-op/gocron v1.2.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
