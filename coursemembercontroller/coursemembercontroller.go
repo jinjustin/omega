@@ -1247,16 +1247,12 @@ var TeacherAddCourse = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 
 var AddTeacherToSystem = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	
-	type Input struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Email string `json:"email"`
-	}
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var input Input
-	json.Unmarshal(reqBody, &input)
 
-	err := addTeacherToSystem(input.Username, input.Password, input.Email)
+	username := r.Header.Get("username")
+	password := r.Header.Get("password")
+	email := r.Header.Get("email")
+
+	err := addTeacherToSystem(username, password, email)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
         return
