@@ -1117,7 +1117,7 @@ var GetAllStudentScore = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 
 	testID := r.Header.Get("TestId")
 
-	allStudentScores, err := studentGetScore(testID)
+	allStudentScores, err := getAllStudentScore(testID)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
         return
