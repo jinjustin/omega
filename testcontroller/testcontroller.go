@@ -665,12 +665,12 @@ func UpdateTestSituation() error{
 		durationDay :=0
 		durationMonth := 0
 		durationYear := 0
-	
+
 		for duration > 60{
 			duration -= 60
 			durationHour += 1
-			if duration > 24 {
-				duration -= 24
+			if durationHour > 24 {
+				durationHour = 0
 				durationDay += 1
 				if durationDay > 30 {
 					durationDay = 0
