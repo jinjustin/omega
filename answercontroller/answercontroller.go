@@ -332,7 +332,7 @@ func getAllStudentScore(testID string) ([]answer.StudentScoreInformation, error)
 	defer answerRows.Close()
 
 	for answerRows.Next() {
-		err = answerRows.Scan(&studentScoreInfo.StudentID, b, &studentScoreInfo.TotalScore)
+		err = answerRows.Scan(&studentScoreInfo.StudentID, &b, &studentScoreInfo.TotalScore)
 		if err != nil {
 			return nil ,err
 		}
