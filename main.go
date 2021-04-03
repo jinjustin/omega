@@ -262,6 +262,8 @@ func handleRequests() {
 	myRouter.Handle("/studentgetscore",middlewareStudent(answercontroller.StudentGetScore)).Methods("GET")
 
 	myRouter.Handle("/addteachertosystem", coursemembercontroller.AddTeacherToSystem).Methods("POST")
+
+	myRouter.Handle("/updatetestsituation", testcontroller.TestUpdateSituation).Methods("GET")
 	
 	//myRouter.Handle("/testautoscoring", answercontroller.TestAutoScoring).Methods("POST")
 

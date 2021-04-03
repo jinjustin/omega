@@ -388,9 +388,10 @@ func scoringAnswer(testID string, studentID string, questionID string, score str
 
 	if completePercent > 100.0{
 		completePercentString = "100.00"
+	}else{
+		completePercentString = fmt.Sprintf("%.2f", completePercent)
 	}
-
-	completePercentString = fmt.Sprintf("%.2f", completePercent)
+	
 	checkedAnswerString := fmt.Sprintf("%.0f", checkedAnswerf)
 	
 	sqlStatement = `UPDATE answer SET studentanswer=$1, totalscore=$2, checkedanswer=$3, completepercent=$4 WHERE testid=$5 and studentid=$6;`
@@ -638,6 +639,7 @@ func autoScoring(studentAnswer []answer.Info, testID string, studentID string) e
 
 
 	completePercent := (checkedAnswer/float64(len(studentAnswer)))*100
+	var completePercentString string
 
 	b, err := json.Marshal(studentAnswer)
 	if err != nil {
@@ -646,7 +648,12 @@ func autoScoring(studentAnswer []answer.Info, testID string, studentID string) e
 
 	totalscoreString := strconv.Itoa(totalScore)
 
-	completePercentString := fmt.Sprintf("%.2f", completePercent)
+	if completePercent > 100.0{
+		completePercentString = "100.00"
+	}else{
+		completePercentString = fmt.Sprintf("%.2f", completePercent)
+	}
+	
 	checkedAnswerString := fmt.Sprintf("%.0f", checkedAnswer)
 	
 	sqlStatement := `UPDATE answer SET studentanswer=$1, totalscore=$2, checkedanswer=$3, completepercent=$4 WHERE testid=$5 and studentid=$6;`

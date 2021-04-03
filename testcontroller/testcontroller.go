@@ -412,97 +412,6 @@ func checkTestExist(testID string) error {
 	return err
 }
 
-/*func studentGetTestList(studentID string) ([]byte, error) {
-
-	var testList []test.Test
-
-	var testData []test.Test
-
-	var t test.Test
-
-	var testdates []string
-
-	o := orderedmap.New()
-
-	courselist, err := coursecontroller.GetStudentCourseList(studentID)
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := sql.Open("postgres", database.PsqlInfo())
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	for _, c := range courselist {
-		sqlStatement := `SELECT testid, topic, description, datestart, duration, timestart FROM test WHERE coursecode=$1 and status='false' and situation != 'finish';`
-		rows, err := db.Query(sqlStatement, c.CourseCode)
-		if err != nil {
-			fmt.Println(err.Error())
-			return nil, err
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err = rows.Scan(&t.TestID, &t.Topic, &t.Description, &t.Datestart, &t.Duration, &t.Timestart)
-			if err != nil {
-				return nil, err
-			}
-			t.CourseCode = c.CourseCode
-			t.Status = "false"
-			testList = append(testList, t)
-
-			check := true
-
-			for _, d := range testdates {
-				if d == t.Datestart {
-					check = false
-				}
-			}
-
-			if check {
-				testdates = append(testdates, t.Datestart)
-			}
-
-		}
-		err = rows.Err()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	sortedDate, err := sortDate(testdates)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(sortedDate)
-	fmt.Println(testList)
-
-	for _, d := range sortedDate {
-		for _, l := range testList {
-			if d == l.Datestart {
-				t = l
-				testData = append(testData, t)
-			}
-		}
-
-		sortedTestData, err := sortTime(testData)
-		if err != nil {
-			return nil, err
-		}
-
-		o.Set(d, sortedTestData)
-		testData = nil
-	}
-
-	b, err := o.MarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}*/
 
 func studentGetTestList(studentID string) ([]byte, error) {
 
@@ -747,26 +656,36 @@ func UpdateTestSituation() error{
 		}
 		hr, min, _ := timeStamp.Clock()
 
-		duration, _ := strconv.Atoi(t.Duration)
+		duration, err := strconv.Atoi(t.Duration)
+		if err != nil{
+			return err
+		}
 
+		durationHour := 0
 		durationDay :=0
 		durationMonth := 0
 		durationYear := 0
 	
-		for duration > 24 {
-			duration -= 24
-			durationDay += 1
-			if durationDay > 30 {
-				durationDay = 0
-				durationMonth += 1
-				if durationMonth > 12 {
-					durationMonth = 0
-					durationYear += 1
+		for duration > 60{
+			duration -= 60
+			durationHour += 1
+			for duration > 24 {
+				duration -= 24
+				durationDay += 1
+				if durationDay > 30 {
+					durationDay = 0
+					durationMonth += 1
+					if durationMonth > 12 {
+						durationMonth = 0
+						durationYear += 1
+					}
 				}
 			}
 		}
 	
 		startHour, _ := strconv.Atoi(t.Timestart[0:2])
+
+		startMinute, _ := strconv.Atoi(t.Timestart[3:5])
 
 		startDay, _ := strconv.Atoi(t.Datestart[8:10])
 
@@ -774,7 +693,26 @@ func UpdateTestSituation() error{
 
 		startYear, _ := strconv.Atoi(t.Datestart[0:4])
 
-		finishHour := startHour + duration
+
+		finishMinute := startMinute + duration
+		if finishMinute > 60{
+			finishMinute = finishMinute%60
+			durationHour += 1
+			if durationHour > 60{
+				durationHour = 0
+				durationDay += 1
+				if durationDay > 30 {
+					durationDay = 0
+					durationMonth += 1
+					if durationMonth > 12 {
+						durationMonth = 0
+						durationYear += 1
+					}
+				}
+			}
+		}
+
+		finishHour := startHour + durationHour
 		if finishHour > 24{
 			finishHour = finishHour%24
 			durationDay += 1
@@ -825,6 +763,7 @@ func UpdateTestSituation() error{
 		dateFinish := yearFinishString + "-" + monthFinishString + "-" + dayFinishString
 
 		var finishHourString string
+		var finishMinuteString string
 
 		var strHr string
 		var strMin string
@@ -846,13 +785,23 @@ func UpdateTestSituation() error{
 			finishHourString = strconv.Itoa(finishHour)
 		}
 
+		if finishMinute < 10 {
+			finishMinuteString = "0" + strconv.Itoa(finishMinute)
+		}else{
+			finishMinuteString = strconv.Itoa(finishMinute)
+		}
+
 		timeNow := strHr + ":" + strMin
 
-		timeFinish := finishHourString + ":" + t.Timestart[3:5]
+		timeFinish := finishHourString + ":" + finishMinuteString
+
+		fmt.Println(timeNow)
+		fmt.Println(timeFinish)
+		fmt.Println("----------")
 
 		if dateNow == t.Datestart && timeNow == t.Timestart  && t.Situation == "wait"{
-			sqlStatement := `UPDATE test SET situation=$1 WHERE testid=$2`
-			_, err = db.Exec(sqlStatement, "start", t.TestID)
+			sqlStatement := `UPDATE test SET situation=$1,status=$2 WHERE testid=$3`
+			_, err = db.Exec(sqlStatement, "start", "false", t.TestID)
 			if err != nil {
 				return err
 			}
@@ -1036,4 +985,16 @@ var GetAllFinishTestInCourse = http.HandlerFunc(func(w http.ResponseWriter, r *h
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(finishTests)
+})
+
+var TestUpdateSituation = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	err := UpdateTestSituation()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("200 - OK")
 })
