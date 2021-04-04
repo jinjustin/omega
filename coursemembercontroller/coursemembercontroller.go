@@ -259,7 +259,7 @@ func addTeacherToCourse(username string, courseCode string) []byte {
 
 		sqlStatement = `INSERT INTO coursemember (coursecode, userid, role, status)VALUES ($1, $2, $3, $4)`
 
-		_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "pending")
+		_, err = db.Exec(sqlStatement, courseCode, userID, "teacher", "join")
 		if err != nil {
 			panic(err)
 		}
