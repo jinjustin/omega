@@ -350,7 +350,9 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					}else{
 						io.URL = url
 						io.UID = "-1"
-						questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+						questionChoice.ImageLink = make([]choice.ImageObject, 1)
+						questionChoice.ImageLink[0] = io
+						//questionChoice.ImageLink = append(questionChoice.ImageLink,io)
 					}
 					
 					questionChoices = append(questionChoices, questionChoice)
@@ -443,7 +445,9 @@ func getAllQuestionInTest(courseID string, testID string) ([]byte, error) {
 					}else{
 						io.URL = url
 						io.UID = "-1"
-						questionChoice.ImageLink = append(questionChoice.ImageLink,io)
+						questionChoice.ImageLink = make([]choice.ImageObject, 1)
+						questionChoice.ImageLink[0] = io
+						//questionChoice.ImageLink = append(questionChoice.ImageLink,io)
 					}
 					questionChoices = append(questionChoices, questionChoice)
 				}
